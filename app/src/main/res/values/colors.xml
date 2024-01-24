@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="textColor">#53E88B</color>
+
+    <color name="startColor">#53E88B</color>
+    <color name="endColor">#15BE77</color>
+    <color name="bgColor">#D4DBE0</color>
+
+    <color name="iconColor">#FEAD1D</color>
+    <color name="navy"> #316FF6</color>
+    <color name="Dark_navy">#1156ED</color>
+    <color name="ThickAsh">#70727A</color>
+    <color name="LiteAsh">#A9AAAF</color>
+    <color name="lytback">#C7D9F3</color>
+    <color name="itemGray">#BAB9B9</color>
+    <color name="green">#39C13F</color>
+    <color name="gold">#FFD770</color>
+    <color name="red">#C30D0D</color>
+</resources>

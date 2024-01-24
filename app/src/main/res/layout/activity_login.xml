@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bgColor"
+    tools:context=".ui.activities.LoginActivity">
+
+
+    <ImageView
+        android:id="@+id/imageViewLoginIcon"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="32dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/sampleicon"
+        android:contentDescription="@string/image_desc_text" />
+
+    <TextView
+        android:id="@+id/textViewLoginTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/inika_regular"
+        android:text="Sea Food"
+        android:textStyle="bold"
+        android:textSize="40sp"
+        app:layout_constraintEnd_toEndOf="@+id/imageViewLoginIcon"
+        app:layout_constraintStart_toStartOf="@+id/imageViewLoginIcon"
+        app:layout_constraintTop_toBottomOf="@+id/imageViewLoginIcon" />
+
+    <TextView
+        android:id="@+id/textView7"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:fontFamily="@font/inika_regular"
+        android:text="Deliver favourite sea creatures"
+        android:textColor="@color/black"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="@+id/textViewLoginTitle"
+        app:layout_constraintStart_toStartOf="@+id/textViewLoginTitle"
+        app:layout_constraintTop_toBottomOf="@+id/textViewLoginTitle" />
+
+    <TextView
+        android:id="@+id/textViewLogin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/inika_regular"
+        android:text="@string/login_to_your_account"
+        android:textColor="@color/navy"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="@+id/textView7"
+        app:layout_constraintHorizontal_bias="0.523"
+        app:layout_constraintStart_toStartOf="@+id/textView7"
+        app:layout_constraintTop_toBottomOf="@+id/textView7" />
+
+    <EditText
+        android:id="@+id/editTextLoginTextEmailAddress"
+        android:layout_width="337dp"
+        android:layout_height="57dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="32dp"
+        android:background="@drawable/edittextshape"
+        android:drawableStart="@drawable/mail_02"
+        android:drawablePadding="15dp"
+        android:elevation="5dp"
+        android:ems="10"
+        android:fontFamily="@font/inika_regular"
+        android:hint="@string/email"
+        android:inputType="textEmailAddress"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        app:layout_constraintEnd_toEndOf="@+id/textViewLogin"
+        app:layout_constraintHorizontal_bias="0.518"
+        app:layout_constraintStart_toStartOf="@+id/textViewLogin"
+        app:layout_constraintTop_toBottomOf="@+id/textViewLogin"
+        android:autofillHints="emailAddress" />
+
+    <EditText
+        android:id="@+id/editTextLoginTextPassword"
+        android:layout_width="337dp"
+        android:layout_height="57dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/edittextshape"
+        android:drawableStart="@drawable/lock"
+        android:drawablePadding="15dp"
+        android:elevation="5dp"
+        android:ems="10"
+        android:fontFamily="@font/inika_regular"
+        android:hint="@string/password"
+        android:inputType="textPassword"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:singleLine="true"
+        app:layout_constraintEnd_toEndOf="@+id/editTextLoginTextEmailAddress"
+        app:layout_constraintStart_toStartOf="@+id/editTextLoginTextEmailAddress"
+        app:layout_constraintTop_toBottomOf="@+id/editTextLoginTextEmailAddress"
+        android:autofillHints="password" />
+
+    <TextView
+        android:id="@+id/textView9"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/inika_regular"
+        android:text="@string/or"
+        app:layout_constraintEnd_toEndOf="@+id/editTextLoginTextPassword"
+        app:layout_constraintStart_toStartOf="@+id/editTextLoginTextPassword"
+        app:layout_constraintTop_toBottomOf="@+id/editTextLoginTextPassword" />
+
+    <TextView
+        android:id="@+id/textView10"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/inika_regular"
+        android:text="@string/continue_with"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="@+id/textView9"
+        app:layout_constraintStart_toStartOf="@+id/textView9"
+        app:layout_constraintTop_toBottomOf="@+id/textView9" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/googleLoginbutton"
+        android:layout_width="152dp"
+        android:layout_height="57dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="128dp"
+        android:background="@drawable/whitebutton"
+        android:drawableStart="@drawable/google_icon"
+        android:fontFamily="@font/inika_regular"
+        android:padding="20dp"
+        android:text="@string/google"
+        android:textColor="@color/black"
+        android:textAllCaps="false"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView10" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/loginButton"
+        android:layout_width="152dp"
+        android:layout_height="57dp"
+        android:background="@drawable/greenbuttongradent"
+        android:fontFamily="@font/inika_regular"
+        android:text="@string/login"
+        android:textAllCaps="false"
+        android:layout_marginTop="25dp"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/googleLoginbutton"/>
+
+    <TextView
+        android:id="@+id/textViewCreateNewAccount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/don_t_have_account"
+        android:textColor="@color/navy"
+        android:textSize="14sp"
+        android:fontFamily="@font/inika_regular"
+        app:layout_constraintEnd_toEndOf="@+id/loginButton"
+        app:layout_constraintStart_toStartOf="@+id/loginButton"
+        app:layout_constraintTop_toBottomOf="@+id/loginButton" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
