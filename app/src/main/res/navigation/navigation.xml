@@ -7,27 +7,27 @@
 
     <fragment
         android:id="@+id/homeFragment"
-        android:name="com.example.sea.ui.activities.fragments.HomeFragment"
+        android:name="com.example.seafishfy.ui.activities.fragments.HomeFragment"
         android:label="fragment_home"
         tools:layout="@layout/fragment_home" />
     <fragment
         android:id="@+id/cartFragment"
-        android:name="com.example.sea.ui.activities.fragments.CartFragment"
+        android:name="com.example.seafishfy.ui.activities.fragments.CartFragment"
         android:label="fragment_cart"
         tools:layout="@layout/fragment_cart" />
     <fragment
         android:id="@+id/searchFragment"
-        android:name="com.example.sea.ui.activities.fragments.SearchFragment"
+        android:name="com.example.seafishfy.ui.activities.fragments.SearchFragment"
         android:label="fragment_search"
         tools:layout="@layout/fragment_search" />
     <fragment
         android:id="@+id/historyFragment"
-        android:name="com.example.sea.ui.activities.fragments.HistoryFragment"
+        android:name="com.example.seafishfy.ui.activities.fragments.HistoryFragment"
         android:label="fragment_history"
         tools:layout="@layout/fragment_history" />
     <fragment
         android:id="@+id/profileFragment"
-        android:name="com.example.sea.ui.activities.fragments.ProfileFragment"
+        android:name="com.example.seafishfy.ui.activities.fragments.ProfileFragment"
         android:label="fragment_profile"
         tools:layout="@layout/fragment_profile" />
 </navigation>

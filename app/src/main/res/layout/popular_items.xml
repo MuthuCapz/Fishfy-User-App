@@ -7,8 +7,8 @@
     android:layout_height="wrap_content">
 
     <androidx.cardview.widget.CardView
-        android:layout_width="0dp"
-        android:layout_height="87dp"
+        android:layout_width="200dp"
+        android:layout_height="260dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="5dp"
         android:layout_marginEnd="8dp"
@@ -16,7 +16,6 @@
         android:elevation="4dp"
         app:cardCornerRadius="22dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -26,11 +25,10 @@
 
             <ImageView
                 android:id="@+id/imageViewPopularItems"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:layout_marginStart="8dp"
+                android:layout_width="200dp"
+                android:layout_height="150dp"
+                android:layout_marginStart="0dp"
                 android:scaleType="centerCrop"
-                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:srcCompat="@tools:sample/avatars"
@@ -39,48 +37,49 @@
 
             <TextView
                 android:id="@+id/PricePopularItems"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginEnd="30dp"
+                android:layout_width="80dp"
+                android:layout_height="40dp"
+                android:background="@drawable/greenbuttongradent"
+                android:layout_marginTop="205dp"
+                android:layout_marginEnd="10dp"
+                android:paddingTop="9dp"
+                android:paddingStart="9dp"
                 android:fontFamily="@font/lato_regular"
-                android:gravity="center"
                 android:text="₹35"
-                android:textColor="@color/navy"
-                android:textSize="24sp"
+                android:textColor="@color/white"
+                android:textSize="18sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="1.0"
-                app:layout_constraintStart_toEndOf="@+id/foodNamePopularItems"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:id="@+id/foodNamePopularItems"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="160dp"
                 android:fontFamily="@font/inika_regular"
                 android:text="@string/food_name"
                 android:textColor="@color/black"
-                android:textSize="16sp"
-                app:layout_constraintBottom_toBottomOf="@+id/imageViewPopularItems"
-                app:layout_constraintStart_toEndOf="@+id/imageViewPopularItems"
-                app:layout_constraintTop_toTopOf="@+id/imageViewPopularItems" />
+                android:textSize="20sp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"/>
 
-            <androidx.appcompat.widget.AppCompatButton
+            <ImageButton
                 android:id="@+id/addToCartPopularItemsButton"
-                android:layout_width="80dp"
-                android:layout_height="30dp"
-                android:layout_marginTop="6dp"
-                android:layout_marginEnd="16dp"
-                android:background="@drawable/greenbuttongradent"
+                android:layout_width="23dp"
+                android:layout_height="23dp"
+                android:layout_marginTop="215dp"
+                android:layout_marginEnd="20dp"
+                android:src="@drawable/vector"
+                android:backgroundTint="@color/navy"
                 android:fontFamily="@font/inika_regular"
                 android:gravity="center"
-                android:text="@string/add_to_cart"
+                android:text=""
                 android:textAllCaps="false"
-                android:textColor="@color/white"
                 android:textSize="12sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/PricePopularItems" />
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.cardview.widget.CardView>

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="350dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="8dp"
+        app:cardCornerRadius="22dp"
+        app:cardElevation="15dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp"
+            android:orientation="horizontal">
+            <ImageView
+                android:id="@+id/foodImage"
+                android:layout_width="65dp"
+                android:scaleType="fitXY"
+                android:adjustViewBounds="true"
+
+                android:layout_height="65dp"
+                />
+            <ImageView
+                android:id="@+id/foodImage1"
+                android:layout_width="65dp"
+                android:layout_height="65dp"
+                android:scaleType="fitXY"
+
+                android:adjustViewBounds="true"
+                android:layout_marginStart="10dp"/>
+            <ImageView
+                android:id="@+id/foodImage2"
+                android:layout_width="65dp"
+                android:layout_height="65dp"
+                android:scaleType="centerCrop"
+                android:adjustViewBounds="true"
+                android:layout_marginStart="10dp"/>
+
+            <ImageView
+                android:id="@+id/foodImage3"
+                android:layout_width="65dp"
+                android:layout_height="65dp"
+                android:scaleType="centerCrop"
+                android:adjustViewBounds="true"
+                android:layout_marginStart="10dp"/>
+
+            <ImageView
+                android:id="@+id/foodImage4"
+                android:layout_width="65dp"
+                android:layout_height="65dp"
+                android:scaleType="centerCrop"
+                android:adjustViewBounds="true"
+                android:layout_marginStart="10dp"/>
+
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/three"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="100dp"
+            android:layout_marginStart="20dp"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/cid"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="16dp"
+                android:fontFamily="@font/lato_regular"
+                android:textColor="@color/black"
+                android:text="Customer Id :"/>
+
+            <TextView
+                android:id="@+id/oid"
+                android:textSize="16dp"
+                android:fontFamily="@font/lato_regular"
+                android:layout_marginTop="20dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/black"
+                android:text="Order Id :"/>
+
+            <TextView
+                android:id="@+id/foodName"
+                android:textSize="16dp"
+                android:fontFamily="@font/lato_regular"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:textColor="@color/black"
+                android:text="Food Name :"/>
+
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="218dp"
+            android:layout_marginStart="20dp"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/foodPrice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="16dp"
+                android:fontFamily="@font/lato_regular"
+                android:textColor="@color/black"
+                android:text="Food Price:"/>
+
+            <TextView
+                android:id="@+id/quantity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="100dp"
+                android:textSize="16dp"
+                android:fontFamily="@font/lato_regular"
+                android:textColor="@color/black"
+                android:text="Quantity :"/>
+
+        </LinearLayout>
+
+
+        <Button
+            android:id="@+id/orderstatus"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_marginTop="270dp"
+            android:textSize="16dp"
+            android:fontFamily="@font/lato_regular"
+            android:backgroundTint="@color/navy"
+            android:layout_marginStart="40dp"
+            android:text="Order Status" />
+        <RadioButton
+            android:id="@+id/radio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cancel Order"
+            android:textSize="16dp"
+            android:fontFamily="@font/lato_regular"
+            android:textColor="@color/black"
+            android:layout_marginTop="270dp"
+            android:layout_marginStart="220dp"/>
+
+    </androidx.cardview.widget.CardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,9 @@
+<!-- address_menu.xml -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/use_current_location"
+        android:title="Use Current Location"
+        />
+
+    <!-- Add more saved addresses as needed -->
+</menu>

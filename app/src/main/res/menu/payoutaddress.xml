@@ -1,0 +1,10 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/menu_saved_location"
+        android:title="Saved Location" />
+
+    <item
+        android:id="@+id/menu_current_location"
+        android:title="Current Location" />
+</menu>

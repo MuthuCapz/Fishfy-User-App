@@ -62,8 +62,16 @@
     <string name="history">History</string>
     <string name="profile">Profile</string>
 
-    <string name="default_web_client_Id">179720421894-0gvinp3rlglui23ktgo0r36pofumcu9q.apps.googleusercontent.com</string>
+    <string name="default_web_client_Id">646492882054-q61o0fqaiq6neostd81k87sav19sa72e.apps.googleusercontent.com</string>
     <string name="deal_of_the_day">Deal Of The Day</string>
     <string name="welcome_to_fresh_catch_feast">Welcome To Fresh Catch Feast</string>
     <string name="sea_food">Sea Food</string>
+    <string name="addresss">Address ▼</string>
+    <string name="title_activity_track">TrackActivity</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="previous">Previous</string>
+
+
 </resources>

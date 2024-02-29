@@ -2,6 +2,7 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="ash">#DDBFBBBB</color>
     <color name="textColor">#53E88B</color>
 
     <color name="startColor">#53E88B</color>
@@ -10,6 +11,10 @@
 
     <color name="iconColor">#FEAD1D</color>
     <color name="navy"> #316FF6</color>
+    <color name="blue">#4274DF</color>
+    <color name="pink">#F4399A</color>
+    <color name="lpink">#F199B6</color>
+    <color name="llpink">#EDB1C5</color>
     <color name="Dark_navy">#1156ED</color>
     <color name="ThickAsh">#70727A</color>
     <color name="LiteAsh">#A9AAAF</color>

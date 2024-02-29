@@ -9,16 +9,20 @@
     android:paddingStart="6dp"
     android:paddingEnd="6dp"
     tools:context=".ui.activities.fragments.ProfileFragment">
-
+<ScrollView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"/>
     <ImageView
         android:id="@+id/logout"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:src="@drawable/logout_icon"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="13dp"
         android:layout_marginStart="20dp"/>
+
+
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -27,7 +31,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
 
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="MissingClass">
 
 
         <com.google.android.material.button.MaterialButton
@@ -39,13 +44,17 @@
             android:layout_height="wrap_content"
             android:text="Edit Profile" />
 
-
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/profile_tv"
+            android:layout_marginStart="110dp"
+            android:layout_width="150dp"
+            android:layout_height="150dp"/>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="57dp"
             android:layout_marginStart="10dp"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="20dp"
             android:layout_marginEnd="10dp"
             android:background="@drawable/profile_edit_text"
             android:elevation="2dp"
@@ -70,8 +79,9 @@
                 android:ems="10"
                 android:id="@+id/profileName"
                 android:fontFamily="@font/lato_regular"
-                android:hint="@string/name"
+                android:hint="   name"
                 android:inputType="text"
+                android:textColor="@color/black"
                 android:paddingStart="0dp"
                 android:paddingEnd="12dp"
                 android:autofillHints="name" />
@@ -88,31 +98,9 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <TextView
-                android:layout_width="20dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:fontFamily="@font/inika_regular"
-                android:text="@string/address"
-                android:textColor="@color/black"
-                android:textSize="18sp" />
 
-            <EditText
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:layout_marginBottom="5dp"
-                android:layout_weight="1"
-                android:background="@android:color/transparent"
-                android:ems="10"
-                android:id="@+id/profileAddress"
-                android:paddingStart="0dp"
-                android:paddingEnd="12dp"
-                android:fontFamily="@font/lato_regular"
-                android:hint="@string/address_Dummy"
-                android:inputType="textMultiLine"
-                android:autofillHints="postalAddress" />
+
+
         </LinearLayout>
 
         <LinearLayout
@@ -144,9 +132,10 @@
                 android:ems="10"
                 android:id="@+id/profileEmail"
                 android:paddingStart="0dp"
+                android:textColor="@color/black"
                 android:paddingEnd="12dp"
                 android:fontFamily="@font/lato_regular"
-                android:hint="@string/admin_email"
+                android:hint="   name@gmail.com"
                 android:inputType="textEmailAddress"
                 android:autofillHints="emailAddress" />
         </LinearLayout>
@@ -179,15 +168,17 @@
                 android:layout_weight="1"
                 android:background="@android:color/transparent"
                 android:ems="10"
+                android:textColor="@color/black"
                 android:id="@+id/profilePhoneNumber"
                 android:fontFamily="@font/lato_regular"
-                android:hint="@string/phone_number"
+                android:hint="   phone_number"
                 android:inputType="number"
                 android:autofillHints="phone" />
+
         </LinearLayout>
 
-
     </LinearLayout>
+
 
 
     <androidx.appcompat.widget.AppCompatButton
@@ -196,7 +187,7 @@
         android:layout_height="57dp"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
-        android:layout_marginBottom="32dp"
+        android:layout_marginBottom="22dp"
         android:background="@drawable/profile_edit_text"
         android:elevation="5dp"
         android:fontFamily="@font/inika_regular"
@@ -207,4 +198,5 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

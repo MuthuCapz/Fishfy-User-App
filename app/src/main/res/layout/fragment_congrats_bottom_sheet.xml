@@ -23,13 +23,15 @@
         android:textAlignment="center"
         android:text="@string/congrats_your_order_placed" />
 
-    <ImageView
+    <com.airbnb.lottie.LottieAnimationView
         android:id="@+id/imageView4"
         android:layout_gravity="center"
         android:layout_width="300dp"
         android:layout_marginTop="30dp"
         android:layout_height="300dp"
-        android:src="@drawable/sucess"
+        app:lottie_fileName="Animation.json"
+        app:lottie_speed="1"
+        app:lottie_loop="true"
         android:contentDescription="@string/image_desc_text" />
 
     <androidx.appcompat.widget.AppCompatButton
@@ -40,7 +42,7 @@
         android:layout_marginTop="32dp"
         android:background="@drawable/greenbuttongradent"
         android:fontFamily="@font/inika_regular"
-        android:text="@string/go_home"
+        android:text="Order Status"
         android:textAllCaps="false"
         android:textColor="@color/white"
         android:textSize="20sp"
