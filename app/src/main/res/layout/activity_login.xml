@@ -68,7 +68,7 @@
 
         android:background="@drawable/whitebutton"
         android:drawableStart="@drawable/google_icon"
-        android:paddingStart="20dp"
+        android:paddingStart="40dp"
         android:fontFamily="@font/inika_regular"
         android:padding="0dp"
         android:text="@string/google"

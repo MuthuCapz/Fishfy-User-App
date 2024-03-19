@@ -134,7 +134,7 @@ class PayoutActivity : AppCompatActivity() {
             } else if (!isValidPhoneNumber(phoneNumber)) {
                 Toast.makeText(this, "Please enter a valid phone number", Toast.LENGTH_SHORT).show()
             } else {
-                placeTheOrder()
+               placeTheOrder()
             }
 
 //            val bottomSheetDialog = CongratsBottomSheetFragment()
@@ -318,17 +318,9 @@ class PayoutActivity : AppCompatActivity() {
     }
 
     private fun placeTheOrder() {
-        userId = auth.currentUser?.uid ?: ""
 
-        val time = System.currentTimeMillis()
-        val itemPushKey = databaseReference.child("OrderDetails").push().key
-        val orderDetails = OrderDetails(
-            userId, name, foodItemName, foodItemPrice, foodItemImage, foodItemQuantities,
-            address, totalAmount, phoneNumber, time, itemPushKey, false, false
-        )
         showPaymentOptions()
-        removeItemFromCart()
-        addOrderToHistory(orderDetails)
+
 
     }
 
