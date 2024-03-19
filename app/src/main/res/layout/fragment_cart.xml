@@ -14,6 +14,7 @@
         android:layout_marginTop="8dp"
         android:fontFamily="@font/inika_regular"
         android:text="@string/cart"
+        android:textColor="@color/black"
         android:textSize="22sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

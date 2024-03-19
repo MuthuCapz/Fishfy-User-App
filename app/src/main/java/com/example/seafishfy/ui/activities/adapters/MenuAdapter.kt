@@ -52,20 +52,20 @@ class  MenuAdapter(
             intent.putExtra("MenuItemName",menuItem.foodName)
             intent.putExtra("MenuItemPrice",menuItem.foodPrice)
             intent.putExtra("MenuItemDescription",menuItem.foodDescription)
-            intent.putExtra("MenuItemIngredient",menuItem.foodIngredient)
             intent.putExtra("MenuItemImage",menuItem.foodImage)
             requireContext.startActivity(intent)  // Start the  details Activity
         }
 
         // Set data in to recyclerView Items name price image
+
         fun bind(position: Int) {
             val menuItem = menuItems[position]
             binding.apply {
                 menuFoodName.text = menuItem.foodName
-                menuPrice.text = menuItem.foodPrice
+                val priceWithPrefix = "₹${menuItem.foodPrice}" // Prefixing the price with "₹"
+                menuPrice.text = priceWithPrefix
                 val url = Uri.parse(menuItem.foodImage)
                 Glide.with(requireContext).load(url).into(menuImage)
-
             }
         }
     }

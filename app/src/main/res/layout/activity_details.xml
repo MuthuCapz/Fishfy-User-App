@@ -53,19 +53,46 @@
             tools:srcCompat="@tools:sample/avatars"
             android:contentDescription="@string/image_desc_text" />
     </androidx.cardview.widget.CardView>
-
+    <TextView
+        android:id="@+id/textView21"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:layout_marginStart="35dp"
+        android:layout_marginTop="16dp"
+        android:text="₹200"
+        android:padding="5dp"
+        android:textStyle="bold"
+        android:textSize="24sp"
+        android:textColor="@color/blue"
+        android:fontFamily="@font/lato_bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cardView3" />
+    <TextView
+        android:id="@+id/textView22"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:layout_marginStart="170dp"
+        android:layout_marginTop="16dp"
+        android:text="/1kg"
+        android:padding="5dp"
+        android:textStyle="bold"
+        android:textSize="24sp"
+        android:textColor="@color/green"
+        android:fontFamily="@font/lato_bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cardView3" />
     <TextView
         android:id="@+id/textView20"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="25dp"
         android:text="@string/short_description"
         android:textSize="20sp"
         android:textColor="@color/black"
         android:fontFamily="@font/inika_regular"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cardView3" />
+        app:layout_constraintTop_toBottomOf="@+id/textView21" />
 
     <TextView
         android:id="@+id/detailsShortDescriptionTextView"
@@ -81,38 +108,50 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView20" />
 
-    <TextView
-        android:id="@+id/textView22"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Quantity"
-        android:textSize="24sp"
-        android:textColor="@color/black"
-        android:fontFamily="@font/inika_regular"
-        app:layout_constraintEnd_toEndOf="@+id/detailsShortDescriptionTextView"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/detailsShortDescriptionTextView"
-        app:layout_constraintTop_toBottomOf="@+id/detailsShortDescriptionTextView" />
+
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/minusImageButton"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/add_to_cart_shape"
+        android:padding="2dp"
+        android:src="@drawable/minus"
+        app:layout_constraintBottom_toBottomOf="@+id/plusImageButton"
+        app:layout_constraintEnd_toStartOf="@+id/quantityText"
+        app:layout_constraintTop_toTopOf="@+id/plusImageButton" />
 
     <TextView
-        android:id="@+id/detailIngredientsTextView"
+        android:id="@+id/quantityText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:fontFamily="@font/inika_regular"
-        android:text="@string/ing_show_berry"
-        app:layout_constraintEnd_toEndOf="@+id/textView22"
-        app:layout_constraintHorizontal_bias="0.0"
-        android:textSize="14sp"
-        app:layout_constraintStart_toStartOf="@+id/textView22"
-        app:layout_constraintTop_toBottomOf="@+id/textView22" />
+        android:layout_marginEnd="8dp"
+        android:fontFamily="@font/lato_bold"
+        android:text="@string/_1"
+        app:layout_constraintBottom_toBottomOf="@+id/plusImageButton"
+        app:layout_constraintEnd_toStartOf="@+id/plusImageButton"
+        app:layout_constraintTop_toTopOf="@+id/plusImageButton" />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/plusImageButton"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginTop="330dp"
+        android:layout_marginEnd="40dp"
+        android:background="@drawable/add_to_cart_shape"
+        android:padding="2dp"
+        android:src="@drawable/plus"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/detailAddToCartButton"
         android:layout_width="326dp"
         android:layout_height="57dp"
-        android:layout_marginTop="42dp"
+        android:layout_marginTop="90dp"
         android:background="@drawable/greenbuttongradent"
         android:fontFamily="@font/inika_regular"
         android:text="@string/add_to_cart"
@@ -120,5 +159,5 @@
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/detailIngredientsTextView" />
+        app:layout_constraintTop_toBottomOf="@+id/detailsShortDescriptionTextView" />
 </androidx.constraintlayout.widget.ConstraintLayout>

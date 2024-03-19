@@ -15,6 +15,7 @@
         android:layout_marginBottom="5dp"
         app:cardCornerRadius="15dp"
         app:cardElevation="5dp"
+        app:cardBackgroundColor="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -24,17 +25,22 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <ImageView
-                android:id="@+id/cartImageView"
-                android:layout_width="62dp"
-                android:layout_height="64dp"
-                android:layout_marginStart="8dp"
-                android:contentDescription="@string/image_desc_text"
-                android:scaleType="centerCrop"
-                app:layout_constraintBottom_toBottomOf="parent"
+            <androidx.cardview.widget.CardView
+               android:id="@+id/cartImageView1"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginTop="15dp"
+                android:layout_marginStart="10dp"
+                app:cardCornerRadius="10dp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:srcCompat="@tools:sample/avatars" />
+                app:layout_constraintTop_toTopOf="parent">
+                <ImageView
+                    android:id="@+id/cartImageView"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:scaleType="centerCrop"
+                    tools:srcCompat="@tools:sample/avatars"/>
+            </androidx.cardview.widget.CardView>
 
             <TextView
                 android:id="@+id/cartFoodNameTextView"
@@ -43,9 +49,10 @@
                 android:layout_marginStart="8dp"
                 android:fontFamily="@font/inika_regular"
                 android:text="@string/cart_food_name"
+                android:textColor="@color/black"
                 android:textSize="16sp"
                 app:layout_constraintBottom_toTopOf="@+id/carItemPriceTextView"
-                app:layout_constraintStart_toEndOf="@+id/cartImageView"
+                app:layout_constraintStart_toEndOf="@+id/cartImageView1"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
@@ -57,20 +64,21 @@
                 android:text="@string/price"
                 android:textColor="@color/navy"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/cartImageView"
+                app:layout_constraintStart_toEndOf="@+id/cartImageView1"
                 app:layout_constraintTop_toBottomOf="@+id/cartFoodNameTextView" />
 
-            <androidx.appcompat.widget.AppCompatImageButton
-                android:id="@+id/minusImageButton"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+            <TextView
+                android:id="@+id/quantityT"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:background="@drawable/add_to_cart_shape"
-                android:padding="2dp"
-                android:src="@drawable/minus"
-                app:layout_constraintBottom_toBottomOf="@+id/plusImageButton"
-                app:layout_constraintEnd_toStartOf="@+id/quantityTextView"
-                app:layout_constraintTop_toTopOf="@+id/plusImageButton" />
+                android:fontFamily="@font/lato_bold"
+                android:text="Qty:"
+                android:textColor="@color/black"
+                android:layout_marginTop="15dp"
+                android:layout_marginStart="260dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:id="@+id/quantityTextView"
@@ -78,22 +86,14 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:fontFamily="@font/lato_bold"
-                android:text="@string/_1"
-                app:layout_constraintBottom_toBottomOf="@+id/plusImageButton"
-                app:layout_constraintEnd_toStartOf="@+id/plusImageButton"
-                app:layout_constraintTop_toTopOf="@+id/plusImageButton" />
-
-            <androidx.appcompat.widget.AppCompatImageButton
-                android:id="@+id/plusImageButton"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginEnd="16dp"
-                android:background="@drawable/add_to_cart_shape"
-                android:padding="2dp"
-                android:src="@drawable/plus"
-                app:layout_constraintEnd_toEndOf="parent"
+                android:text="1"
+                android:textColor="@color/black"
+                android:layout_marginTop="15dp"
+                android:layout_marginStart="300dp"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
+
+
 
             <androidx.appcompat.widget.AppCompatImageButton
                 android:id="@+id/deteleImageButton"
@@ -103,8 +103,9 @@
                 android:layout_marginBottom="8dp"
                 android:background="@android:color/transparent"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="@+id/plusImageButton"
-                app:layout_constraintStart_toStartOf="@+id/minusImageButton"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginStart="300dp"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/quantityTextView"
                 app:srcCompat="@drawable/trash_can"
                 tools:ignore="SpeakableTextPresentCheck" />

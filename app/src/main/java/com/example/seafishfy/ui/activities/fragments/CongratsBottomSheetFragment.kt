@@ -8,7 +8,6 @@ import android.view.ViewGroup
 
 import com.example.seafishfy.databinding.FragmentCongratsBottomSheetBinding
 
-import com.example.seafishfy.ui.activities.UserActivity
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.firebase.database.DatabaseReference
 
@@ -31,8 +30,6 @@ class CongratsBottomSheetFragment : BottomSheetDialogFragment() {
         binding.imageView4.playAnimation()
         binding.goBackHomeButton.setOnClickListener {
             //dismiss()
-            val intent = Intent(requireContext(), UserActivity::class.java)
-            requireContext().startActivity(intent)
 
         }
          return binding.root

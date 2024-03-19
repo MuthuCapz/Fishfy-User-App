@@ -15,20 +15,19 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Base.Theme.Sea"
-        tools:targetApi="31">
+        android:theme="@style/AppTheme.Dark"
+        tools:targetApi="34">
+        <activity
+            android:name=".ui.activities.Discount"
+            android:exported="false" />
         <activity
             android:name=".ui.activities.ViewOrderDetails"
             android:exported="false" />
         <activity
             android:name=".ui.activities.OrderStatusActivity"
             android:exported="true" />
-        <activity
-            android:name=".ui.activities.UserActivity"
-            android:exported="true" />
-        <activity
-            android:name=".ui.activities.Map"
-            android:exported="true" />
+
+
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -37,9 +36,11 @@
         <activity
             android:name=".ui.activities.LocationActivity"
             android:exported="true" />
+
         <activity
-            android:name=".ui.activities.RecentOrderActivity"
+            android:name=".ui.activities.ContactusActivity"
             android:exported="true" />
+
         <activity
             android:name=".ui.activities.DetailsActivity"
             android:exported="false" />
@@ -49,14 +50,15 @@
         <activity
             android:name=".ui.activities.LoginActivity"
             android:exported="true" />
+
         <activity
             android:name=".ui.activities.StartActivity"
             android:exported="true" />
         <activity
-            android:name=".ui.activities.SplashScreen"
+            android:name=".ui.activities.MainActivity"
             android:exported="true" />
         <activity
-            android:name=".ui.activities.MainActivity"
+            android:name=".ui.activities.SplashScreen"
             android:exported="true"
             android:windowSoftInputMode="adjustPan">
             <intent-filter>

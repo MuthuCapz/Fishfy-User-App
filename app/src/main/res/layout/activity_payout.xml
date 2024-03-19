@@ -186,10 +186,10 @@
 
             <ImageView
                 android:layout_width="200dp"
-                android:layout_height="wrap_content"
+                android:layout_height="60dp"
                 android:layout_weight="1"
                 android:background="@android:color/transparent"
-                android:src="@drawable/cashondelivery" />
+                android:src="@drawable/gpay" />
         </LinearLayout>
 
         <LinearLayout

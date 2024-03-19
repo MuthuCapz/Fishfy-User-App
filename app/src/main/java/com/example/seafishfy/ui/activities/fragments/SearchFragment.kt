@@ -7,15 +7,17 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.seafishfy.databinding.FragmentSearchBinding
 import com.example.seafishfy.ui.activities.adapters.MenuAdapter
+import com.example.seafishfy.ui.activities.adapters.SearchAdapter
 import com.example.seafishfy.ui.activities.models.MenuItem
 import com.google.firebase.database.*
 
 class SearchFragment : Fragment() {
 
     private lateinit var binding: FragmentSearchBinding
-    private lateinit var adapter: MenuAdapter
+    private lateinit var adapter: SearchAdapter
     private lateinit var database: FirebaseDatabase
     private val orignelMenuItems = mutableListOf<MenuItem>()
 
@@ -62,8 +64,8 @@ class SearchFragment : Fragment() {
     }
 
     private fun setAdapter(filteredMenuItem: List<MenuItem>) {
-        adapter = MenuAdapter(filteredMenuItem, requireContext())
-        binding.menuRecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
+        adapter = SearchAdapter(filteredMenuItem, requireContext())
+        binding.menuRecyclerView.layoutManager = LinearLayoutManager(requireContext(),LinearLayoutManager.VERTICAL, false)
         binding.menuRecyclerView.adapter = adapter
     }
 

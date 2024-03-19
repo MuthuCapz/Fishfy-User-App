@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.location.Address
 import android.location.Geocoder
@@ -32,10 +33,10 @@ class LocationActivity : AppCompatActivity() {
     private lateinit var mainBinding: ActivityLocationBinding
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
     private lateinit var database: DatabaseReference
-
-    private val permissionId = 2
-    private val savedAddresses = mutableListOf<String>()
+    private lateinit var sharedPreferences: SharedPreferences
     private lateinit var adapter: AddressAdapter
+    private val permissionId = 2
+    private val ADDRESS_KEY = "SAVED_ADDRESSES"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,14 +47,15 @@ class LocationActivity : AppCompatActivity() {
         database = FirebaseDatabase.getInstance().reference
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
+        // Initialize SharedPreferences
+        sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+
         mainBinding.Locationbutton.setOnClickListener {
             getLocation()
         }
 
-        adapter = AddressAdapter(this, savedAddresses)
+        adapter = AddressAdapter(this, getSavedAddresses())
         mainBinding.listview.adapter = adapter
-
-
     }
 
     @SuppressLint("MissingPermission")
@@ -88,7 +90,7 @@ class LocationActivity : AppCompatActivity() {
             .setMessage("Do you want to save this address?")
             .setCancelable(false)
             .setPositiveButton("Yes") { dialog, _ ->
-                saveAddress(address)
+                saveAddress(address, locality)
                 dialog.dismiss()
                 navigateToMainActivity(address, locality)
             }
@@ -105,14 +107,23 @@ class LocationActivity : AppCompatActivity() {
         alertDialog.show()
     }
 
-    private fun saveAddress(address: String) {
-        val userId = auth.currentUser?.uid
-        if (userId != null) {
-            storeLocationAndAddressInFirebase(userId, address)
+    private fun saveAddress(address: String, locality: String) {
+        val savedAddressesSet = getSavedAddresses().toMutableSet()
+        if (!savedAddressesSet.contains(address)) {
+            savedAddressesSet.add(address)
+            val editor = sharedPreferences.edit()
+            editor.putStringSet(ADDRESS_KEY, savedAddressesSet)
+            editor.apply()
+
+            // Update the adapter to reflect the changes
+            adapter.updateAddresses(getSavedAddresses())
+            adapter.notifyDataSetChanged()
         } else {
-            Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Address already saved", Toast.LENGTH_SHORT).show()
         }
     }
+
+
 
     private fun navigateToMainActivity(address: String, locality: String) {
         val intent = Intent(this, MainActivity::class.java)
@@ -121,17 +132,8 @@ class LocationActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
-    private fun storeLocationAndAddressInFirebase(userId: String, address: String) {
-        val userLocationRef = database.child("locations").child(userId)
-        userLocationRef.push().setValue(address)
-            .addOnSuccessListener {
-                Toast.makeText(this, "Address stored in Firebase", Toast.LENGTH_SHORT).show()
-                savedAddresses.add(address)
-                adapter.notifyDataSetChanged()
-            }
-            .addOnFailureListener {
-                Toast.makeText(this, "Failed to store address in Firebase", Toast.LENGTH_SHORT).show()
-            }
+    private fun getSavedAddresses(): List<String> {
+        return sharedPreferences.getStringSet(ADDRESS_KEY, setOf())?.toList() ?: listOf()
     }
 
     private fun isLocationEnabled(): Boolean {

@@ -11,6 +11,7 @@
 
     <color name="iconColor">#FEAD1D</color>
     <color name="navy"> #316FF6</color>
+    <color name="lblue">#C4D7E6</color>
     <color name="blue">#4274DF</color>
     <color name="pink">#F4399A</color>
     <color name="lpink">#F199B6</color>
@@ -22,5 +23,5 @@
     <color name="itemGray">#BAB9B9</color>
     <color name="green">#39C13F</color>
     <color name="gold">#FFD770</color>
-    <color name="red">#C30D0D</color>
+    <color name="red">#FA0404</color>
 </resources>

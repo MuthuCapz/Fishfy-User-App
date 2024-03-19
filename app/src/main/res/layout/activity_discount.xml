@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bgColor"
+    tools:context=".ui.activities.Discount">
+<TextView
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    android:text="Discount Products"
+    android:textSize="30sp"
+    android:textStyle="bold"
+    android:layout_marginStart="80dp"
+    android:layout_marginTop="20dp"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:text="30% off in each products"
+        android:textSize="25sp"
+        android:textStyle="bold"
+        android:textColor="@color/textColor"
+        android:layout_marginStart="70dp"
+        android:layout_marginTop="70dp"/>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/discountRecyclerView"
+        android:layout_width="match_parent"
+        app:layout_constraintStart_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="140dp"
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:spanCount="2"
+        tools:itemCount="10"
+        tools:listitem="@layout/discount_items" />
+</androidx.constraintlayout.widget.ConstraintLayout>

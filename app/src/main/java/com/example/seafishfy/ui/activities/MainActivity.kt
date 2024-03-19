@@ -13,6 +13,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.seafishfy.R
 import com.example.seafishfy.databinding.ActivityMainBinding
+import com.example.seafishfy.ui.activities.fragments.HomeFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 
@@ -27,11 +28,13 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+
         auth = FirebaseAuth.getInstance()
 
         binding.tvAddress.setOnClickListener {
             showPopupMenu(it)
         }
+
 
         // Check if fragmentContainerView exists in the layout
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainerView)
@@ -46,9 +49,12 @@ class MainActivity : AppCompatActivity() {
         val address = intent.getStringExtra("ADDRESS")
         val locality = intent.getStringExtra("LOCALITY")
 
+
+
+
         // Display the address and locality in TextViews
         binding.tvAddress.text = "Address: $address"
-         binding.tvLocality.text = " $locality"
+        binding.tvLocality.text = " $locality"
         // Check for null before setting up with NavController
         navController?.let {
             bottomNav.setupWithNavController(it)
