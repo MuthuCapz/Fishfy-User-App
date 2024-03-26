@@ -9,28 +9,30 @@ class OrderDetails() : Serializable {
     var userUid:String? = null
     var userName:String? = null
     var foodNames:MutableList<String>? = null
-    var foodPrices:MutableList<String>? = null
+    var foodPrices:MutableList<String>?  = null
     var foodImage:MutableList<String>? = null
     var foodQuantities:MutableList<Int>? = null
     var address  :String? = null
     var phone  :String? = null
-    var totalPrice  :String? = null
-
-    var orderAccepted: Boolean = false
-    var paymentReceived:Boolean = false
+    var orderAccepted: Boolean = true
+    var paymentReceived:Boolean = true
     var itemPushKey: String? = null
     var currentTime:Long = 0
+    var paymentMethod:String?=null
+    var adjustedTotalAmount: String?=null
 
     constructor(parcel: Parcel) : this() {
         userUid = parcel.readString()
         userName = parcel.readString()
         address = parcel.readString()
         phone = parcel.readString()
-        totalPrice = parcel.readString()
+
         orderAccepted = parcel.readByte() != 0.toByte()
         paymentReceived = parcel.readByte() != 0.toByte()
         itemPushKey = parcel.readString()
         currentTime = parcel.readLong()
+        paymentMethod = parcel.readString()
+        adjustedTotalAmount = parcel.readString()
     }
 
     constructor(
@@ -41,9 +43,10 @@ class OrderDetails() : Serializable {
         foodItemImage: ArrayList<String>,
         foodItemQuantities: ArrayList<Int>,
         address: String,
-        totalAmount: String,
         phoneNumber: String,
         time: Long,
+        paymentMethod:String,
+        adjustedTotalAmount: Int,
         itemPushKey: String?,
         b: Boolean,
         b1: Boolean
@@ -55,9 +58,11 @@ class OrderDetails() : Serializable {
         this.foodImage = foodItemImage
         this.foodQuantities = foodItemQuantities
         this.address = address
-        this.totalPrice = totalAmount
+
         this.phone = phoneNumber
         this.currentTime = time
+        this.paymentMethod = paymentMethod
+        this.adjustedTotalAmount = adjustedTotalAmount.toString()
         this.itemPushKey = itemPushKey
         this.orderAccepted = orderAccepted
         this.paymentReceived = paymentReceived
@@ -68,11 +73,13 @@ class OrderDetails() : Serializable {
         parcel.writeString(userName)
         parcel.writeString(address)
         parcel.writeString(phone)
-        parcel.writeString(totalPrice)
+
         parcel.writeByte(if (orderAccepted) 1 else 0)
         parcel.writeByte(if (paymentReceived) 1 else 0)
         parcel.writeString(itemPushKey)
         parcel.writeLong(currentTime)
+        parcel.writeString(paymentMethod)
+        parcel.writeString(adjustedTotalAmount)
     }
 
     fun describeContents(): Int {

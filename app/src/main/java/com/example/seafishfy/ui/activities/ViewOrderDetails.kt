@@ -101,7 +101,7 @@ class ViewOrderDetails : AppCompatActivity() {
             oid.text = "Order ID: ${order.itemPushKey}"
             cid.text = "User ID: ${order.userUid}"
             foodName.text = "Food Name: ${order.foodNames}"
-            foodPrice.text = "Food Price: ${order.totalPrice}"
+            foodPrice.text = "Food Price: ₹${order.adjustedTotalAmount}"
             quantity.text = "Quantity: ${order.foodQuantities}"
 
             orderDisplayedTime = Calendar.getInstance().timeInMillis // Capture current time

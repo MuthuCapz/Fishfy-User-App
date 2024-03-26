@@ -13,7 +13,6 @@ import com.google.firebase.database.*
 import android.view.View
 import androidx.core.app.ActivityCompat
 import android.Manifest
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.location.Location
@@ -35,11 +34,12 @@ class PayoutActivity : AppCompatActivity() {
     private lateinit var address: String
     private lateinit var phoneNumber: String
     private lateinit var totalAmount: String
-
+    private lateinit var paymentMethod: String
     private lateinit var auth: FirebaseAuth
     private lateinit var databaseReference: DatabaseReference
     private lateinit var userId: String
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
+    private var adjustedTotalAmount: Int = 0
 
     private lateinit var foodItemName: ArrayList<String>
     private lateinit var foodItemPrice: ArrayList<String>
@@ -49,11 +49,12 @@ class PayoutActivity : AppCompatActivity() {
     private lateinit var foodItemQuantities: ArrayList<Int>
 
 
+    private var status: String? = null
+
 
     private val PHONEPE_REQUEST_CODE = 101
     private val PAYTM_REQUEST_CODE = 102
     private val GOOGLE_PAY_REQUEST_CODE = 103
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -80,12 +81,11 @@ class PayoutActivity : AppCompatActivity() {
 
 
 
+
+
         binding.payoutTotalAmount.isEnabled = false
 
-
-
-
-        val destinationLocation = getLocationFromAddress("Thoothukudi")
+        val destinationLocation = getLocationFromAddress("Spic Nagar")
         if (destinationLocation != null) {
             if (ActivityCompat.checkSelfPermission(
                     this,
@@ -111,8 +111,9 @@ class PayoutActivity : AppCompatActivity() {
                 location?.let {
                     val distance = destinationLocation?.let { it1 -> calculateDistance(it, it1) }
                     val priceAdjustment = distance?.let { it1 -> adjustPriceBasedOnDistance(it1) }
-                    val adjustedTotalAmount = totalAmount.dropLast(1).toInt() + priceAdjustment!!
+                    var adjustedTotalAmount = totalAmount.dropLast(1).toInt() + priceAdjustment!!
 
+                    adjustedTotalAmount =adjustedTotalAmount
 
 
 
@@ -122,6 +123,7 @@ class PayoutActivity : AppCompatActivity() {
 
                 }
             }
+
 
         binding.placeMyOrderButton.setOnClickListener {
             // get data from Edittext
@@ -134,7 +136,7 @@ class PayoutActivity : AppCompatActivity() {
             } else if (!isValidPhoneNumber(phoneNumber)) {
                 Toast.makeText(this, "Please enter a valid phone number", Toast.LENGTH_SHORT).show()
             } else {
-               placeTheOrder()
+                placeTheOrder()
             }
 
 //            val bottomSheetDialog = CongratsBottomSheetFragment()
@@ -195,7 +197,7 @@ class PayoutActivity : AppCompatActivity() {
                 location?.let {
                     // Reverse geocode the coordinates to get the address
                     val geocoder = Geocoder(this, Locale.getDefault())
-                    val destinationLocation = getLocationFromAddress("Thoothukudi")
+                    val destinationLocation = getLocationFromAddress("Spic Nagar")
                     val distance = destinationLocation?.let { it1 -> calculateDistance(it, it1) }
                     val priceAdjustment = distance?.let { it1 -> adjustPriceBasedOnDistance(it1) }
                     val adjustedTotalAmount = totalAmount.dropLast(1).toInt() + priceAdjustment!!
@@ -229,7 +231,7 @@ class PayoutActivity : AppCompatActivity() {
             val addresses = geocoder.getFromLocationName(address, 1)
             if (addresses != null) {
                 if (addresses.isNotEmpty()) {
-                    val destinationLocation = Location("")
+                    val destinationLocation = Location("Spic Nagar")
                     destinationLocation.latitude = addresses!![0].latitude
                     destinationLocation.longitude = addresses!![0].longitude
                     return destinationLocation
@@ -320,8 +322,6 @@ class PayoutActivity : AppCompatActivity() {
     private fun placeTheOrder() {
 
         showPaymentOptions()
-
-
     }
 
     private fun showPaymentOptions() {
@@ -355,62 +355,73 @@ class PayoutActivity : AppCompatActivity() {
         dialog.show()
     }
 
-
-
     private fun redirectToPhonepe() {
-        val destinationUpiId = "9845779437.ibz@icici"
-        val destinationLocation = getLocationFromAddress("velavan hyper market thoothukudi")
-
-        if (destinationLocation != null) {
-            if (ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                // TODO: Handle location permissions
-                return
+        paymentMethod = "Phonepe"
+            val destinationLocation = getLocationFromAddress("Spic Nagar")
+            if (destinationLocation != null) {
+                if (ActivityCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    // Request permissions here if needed
+                    return
+                }
+            } else {
+                showToast("Error: Destination address not found")
             }
-        } else {
-            showToast("Error: Destination address not found")
-            return
+            mFusedLocationClient.lastLocation
+                .addOnSuccessListener { location ->
+                    location?.let {
+                        val distance = destinationLocation?.let { it1 -> calculateDistance(it, it1) }
+                        val priceAdjustment =
+                            distance?.let { it1 -> adjustPriceBasedOnDistance(it1) }
+                        val adjustedTotalAmount =
+                            totalAmount.dropLast(1).toInt() + priceAdjustment!!
+
+                        binding.payoutTotalAmount.text = adjustedTotalAmount.toString()
+                        val uri = Uri.Builder()
+                            .scheme("upi")
+                            .authority("pay")
+                            .appendQueryParameter("pa", "9845779437.ibz@icici") // PhonePe VPA
+                            .appendQueryParameter("pn", "Sheeba") // Recipient Name
+                            .appendQueryParameter("tn", "Fish") // Transaction Note
+                            .appendQueryParameter("am", adjustedTotalAmount.toString()) // Adjusted total amount
+                            .appendQueryParameter("cu", "INR") // Currency
+                            .build()
+                        val phonePePackageName = getPhonePePackageName(this)
+                        if (phonePePackageName != null) {
+                            // PhonePe is installed, use phonePePackageName
+                            val intent = Intent(Intent.ACTION_VIEW)
+                            intent.data = uri
+                            intent.setPackage(phonePePackageName)
+                            startActivityForResult(intent, PHONEPE_REQUEST_CODE)
+                        } else {
+                            // PhonePe is not installed, handle accordingly
+                            // For example, prompt the user to install PhonePe
+                        }
+                    }
+                }
         }
 
-        mFusedLocationClient.lastLocation
-            .addOnSuccessListener { location ->
-                location?.let {
-                    val distance = destinationLocation?.let { calculateDistance(it, it) }
-                    val priceAdjustment = distance?.let { adjustPriceBasedOnDistance(it) }
-                    val adjustedTotalAmount =
-                        totalAmount.dropLast(1).toInt() + (priceAdjustment ?: 0)
-
-                    binding.payoutTotalAmount.text = adjustedTotalAmount.toString()
-                    val uri = Uri.Builder()
-                        .scheme("upi")
-                        .authority("pay")
-                        .appendQueryParameter("pa", destinationUpiId)
-                        .appendQueryParameter("pn", "Fishfy")
-                        .appendQueryParameter("mc", "BCR2DN4T7XIZHYD3")
-                        .appendQueryParameter("tn", "Fish")
-                        .appendQueryParameter(
-                            "am",
-                            adjustedTotalAmount.toString()
-                        ) // Adjusted total amount
-                        .appendQueryParameter("cu", "INR")
-                        .build()
-                    val intent = Intent(Intent.ACTION_VIEW)
-                    intent.data = uri
-                    intent.setPackage("com.phonepe.app")
-                    startActivityForResult(intent, PHONEPE_REQUEST_CODE)
-                }
+    private fun getPhonePePackageName(context: Context): String? {
+        val pm = context.packageManager
+        val packages = pm.getInstalledApplications(PackageManager.GET_META_DATA)
+        for (packageInfo in packages) {
+            if (packageInfo.packageName.contains("phonepe", ignoreCase = true)) {
+                return packageInfo.packageName
             }
+        }
+        return null
     }
 
-    private fun redirectToPaytm() {
-        val destinationLocation = getLocationFromAddress("velavan hyper market thoothukudi")
 
+    private fun redirectToPaytm() {
+        paymentMethod = "Paytm"
+        val destinationLocation = getLocationFromAddress("Spic Nagar")
         if (destinationLocation != null) {
             if (ActivityCompat.checkSelfPermission(
                     this,
@@ -420,21 +431,26 @@ class PayoutActivity : AppCompatActivity() {
                     Manifest.permission.ACCESS_COARSE_LOCATION
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-                // TODO: Handle location permissions
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
                 return
             }
+
+
         } else {
             showToast("Error: Destination address not found")
-            return
         }
-
         mFusedLocationClient.lastLocation
             .addOnSuccessListener { location ->
                 location?.let {
-                    val distance = destinationLocation?.let { calculateDistance(it, it) }
-                    val priceAdjustment = distance?.let { adjustPriceBasedOnDistance(it) }
-                    val adjustedTotalAmount =
-                        totalAmount.dropLast(1).toInt() + (priceAdjustment ?: 0)
+                    val distance = destinationLocation?.let { it1 -> calculateDistance(it, it1) }
+                    val priceAdjustment = distance?.let { it1 -> adjustPriceBasedOnDistance(it1) }
+                    val adjustedTotalAmount = totalAmount.dropLast(1).toInt() + priceAdjustment!!
 
                     binding.payoutTotalAmount.text = adjustedTotalAmount.toString()
                     val uri = Uri.Builder()
@@ -451,16 +467,17 @@ class PayoutActivity : AppCompatActivity() {
                         .appendQueryParameter("cu", "INR")
                         .build()
                     val intent = Intent(Intent.ACTION_VIEW)
-                    intent.data = uri
+                    intent.setData(uri)
                     intent.setPackage(PAYTM_PACKAGE_NAME)
                     startActivityForResult(intent, PAYTM_REQUEST_CODE)
                 }
             }
     }
 
-    private fun redirectToGooglePay() {
-        val destinationLocation = getLocationFromAddress("Hyper market Tuticorin")
 
+    private fun redirectToGooglePay() {
+        paymentMethod = "Google Pay"
+        val destinationLocation = getLocationFromAddress("Spic Nagar")
         if (destinationLocation != null) {
             if (ActivityCompat.checkSelfPermission(
                     this,
@@ -470,21 +487,26 @@ class PayoutActivity : AppCompatActivity() {
                     Manifest.permission.ACCESS_COARSE_LOCATION
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-                // TODO: Handle location permissions
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
                 return
             }
+
+
         } else {
             showToast("Error: Destination address not found")
-            return
         }
-
         mFusedLocationClient.lastLocation
             .addOnSuccessListener { location ->
                 location?.let {
-                    val distance = destinationLocation?.let { calculateDistance(it, it) }
-                    val priceAdjustment = distance?.let { adjustPriceBasedOnDistance(it) }
-                    val adjustedTotalAmount =
-                        totalAmount.dropLast(1).toInt() + (priceAdjustment ?: 0)
+                    val distance = destinationLocation?.let { it1 -> calculateDistance(it, it1) }
+                    val priceAdjustment = distance?.let { it1 -> adjustPriceBasedOnDistance(it1) }
+                    val adjustedTotalAmount = totalAmount.dropLast(1).toInt() + priceAdjustment!!
 
                     binding.payoutTotalAmount.text = adjustedTotalAmount.toString()
                     val uri = Uri.Builder()
@@ -501,70 +523,109 @@ class PayoutActivity : AppCompatActivity() {
                         .appendQueryParameter("cu", "INR")
                         .build()
                     val intent = Intent(Intent.ACTION_VIEW)
-                    intent.data = uri
+                    intent.setData(uri)
                     intent.setPackage(GOOGLE_TEZ_PACKAGE_NAME)
                     startActivityForResult(intent, GOOGLE_PAY_REQUEST_CODE)
                 }
             }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        when (requestCode) {
-            PHONEPE_REQUEST_CODE -> {
-                if (resultCode == Activity.RESULT_OK) {
-                    // Payment successful, navigate to CongratsFragment
-                    navigateToCongratsFragment()
-                } else {
-                    // Payment failed, handle accordingly
-                    showToast("PhonePe payment failed")
-                }
+    public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+
+        val destinationLocation = getLocationFromAddress("Spic Nagar")
+        if (destinationLocation != null) {
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return
             }
-            PAYTM_REQUEST_CODE -> {
-                if (resultCode == Activity.RESULT_OK) {
-                    // Payment successful, navigate to CongratsFragment
-                    navigateToCongratsFragment()
-                } else {
-                    // Payment failed, handle accordingly
-                    showToast("Paytm payment failed")
-                }
-            }
-            GOOGLE_PAY_REQUEST_CODE -> {
-                if (resultCode == Activity.RESULT_OK) {
-                    // Payment successful, navigate to CongratsFragment
-                    navigateToCongratsFragment()
-                } else {
-                    // Payment failed, handle accordingly
-                    showToast("Google Pay payment failed")
-                }
-            }
-            else -> {
-                // Handle other request codes if needed
-            }
+
+
+        } else {
+            showToast("Error: Destination address not found")
         }
+        mFusedLocationClient.lastLocation
+            .addOnSuccessListener { location ->
+                location?.let {
+                    val distance = destinationLocation?.let { it1 -> calculateDistance(it, it1) }
+                    val priceAdjustment = distance?.let { it1 -> adjustPriceBasedOnDistance(it1) }
+                    val adjustedTotalAmount = totalAmount.dropLast(1).toInt() + priceAdjustment!!
+
+                    super.onActivityResult(requestCode, resultCode, data)
+                    if (data != null) {
+                        status = data.getStringExtra("Status")!!.lowercase(Locale.getDefault())
+                    }
+                    if (requestCode == GOOGLE_PAY_REQUEST_CODE || requestCode == PAYTM_REQUEST_CODE || requestCode == PHONEPE_REQUEST_CODE) {
+                        if (resultCode == RESULT_OK && status == "success") {
+                            Toast.makeText(
+                                this@PayoutActivity,
+                                "Transaction Successful",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            navigateToCongratsFragment(adjustedTotalAmount)
+                        } else {
+                            Toast.makeText(
+                                this@PayoutActivity,
+                                "Transaction Failed",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                }
+            }
     }
 
-    private fun navigateToCongratsFragment() {
 
-        userId = auth.currentUser?.uid?:""
-        val time = System.currentTimeMillis()
-        val itemPushKey  =databaseReference.child("OrderDetails").push().key
-        val orderDetails = OrderDetails(userId, name, foodItemName,foodItemPrice,foodItemImage,foodItemQuantities,
-            address,totalAmount,phoneNumber,time,itemPushKey, false, false)
+    private fun navigateToCongratsFragment(adjustedTotalAmount:Int) {
 
-        val orderReference = databaseReference.child("OrderDetails").child(itemPushKey!!)
-        orderReference.setValue(orderDetails)
-            .addOnSuccessListener {
-                val bottomSheetDialog = CongratsBottomSheetFragment()
-                bottomSheetDialog.show(supportFragmentManager,"Test")
-                removeItemFromCart()
-                addOrderToHistory(orderDetails)
+                    userId = auth.currentUser?.uid ?: ""
+                    val time = System.currentTimeMillis()
+                    val itemPushKey = databaseReference.child("OrderDetails").push().key
 
-            }
-            .addOnFailureListener {
-                Toast.makeText(this,"Failed to Order 😒",Toast.LENGTH_SHORT).show()
-            }
-    }
+                    val orderDetails = OrderDetails(
+                        userId,
+                        name,
+                        foodItemName,
+                        foodItemPrice,
+                        foodItemImage,
+                        foodItemQuantities,
+                        address,
+                        phoneNumber,
+                        time,
+                        paymentMethod,
+                        adjustedTotalAmount,
+                        itemPushKey,
+                        true,
+                        true
+                    )
+
+                    val orderReference =
+                        databaseReference.child("OrderDetails").child(itemPushKey!!)
+                    orderReference.setValue(orderDetails)
+                        .addOnSuccessListener {
+                            val bottomSheetDialog = CongratsBottomSheetFragment()
+                            bottomSheetDialog.show(supportFragmentManager, "Test")
+                            removeItemFromCart()
+                            addOrderToHistory(orderDetails)
+
+                        }
+                        .addOnFailureListener {
+                            Toast.makeText(this, "Failed to Order 😒", Toast.LENGTH_SHORT).show()
+                        }
+                }
+
 
     private fun removeItemFromCart() {
         val cartItemReference = databaseReference.child("user").child(userId).child("CartItems")
@@ -640,14 +701,14 @@ class PayoutActivity : AppCompatActivity() {
         private const val REQUEST_LOCATION_PERMISSION = 100
 
 
-        private const val TEZ_REQUEST_CODE = 123
+
         const val PAYTM_PACKAGE_NAME = "net.one97.paytm"
         private const val GOOGLE_TEZ_PACKAGE_NAME = "com.google.android.apps.nbu.paisa.user"
         // You can choose any integer value here
 
-        private const val PRICE_ADJUSTMENT_5_KM = 30
+        private const val PRICE_ADJUSTMENT_5_KM = 1
         private const val PRICE_ADJUSTMENT_0_KM = 0
-        private const val PRICE_ADJUSTMENT_10_KM = 50
+        private const val PRICE_ADJUSTMENT_10_KM = 2
 
 
     }
