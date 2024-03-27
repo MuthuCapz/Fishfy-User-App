@@ -20,11 +20,4 @@ Android Kotlin: Utilizing Kotlin programming language for Android app developmen
 
 Firebase: Leveraging Firebase backend services for user authentication, real-time database, cloud messaging, and hosting, ensuring scalability, reliability, and real-time communication.
 
-**Getting Started**
-To start using the Fish Delivery App:
 
-Download the app from the Google Play Store (or follow provided link).
-Create a user account or log in if you already have one.
-Browse the fish catalog, select desired products, and add them to your cart.
-Proceed to checkout, select delivery options, and complete the payment.
-Track your order in real-time and await the fresh fish delivery at your doorstep!
