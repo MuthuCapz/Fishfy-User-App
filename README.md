@@ -1,23 +1,23 @@
-**Fish Delivery User App**
-The Fish Delivery App is a mobile application designed to streamline the process of ordering and delivering fresh fish and seafood to customers' doorsteps. It provides a convenient platform for users to browse a variety of fish products, place orders, and track deliveries in real-time.
+# Fish Delivery User App
 
-**Features**
-User Authentication: Secure user authentication system allowing customers to create accounts and log in securely.
+Welcome to the Fish Delivery User App! The Fish Delivery User App is a mobile application designed to streamline the process of ordering fish products for users. It provides a user-friendly interface for browsing through available products, managing shopping carts, placing orders, and viewing order history. Built using Android Kotlin and integrated with Firebase, the app ensures secure authentication and seamless data management.
 
-Product Catalog: A comprehensive catalog showcasing a variety of fresh fish and seafood options available for delivery.
+## Technologies Used
 
-Order Placement: Intuitive interface for users to select desired fish products, specify quantities, and place orders effortlessly.
+- **Android Kotlin**: The app is developed using Kotlin programming language for Android platform, offering modern and concise codebase.
+- **Firebase Authentication**: Secure user authentication is implemented using Firebase Authentication service, ensuring a seamless login and registration experience for users.
+- **Firebase Realtime Database**: Firebase Realtime Database is utilized for storing and synchronizing user data and real-time updates such as order status and product availability.
+- **Firebase Storage**: Firebase Storage is used for storing and serving user-uploaded files such as profile pictures and product images.
 
-Delivery Scheduling: Option for users to schedule deliveries according to their preferred date and time, providing flexibility and convenience.
+## Features
 
-Payment Integration: Secure payment integration, allowing users to complete transactions seamlessly within the app.
-
-User Profiles: Personalized user profiles for managing delivery addresses, payment methods, order history, and preferences.
-
-
-**Technologies Used**
-Android Kotlin: Utilizing Kotlin programming language for Android app development, offering modern features and enhanced productivity.
-
-Firebase: Leveraging Firebase backend services for user authentication, real-time database, cloud messaging, and hosting, ensuring scalability, reliability, and real-time communication.
-
-
+- **User Authentication**: Secure login and registration system for users.
+- **Product Search**: Search functionality to find specific fish products based on various parameters.
+- **Product Catalog**: Detailed listing of available fish products with images and descriptions.
+- **Add to Cart**: Users can easily add products to their shopping cart for checkout.
+- **View Cart**: Seamless management of items in the shopping cart.
+- **Order History**: Access to previous orders and order details for reference.
+- **Profile Management**: Update user profiles and preferences conveniently.
+- **Order Placement**: Smooth and secure process for placing orders within the app.
+- **Payment Integration**: Support for popular payment methods such as PhonePe, GPay, and Paytm.
+  
