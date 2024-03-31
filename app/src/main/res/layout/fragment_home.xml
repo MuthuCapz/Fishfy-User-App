@@ -152,10 +152,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginEnd="250dp"
-            android:layout_marginTop="610dp"
+            android:layout_marginEnd="275dp"
+            android:layout_marginTop="927dp"
             android:fontFamily="@font/inika_regular"
-            android:text="Frozen Seafood"
+            android:text="Dry Fish"
             android:textColor="@color/black"
             android:textSize="18sp"
             app:layout_constraintStart_toStartOf="parent"
@@ -169,7 +169,7 @@
             android:id="@+id/popularRecyclerView1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="18dp"
             tools:listitem="@layout/popular_items"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             app:layout_constraintEnd_toEndOf="parent"
@@ -184,11 +184,11 @@
             android:id="@+id/textView21"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="930dp"
+            android:layout_marginTop="1240dp"
             android:layout_marginStart="16dp"
-            android:layout_marginEnd="260dp"
+            android:layout_marginEnd="280dp"
             android:fontFamily="@font/inika_regular"
-            android:text="Selling Now"
+            android:text="Pickles"
             android:textColor="@color/black"
             android:textSize="18sp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -200,7 +200,7 @@
             android:id="@+id/popularRecyclerView3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="16dp"
             tools:listitem="@layout/popular_items"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             app:layout_constraintEnd_toEndOf="parent"
@@ -215,15 +215,15 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginEnd="250dp"
-            android:layout_marginTop="20dp"
+            android:layout_marginEnd="245dp"
+            android:layout_marginTop="615dp"
             android:fontFamily="@font/inika_regular"
             android:text="@string/deal_of_the_day"
             android:textColor="@color/black"
             android:textSize="18sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/cardView" />
+            app:layout_constraintTop_toTopOf="parent"/>
 
 
         <TextView
@@ -246,7 +246,7 @@
             android:id="@+id/textView27"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="1250dp"
+            android:layout_marginTop="20dp"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="290dp"
             android:fontFamily="@font/inika_regular"
@@ -255,13 +255,13 @@
             android:textSize="18sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@+id/cardView"/>
 
         <TextView
             android:id="@+id/textView28"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="1250dp"
+            android:layout_marginTop="20dp"
             android:layout_marginStart="100dp"
             android:layout_marginEnd="170dp"
             android:fontFamily="@font/inika_regular"
@@ -271,7 +271,7 @@
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@+id/cardView" />
 
 
 

@@ -30,4 +30,24 @@
         android:name="com.example.seafishfy.ui.activities.fragments.ProfileFragment"
         android:label="fragment_profile"
         tools:layout="@layout/fragment_profile" />
+    <activity
+        android:id="@+id/contactusActivity"
+        android:name="com.example.seafishfy.ui.activities.ContactusActivity"
+        android:label="activity_contact"
+        tools:layout="@layout/activity_contactus" />
+    <fragment
+        android:id="@+id/accountFragment"
+        android:name="com.example.seafishfy.ui.activities.fragments.AccountFragment"
+        android:label="fragment_account"
+        tools:layout="@layout/fragment_account" />
+    <action
+        android:id="@+id/action_profileFragment_to_myProfileFragment"
+        app:destination="@id/accountFragment" />
+    <action
+        android:id="@+id/action_profileFragment_to_historyFragment"
+        app:destination="@id/historyFragment" />
+    <action
+        android:id="@+id/action_profileFragment_to_about"
+        app:destination="@id/contactusActivity" />
+
 </navigation>
