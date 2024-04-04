@@ -12,6 +12,8 @@ Welcome to the Fish Delivery User App! The Fish Delivery User App is a mobile ap
 ## Features
 
 - **User Authentication**: Secure login and registration system for users.
+- **Location Services:** Fetches accurate delivery options based on the user's location.
+- **Saved Addresses:** Store multiple addresses for quick checkout.
 - **Product Search**: Search functionality to find specific fish products based on various parameters.
 - **Product Catalog**: Detailed listing of available fish products with images and descriptions.
 - **Add to Cart**: Users can easily add products to their shopping cart for checkout.
