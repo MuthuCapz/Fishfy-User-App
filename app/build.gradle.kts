@@ -48,8 +48,18 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("com.github.denzcoskun:ImageSlideshow:0.1.2")
     implementation("com.airbnb.android:lottie:4.2.0")
-
     // glide for Image
+
+//viewpager2
+    implementation ("androidx.viewpager2:viewpager2:1.0.0")
+//indicator
+    implementation ("me.relex:circleindicator:2.1.6")
+    implementation ("androidx.datastore:datastore-preferences:1.0.0")
+    implementation ("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")// or any compatible version
+
+
+//datastore
+
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.6")
     implementation("androidx.navigation:navigation-ui-ktx:2.7.6")

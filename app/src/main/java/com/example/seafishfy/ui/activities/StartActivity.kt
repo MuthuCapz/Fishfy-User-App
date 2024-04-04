@@ -1,23 +1,16 @@
 package com.example.seafishfy.ui.activities
 
-import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import com.example.seafishfy.databinding.ActivityStartBinding
 
 class StartActivity : AppCompatActivity() {
 
-    private val binding: ActivityStartBinding by lazy {
-        ActivityStartBinding.inflate(layoutInflater)
-    }
+    private lateinit var binding: ActivityStartBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        binding = ActivityStartBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        binding.nextButton.setOnClickListener {
-            val intent = Intent(this, LoginActivity::class.java)
-            startActivity(intent)
-        }
     }
 }

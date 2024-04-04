@@ -11,9 +11,10 @@ import androidx.core.content.ContextCompat
 
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.setupWithNavController
+import com.airbnb.lottie.LottieAnimationView
+import com.airbnb.lottie.LottieCompositionFactory
 import com.example.seafishfy.R
 import com.example.seafishfy.databinding.ActivityMainBinding
-import com.example.seafishfy.ui.activities.fragments.HomeFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 
@@ -28,13 +29,20 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
         auth = FirebaseAuth.getInstance()
+
+        // Initialize Lottie animation view
+        val animationView: LottieAnimationView = binding.lottieAnimationView
+
+        // Load animation from assets folder
+        loadAnimation(animationView, "shower.json")
+
+        // Start animation
+        animationView.playAnimation()
 
         binding.tvAddress.setOnClickListener {
             showPopupMenu(it)
         }
-
 
         // Check if fragmentContainerView exists in the layout
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainerView)
@@ -49,18 +57,24 @@ class MainActivity : AppCompatActivity() {
         val address = intent.getStringExtra("ADDRESS")
         val locality = intent.getStringExtra("LOCALITY")
 
-
-
-
         // Display the address and locality in TextViews
         binding.tvAddress.text = "Address: $address"
         binding.tvLocality.text = " $locality"
+
         // Check for null before setting up with NavController
         navController?.let {
             bottomNav.setupWithNavController(it)
         }
     }
-    fun showPopupMenu(view: View) {
+
+    private fun loadAnimation(animationView: LottieAnimationView, animationFileName: String) {
+        LottieCompositionFactory.fromAsset(this, animationFileName)
+            .addListener { composition ->
+                animationView.setComposition(composition)
+            }
+    }
+
+    private fun showPopupMenu(view: View) {
         val popupMenu = PopupMenu(this, view)
         popupMenu.menuInflater.inflate(R.menu.address, popupMenu.menu)
 
@@ -95,5 +109,5 @@ class MainActivity : AppCompatActivity() {
 
         popupMenu.show()
     }
-
 }
+

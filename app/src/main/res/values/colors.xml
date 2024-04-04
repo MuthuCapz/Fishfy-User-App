@@ -9,12 +9,13 @@
     <color name="startColor">#53E88B</color>
     <color name="endColor">#15BE77</color>
     <color name="bgColor">#D4DBE0</color>
-
     <color name="iconColor">#FEAD1D</color>
+    <color name="colorPrimary">#5B1DCE</color>
     <color name="navy"> #316FF6</color>
     <color name="lblue">#C4D7E6</color>
     <color name="blue">#4274DF</color>
     <color name="pink">#F4399A</color>
+    <color name="colorPrimaryDark">#3700B3</color>
     <color name="lpink">#F199B6</color>
     <color name="llpink">#EDB1C5</color>
     <color name="Dark_navy">#1156ED</color>
