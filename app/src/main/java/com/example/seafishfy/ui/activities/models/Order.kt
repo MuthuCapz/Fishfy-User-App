@@ -8,7 +8,9 @@ var itemPushKey: String = "",
 var foodNames: List<String> = emptyList(),
 var adjustedTotalAmount: String="",
 var foodQuantities: List<Int> = emptyList(),
-var foodImage: List<String> = emptyList() // Assuming foodImage is a String representing image URLs
+var foodImage: List<String> = emptyList(),
+var orderDate: String = "",
+val currentTime: String=""
 )
 
 

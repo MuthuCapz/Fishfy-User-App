@@ -1,5 +1,7 @@
 package com.example.seafishfy.ui.activities.adapters
 
+
+
 import android.content.Context
 import android.net.Uri
 import android.view.LayoutInflater

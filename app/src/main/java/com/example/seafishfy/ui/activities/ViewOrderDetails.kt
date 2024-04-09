@@ -1,51 +1,61 @@
 package com.example.seafishfy.ui.activities
 
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.TypedValue
-import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.content.Context
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
-import com.example.seafishfy.databinding.ActivityViewOrderDetailsBinding
-import com.example.seafishfy.ui.activities.models.Order
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.database.*
-import com.google.firebase.ktx.Firebase
-import java.util.*
 import com.example.seafishfy.R
+import com.example.seafishfy.databinding.ActivityViewOrderDetailsBinding
+import com.example.seafishfy.ui.activities.ViewModel.ViewODViewModel
+import com.example.seafishfy.ui.activities.models.Order
+import java.util.*
 
 class ViewOrderDetails : AppCompatActivity() {
 
     private lateinit var binding: ActivityViewOrderDetailsBinding
-    private lateinit var database: DatabaseReference
-    private lateinit var auth: FirebaseAuth
+    private lateinit var viewModel: ViewODViewModel
+    private lateinit var sharedPreferences: SharedPreferences
     private lateinit var orderId: String
     private var orderDisplayedTime: Long = 0
-    private lateinit var sharedPreferences: SharedPreferences
+
+
+
+    private companion object {
+        private const val KEY_ORDER_DISPLAYED_TIME = "orderDisplayedTime"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityViewOrderDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        viewModel = ViewModelProvider(this).get(ViewODViewModel::class.java)
+
+        binding.detailGoToBackImageButton.setOnClickListener {
+            finish()
+        }
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        auth = Firebase.auth
-        database = FirebaseDatabase.getInstance().reference.child("OrderDetails")
-
         orderId = intent.getStringExtra("order_id") ?: ""
+        if (savedInstanceState != null) {
+            // Restore orderDisplayedTime from savedInstanceState
+            orderDisplayedTime = savedInstanceState.getLong(KEY_ORDER_DISPLAYED_TIME)
+        } else {
+            // If savedInstanceState is null, it means the activity is created for the first time,
+            // so capture the current time as the orderDisplayedTime
+            orderDisplayedTime = Calendar.getInstance().timeInMillis
+        }
         if (orderId.isNotEmpty()) {
-            fetchOrderDetails(orderId)
-            fetchOrderImages(orderId)
+            viewModel.fetchOrderDetails(orderId)
+            viewModel.fetchOrderImages(orderId)
         } else {
             Toast.makeText(this, "Order id not found", Toast.LENGTH_SHORT).show()
             finish() // Finish activity if order id is not provided
@@ -57,50 +67,43 @@ class ViewOrderDetails : AppCompatActivity() {
         if (sharedPreferences.getBoolean("order_cancelled_$orderId", false)) {
             disableOrderView()
         }
+
+        observeViewModel()
     }
 
-    private fun fetchOrderDetails(orderId: String) {
-        database.child(orderId).addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val order = snapshot.getValue(Order::class.java)
-                order?.let {
-                    displayOrderDetails(it)
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                // Handle error
-                Toast.makeText(
-                    this@ViewOrderDetails,
-                    "Error fetching order details",
-                    Toast.LENGTH_SHORT
-                ).show()
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        // Save orderDisplayedTime when the activity is being destroyed
+        outState.putLong("orderDisplayedTime", orderDisplayedTime)
+    }
+    private fun observeViewModel() {
+        viewModel.orderDetails.observe(this, { order ->
+            if (order != null) {
+                displayOrderDetails(order)
             }
         })
-    }
 
-    private fun fetchOrderImages(orderId: String) {
-        database.child(orderId).child("foodImage").addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                for ((index, imageSnapshot) in snapshot.children.withIndex()) {
-                    val imageUrl = imageSnapshot.getValue(String::class.java)
-                    imageUrl?.let {
-                        // Load image into respective ImageView based on index
-                        when (index) {
-                            0 -> loadImageIntoImageView(it, binding.foodImage)
-                            1 -> loadImageIntoImageView(it, binding.foodImage1)
-                            2 -> loadImageIntoImageView(it, binding.foodImage2)
-                            3 -> loadImageIntoImageView(it, binding.foodImage3)
-                            4 -> loadImageIntoImageView(it, binding.foodImage4)
-                            // Add more cases if you have more ImageViews
-                        }
-                    }
+        viewModel.orderImages.observe(this, { imageUrls ->
+            imageUrls.forEachIndexed { index, imageUrl ->
+                // Load image into respective ImageView based on index
+                when (index) {
+                    0 -> loadImageIntoImageView(imageUrl, binding.foodImage)
+                    1 -> loadImageIntoImageView(imageUrl, binding.foodImage1)
+                    2 -> loadImageIntoImageView(imageUrl, binding.foodImage2)
+                    3 -> loadImageIntoImageView(imageUrl, binding.foodImage3)
+                    4 -> loadImageIntoImageView(imageUrl, binding.foodImage4)
+                    // Add more cases if you have more ImageViews
                 }
             }
+        })
 
-
-            override fun onCancelled(error: DatabaseError) {
-                // Handle error
+        viewModel.orderCancellationStatus.observe(this, { cancelled ->
+            if (cancelled) {
+                Toast.makeText(this, "Order cancelled", Toast.LENGTH_SHORT).show()
+                // Disable the view
+                disableOrderView()
+                // Store cancellation status in SharedPreferences
+                sharedPreferences.edit().putBoolean("order_cancelled_$orderId", true).apply()
             }
         })
     }
@@ -111,7 +114,6 @@ class ViewOrderDetails : AppCompatActivity() {
             .into(imageView)
     }
 
-
     private fun displayOrderDetails(order: Order) {
         binding.apply {
             oid.text = "Order ID: ${order.itemPushKey}"
@@ -119,6 +121,7 @@ class ViewOrderDetails : AppCompatActivity() {
             foodName.text = "Food Name: ${order.foodNames}"
             foodPrice.text = "Food Price: ${order.adjustedTotalAmount}"
             quantity.text = "Quantity: ${order.foodQuantities}"
+            time.text = "${order.currentTime}"
 
             orderDisplayedTime = Calendar.getInstance().timeInMillis // Capture current time
 
@@ -128,34 +131,43 @@ class ViewOrderDetails : AppCompatActivity() {
                 startActivity(intent)
             }
             radio.setOnClickListener {
-                checkElapsedTime()
+               showCancelOrderDialog()
             }
+
+
         }
     }
-
-
 
     private fun checkElapsedTime() {
         val currentTime = Calendar.getInstance().timeInMillis
         val elapsedMinutes = (currentTime - orderDisplayedTime) / (1000 * 60) // Convert milliseconds to minutes
 
         if (elapsedMinutes >= 1) {
-            showOrderTakenToast()
+            showOrderTakenDialog()
         } else {
-            showCancelOrderDialog()
+            viewModel.cancelOrder(orderId)
         }
     }
-
-    private fun showOrderTakenToast() {
-        Toast.makeText(this, "The order is already taken by the driver", Toast.LENGTH_SHORT).show()
+    private fun showOrderTakenDialog() {
+        val alertDialogBuilder = AlertDialog.Builder(this, R.style.CustomDialogTheme)
+        alertDialogBuilder.setMessage("You can't cancel your order because the driver has already taken it.")
+            .setCancelable(false)
+            .setPositiveButton("OK") { dialog, _ ->
+                dialog.dismiss()
+            }
+        val alertDialog = alertDialogBuilder.create()
+        alertDialog.show()
     }
+
 
     private fun showCancelOrderDialog() {
         val alertDialogBuilder = AlertDialog.Builder(this)
         alertDialogBuilder.setMessage("Are you sure you want to cancel your order?")
             .setCancelable(false)
             .setPositiveButton("Yes") { _, _ ->
-                cancelOrder()
+
+                checkElapsedTime()
+
             }
             .setNegativeButton("No") { dialog, _ ->
                 dialog.dismiss()
@@ -163,22 +175,6 @@ class ViewOrderDetails : AppCompatActivity() {
         val alertDialog = alertDialogBuilder.create()
         alertDialog.show()
 
-    }
-
-    private fun cancelOrder() {
-        val cancellationMessage = "Order Cancelled"
-        val orderCancellationRef = database.child(orderId).child("cancellationMessage")
-        orderCancellationRef.setValue(cancellationMessage)
-            .addOnSuccessListener {
-                Toast.makeText(this, "Order cancelled", Toast.LENGTH_SHORT).show()
-                // Disable the view
-                disableOrderView()
-                // Store cancellation status in SharedPreferences
-                sharedPreferences.edit().putBoolean("order_cancelled_$orderId", true).apply()
-            }
-            .addOnFailureListener { e ->
-                Toast.makeText(this, "Failed to cancel order: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
     }
 
     private fun disableOrderView() {

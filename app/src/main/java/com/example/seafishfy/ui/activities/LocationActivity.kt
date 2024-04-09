@@ -1,7 +1,7 @@
 package com.example.seafishfy.ui.activities
 
+
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -13,12 +13,14 @@ import android.location.LocationManager
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.seafishfy.R
 import com.example.seafishfy.databinding.ActivityLocationBinding
+import com.example.seafishfy.ui.activities.ViewModel.LocationViewModel
 import com.example.seafishfy.ui.activities.adapters.AddressAdapter
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -34,9 +36,11 @@ class LocationActivity : AppCompatActivity() {
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
     private lateinit var database: DatabaseReference
     private lateinit var sharedPreferences: SharedPreferences
-    private lateinit var adapter: AddressAdapter
+    private val viewModel: LocationViewModel by viewModels()
+
     private val permissionId = 2
-    private val ADDRESS_KEY = "SAVED_ADDRESSES"
+    private var savedAddresses = mutableListOf<String>()
+    private lateinit var adapter: AddressAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,22 +50,41 @@ class LocationActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         database = FirebaseDatabase.getInstance().reference
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-
-        // Initialize SharedPreferences
         sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
 
         mainBinding.Locationbutton.setOnClickListener {
             getLocation()
         }
 
-        adapter = AddressAdapter(this, getSavedAddresses())
+        savedAddresses = getSavedAddressesFromSharedPreferences()
+
+        // Set the adapter to the listView after initializing savedAddresses
+        adapter = AddressAdapter(this, savedAddresses)
         mainBinding.listview.adapter = adapter
+
+        adapter.notifyDataSetChanged()
     }
 
-    @SuppressLint("MissingPermission")
     private fun getLocation() {
         if (checkPermissions()) {
             if (isLocationEnabled()) {
+                if (ActivityCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    // TODO: Consider calling
+                    //    ActivityCompat#requestPermissions
+                    // here to request the missing permissions, and then overriding
+                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                    //                                          int[] grantResults)
+                    // to handle the case where the user grants the permission. See the documentation
+                    // for ActivityCompat#requestPermissions for more details.
+                    return
+                }
                 mFusedLocationClient.lastLocation.addOnCompleteListener(this) { task ->
                     val location: Location? = task.result
                     if (location != null) {
@@ -90,11 +113,28 @@ class LocationActivity : AppCompatActivity() {
             .setMessage("Do you want to save this address?")
             .setCancelable(false)
             .setPositiveButton("Yes") { dialog, _ ->
-                saveAddress(address, locality)
+                val userId = auth.currentUser?.uid
+                if (userId != null) {
+                    viewModel.saveLocalityInFirebase(userId, locality)
+                    val saved = viewModel.saveAddress(userId, address, savedAddresses)
+                    if (saved) {
+                        viewModel.storeLocationAndAddressInFirebase(userId, address, locality)
+                    } else {
+                        Toast.makeText(this, "Address already saved", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
+                }
                 dialog.dismiss()
                 navigateToMainActivity(address, locality)
             }
             .setNegativeButton("No") { dialog, _ ->
+                val userId = auth.currentUser?.uid
+                if (userId != null) {
+                    viewModel.saveLocalityInFirebase(userId, locality)
+                } else {
+                    Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
+                }
                 dialog.dismiss()
                 navigateToMainActivity(address, locality)
             }
@@ -107,33 +147,11 @@ class LocationActivity : AppCompatActivity() {
         alertDialog.show()
     }
 
-    private fun saveAddress(address: String, locality: String) {
-        val savedAddressesSet = getSavedAddresses().toMutableSet()
-        if (!savedAddressesSet.contains(address)) {
-            savedAddressesSet.add(address)
-            val editor = sharedPreferences.edit()
-            editor.putStringSet(ADDRESS_KEY, savedAddressesSet)
-            editor.apply()
-
-            // Update the adapter to reflect the changes
-            adapter.updateAddresses(getSavedAddresses())
-            adapter.notifyDataSetChanged()
-        } else {
-            Toast.makeText(this, "Address already saved", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-
-
     private fun navigateToMainActivity(address: String, locality: String) {
         val intent = Intent(this, MainActivity::class.java)
         intent.putExtra("ADDRESS", address)
         intent.putExtra("LOCALITY", locality)
         startActivity(intent)
-    }
-
-    private fun getSavedAddresses(): List<String> {
-        return sharedPreferences.getStringSet(ADDRESS_KEY, setOf())?.toList() ?: listOf()
     }
 
     private fun isLocationEnabled(): Boolean {
@@ -176,5 +194,10 @@ class LocationActivity : AppCompatActivity() {
                 getLocation()
             }
         }
+    }
+
+    private fun getSavedAddressesFromSharedPreferences(): MutableList<String> {
+        val savedAddressesSet = sharedPreferences.getStringSet("SAVED_ADDRESSES", HashSet<String>()) ?: HashSet()
+        return savedAddressesSet.toMutableList()
     }
 }

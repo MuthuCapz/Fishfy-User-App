@@ -5,28 +5,19 @@
     android:layout_height="match_parent"
     android:background="@color/navy">
 
-    <ImageView
-        android:id="@+id/lottieAnimationview"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:layout_marginBottom="130dp"
-        android:src="@drawable/fishicon"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+
 
     <TextView
         android:id="@+id/iconTxt"
-        android:layout_width="130dp"
+        android:layout_width="150dp"
         android:layout_height="100dp"
         android:text="Fishfy"
         android:fontFamily="@font/noo"
         android:textColor="@color/white"
-        android:textSize="60sp"
+        android:textSize="80sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="390dp"
+      app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
 

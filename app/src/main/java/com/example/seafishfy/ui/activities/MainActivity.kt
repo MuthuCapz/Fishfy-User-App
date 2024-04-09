@@ -1,3 +1,4 @@
+// MainActivity.kt
 package com.example.seafishfy.ui.activities
 
 import android.content.Intent
@@ -8,6 +9,7 @@ import android.text.style.ForegroundColorSpan
 import android.view.View
 import android.widget.PopupMenu
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
 
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.setupWithNavController
@@ -15,6 +17,7 @@ import com.airbnb.lottie.LottieAnimationView
 import com.airbnb.lottie.LottieCompositionFactory
 import com.example.seafishfy.R
 import com.example.seafishfy.databinding.ActivityMainBinding
+import com.example.seafishfy.ui.activities.ViewModel.MainViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 
@@ -22,6 +25,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var auth : FirebaseAuth
+    private lateinit var viewModel: MainViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,6 +34,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         auth = FirebaseAuth.getInstance()
+
+        // Initialize ViewModel
+        viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
 
         // Initialize Lottie animation view
         val animationView: LottieAnimationView = binding.lottieAnimationView
@@ -65,6 +72,12 @@ class MainActivity : AppCompatActivity() {
         navController?.let {
             bottomNav.setupWithNavController(it)
         }
+
+        // Observe the user address from ViewModel
+        viewModel.userAddress.observe(this, { userAddress ->
+            // Update UI with the user's address
+            binding.tvAddress.text = "Address: $userAddress"
+        })
     }
 
     private fun loadAnimation(animationView: LottieAnimationView, animationFileName: String) {
@@ -110,4 +123,3 @@ class MainActivity : AppCompatActivity() {
         popupMenu.show()
     }
 }
-

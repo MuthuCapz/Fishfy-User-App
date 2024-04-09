@@ -3,23 +3,24 @@ package com.example.seafishfy.ui.activities.models
 import android.os.Parcel
 import android.os.Parcelable
 import java.io.Serializable
-import java.util.ArrayList
+import java.util.*
 
-class OrderDetails() : Serializable {
-    var userUid:String? = null
-    var userName:String? = null
-    var foodNames:MutableList<String>? = null
-    var foodPrices:MutableList<String>?  = null
-    var foodImage:MutableList<String>? = null
-    var foodQuantities:MutableList<Int>? = null
-    var address  :String? = null
-    var phone  :String? = null
+class OrderDetails() : Serializable, Parcelable {
+    var userUid: String? = null
+    var userName: String? = null
+    var foodNames: MutableList<String>? = null
+    var foodPrices: MutableList<String>? = null
+    var foodImage: MutableList<String>? = null
+    var foodQuantities: MutableList<Int>? = null
+    var address: String? = null
+    var phone: String? = null
     var orderAccepted: Boolean = true
-    var paymentReceived:Boolean = true
+    var paymentReceived: Boolean = true
     var itemPushKey: String? = null
-    var currentTime:Long = 0
-    var paymentMethod:String?=null
-    var adjustedTotalAmount: String?=null
+    var currentTime: String? = null
+    var paymentMethod: String? = null
+    var adjustedTotalAmount: String? = null
+    var orderDate: String? = null
 
     constructor(parcel: Parcel) : this() {
         userUid = parcel.readString()
@@ -30,9 +31,10 @@ class OrderDetails() : Serializable {
         orderAccepted = parcel.readByte() != 0.toByte()
         paymentReceived = parcel.readByte() != 0.toByte()
         itemPushKey = parcel.readString()
-        currentTime = parcel.readLong()
+        currentTime = parcel.readString()
         paymentMethod = parcel.readString()
         adjustedTotalAmount = parcel.readString()
+        orderDate = parcel.readString()
     }
 
     constructor(
@@ -44,10 +46,11 @@ class OrderDetails() : Serializable {
         foodItemQuantities: ArrayList<Int>,
         address: String,
         phoneNumber: String,
-        time: Long,
-        paymentMethod:String,
+        time: String,
+        paymentMethod: String,
         adjustedTotalAmount: Int,
         itemPushKey: String?,
+        orderDate: String, // New parameter for order date
         b: Boolean,
         b1: Boolean
     ) : this() {
@@ -58,7 +61,6 @@ class OrderDetails() : Serializable {
         this.foodImage = foodItemImage
         this.foodQuantities = foodItemQuantities
         this.address = address
-
         this.phone = phoneNumber
         this.currentTime = time
         this.paymentMethod = paymentMethod
@@ -66,23 +68,24 @@ class OrderDetails() : Serializable {
         this.itemPushKey = itemPushKey
         this.orderAccepted = orderAccepted
         this.paymentReceived = paymentReceived
+        this.orderDate = orderDate // Set order date
     }
 
-    fun writeToParcel(parcel: Parcel, flags: Int) {
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(userUid)
         parcel.writeString(userName)
         parcel.writeString(address)
         parcel.writeString(phone)
-
         parcel.writeByte(if (orderAccepted) 1 else 0)
         parcel.writeByte(if (paymentReceived) 1 else 0)
         parcel.writeString(itemPushKey)
-        parcel.writeLong(currentTime)
+        parcel.writeString(currentTime)
         parcel.writeString(paymentMethod)
         parcel.writeString(adjustedTotalAmount)
+        parcel.writeString(orderDate) // Write order date
     }
 
-    fun describeContents(): Int {
+    override fun describeContents(): Int {
         return 0
     }
 
@@ -95,6 +98,4 @@ class OrderDetails() : Serializable {
             return arrayOfNulls(size)
         }
     }
-
-
 }

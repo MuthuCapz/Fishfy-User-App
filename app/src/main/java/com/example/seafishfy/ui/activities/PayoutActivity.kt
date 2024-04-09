@@ -25,6 +25,8 @@ import androidx.appcompat.app.AlertDialog
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 class PayoutActivity : AppCompatActivity() {
@@ -574,13 +576,14 @@ class PayoutActivity : AppCompatActivity() {
                                 "Transaction Successful",
                                 Toast.LENGTH_SHORT
                             ).show()
-                            navigateToCongratsFragment(adjustedTotalAmount)
+
                         } else {
                             Toast.makeText(
                                 this@PayoutActivity,
                                 "Transaction Failed",
                                 Toast.LENGTH_SHORT
                             ).show()
+                            navigateToCongratsFragment(adjustedTotalAmount)
                         }
                     }
                 }
@@ -591,8 +594,12 @@ class PayoutActivity : AppCompatActivity() {
     private fun navigateToCongratsFragment(adjustedTotalAmount:Int) {
 
                     userId = auth.currentUser?.uid ?: ""
-                    val time = System.currentTimeMillis()
-                    val itemPushKey = databaseReference.child("OrderDetails").push().key
+        val timeFormat = SimpleDateFormat("HH:mm a", Locale.getDefault())
+        val currentTimeMillis = System.currentTimeMillis()
+        val formattedTime = timeFormat.format(currentTimeMillis)
+        val time = formattedTime
+        val itemPushKey = databaseReference.child("OrderDetails").push().key
+        val orderDate = SimpleDateFormat("d MMMM yyyy", Locale.getDefault()).format(Date())
 
                     val orderDetails = OrderDetails(
                         userId,
@@ -607,8 +614,10 @@ class PayoutActivity : AppCompatActivity() {
                         paymentMethod,
                         adjustedTotalAmount,
                         itemPushKey,
+                        orderDate,
                         true,
-                        true
+                        true,
+
                     )
 
                     val orderReference =
@@ -706,7 +715,7 @@ class PayoutActivity : AppCompatActivity() {
         private const val GOOGLE_TEZ_PACKAGE_NAME = "com.google.android.apps.nbu.paisa.user"
         // You can choose any integer value here
 
-        private const val PRICE_ADJUSTMENT_5_KM = 1
+        private const val PRICE_ADJUSTMENT_5_KM = 0
         private const val PRICE_ADJUSTMENT_0_KM = 0
         private const val PRICE_ADJUSTMENT_10_KM = 2
 

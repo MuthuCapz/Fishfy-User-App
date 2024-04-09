@@ -32,7 +32,7 @@ class SplashScreen : AppCompatActivity() {
         setContentView(binding.root)
         auth = FirebaseAuth.getInstance()
 
-        val translateY = -binding.lottieAnimationview.height / 2f
+
 
 // Translate animation to move image from top to center
         val translateAnimation = TranslateAnimation(0f, 500f, 500f, 0f)
@@ -47,7 +47,7 @@ class SplashScreen : AppCompatActivity() {
         animationSet.addAnimation(translateAnimation)
         animationSet.addAnimation(rotateAnimation)
 
-        binding.lottieAnimationview.startAnimation(animationSet)
+
         binding.iconTxt.startAnimation(zoomInAnimation)
 
         // Fish animation

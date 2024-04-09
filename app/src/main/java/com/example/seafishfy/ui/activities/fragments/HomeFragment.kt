@@ -1,3 +1,5 @@
+// HomeFragment.kt
+
 package com.example.seafishfy.ui.activities.fragments
 
 import android.content.Intent
@@ -12,32 +14,27 @@ import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.example.seafishfy.R
-import androidx.recyclerview.widget.GridLayoutManager
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.denzcoskun.imageslider.constants.ScaleTypes
 import com.denzcoskun.imageslider.interfaces.ItemClickListener
 import com.denzcoskun.imageslider.models.SlideModel
-
+import com.example.seafishfy.R
 import com.example.seafishfy.databinding.FragmentHomeBinding
 import com.example.seafishfy.ui.activities.ContactusActivity
 import com.example.seafishfy.ui.activities.Discount
 import com.example.seafishfy.ui.activities.LocationActivity
+import com.example.seafishfy.ui.activities.ViewModel.HomeViewModel
 import com.example.seafishfy.ui.activities.adapters.DiscountAdapter
 import com.example.seafishfy.ui.activities.adapters.MenuAdapter
 import com.example.seafishfy.ui.activities.models.DiscountItem
 import com.example.seafishfy.ui.activities.models.MenuItem
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.*
+import java.util.*
 
 class HomeFragment : Fragment() {
 
     private lateinit var binding: FragmentHomeBinding
-    private lateinit var database: FirebaseDatabase
-    private lateinit var menuItems: MutableList<MenuItem>
-    private lateinit var databaseReference: DatabaseReference
-
-
+    private val viewModel: HomeViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -45,10 +42,8 @@ class HomeFragment : Fragment() {
     ): View {
         binding = FragmentHomeBinding.inflate(inflater, container, false)
 
-        databaseReference = FirebaseDatabase.getInstance().getReference("locations")
+        observeViewModel()
 
-        // Retrieve and display address and locality
-        retrieveAddressAndLocality()
         binding.menuItemTextView.setOnClickListener {
             val bottomSheetDialog = MenuBottomSheetFragment()
             bottomSheetDialog.show(parentFragmentManager, "Test")
@@ -59,75 +54,76 @@ class HomeFragment : Fragment() {
         binding.dotsMenu.setOnClickListener {
             showPopupMenus(it)
         }
-        database = FirebaseDatabase.getInstance()
-
-        retrieveAndDisplayPopularItems()
-        retrieveAndDisplayMenu1Items()
-        retrieveAndDisplayMenu3Items()
-        retrieveAndDisplayDiscountItems()
 
         return binding.root
     }
 
+    private fun observeViewModel() {
+        viewModel.address.observe(viewLifecycleOwner) { address ->
+            binding.tvAddress.text = address
+        }
 
-    private fun retrieveAddressAndLocality() {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid
-        userId?.let { uid ->
-            val userLocationRef = databaseReference.child(userId)
-            userLocationRef.addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    if (snapshot.exists()) {
-                        val address = snapshot.child("address").getValue(String::class.java)
-                        val locality = snapshot.child("locality").getValue(String::class.java)
+        viewModel.locality.observe(viewLifecycleOwner) { locality ->
+            binding.tvLocality.text = locality
+        }
 
-                        // Update TextViews with retrieved data
-                        binding.tvAddress.text = address
-                        binding.tvLocality.text = locality
-                    } else {
-                        // Handle case where data doesn't exist
-                    }
-                }
+        viewModel.popularItems.observe(viewLifecycleOwner) { items ->
+            setPopularItemAdapter(items)
+        }
 
-                override fun onCancelled(error: DatabaseError) {
-                    // Handle error
-                }
-            })
+        viewModel.menu1Items.observe(viewLifecycleOwner) { items ->
+            setMenu1ItemAdapter(items)
+        }
+
+        viewModel.menu3Items.observe(viewLifecycleOwner) { items ->
+            setMenu3ItemAdapter(items)
+        }
+
+        viewModel.discountItems.observe(viewLifecycleOwner) { items ->
+            setDiscountItemAdapter(items)
         }
     }
 
-    private fun showPopupMenus(view: View) {
-        val popupMenus = PopupMenu(requireContext(), view)
-        popupMenus.menuInflater.inflate(R.menu.option_menu, popupMenus.menu)
+    private fun setPopularItemAdapter(subsetMenuItems: List<MenuItem>) {
+        val adapter = MenuAdapter(subsetMenuItems, requireContext())
+        binding.popularRecyclerView.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        binding.popularRecyclerView.adapter = adapter
+    }
 
-        // Set text color for the PopupMenu items
-        val menus = popupMenus.menu
+    private fun setMenu1ItemAdapter(subsetMenuItems: List<MenuItem>) {
+        val adapter = MenuAdapter(subsetMenuItems, requireContext())
+        binding.popularRecyclerView1.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        binding.popularRecyclerView1.adapter = adapter
+    }
 
+    private fun setMenu3ItemAdapter(subsetMenuItems: List<MenuItem>) {
+        val adapter = MenuAdapter(subsetMenuItems, requireContext())
+        binding.popularRecyclerView3.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        binding.popularRecyclerView3.adapter = adapter
+    }
 
-        popupMenus.setOnMenuItemClickListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.about -> {
-                    // Handle "Use Current Location" click
+    private fun setDiscountItemAdapter(discountItems: List<DiscountItem>) {
+        val adapter = DiscountAdapter(discountItems, requireContext())
+        binding.discountRecyclerView.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        binding.discountRecyclerView.adapter = adapter
 
-                    val intent = Intent(requireContext(), ContactusActivity::class.java)
-                    startActivity(intent)
-                    // Hide the dropdown icon after picking an address
-                    binding.dropdown.visibility = View.GONE
-                    // Hide the dropdown icon after picking an address
-
-                    true
-                }
-
-                // Add more saved address clicks as needed
-                else -> false
+        // Disable the Discount RecyclerView between 7:00 AM and 5:00 PM in Indian time
+        val currentTime = Calendar.getInstance(TimeZone.getTimeZone("Asia/Kolkata"))
+        val hour = currentTime.get(Calendar.HOUR_OF_DAY)
+        if (hour in 7 until 17) {
+            // Set alpha to 0.5 to visually indicate that it's disabled
+            binding.discountRecyclerView.alpha = 0.5f
+            // Disable clicks during the disabled time
+            binding.discountRecyclerView.isClickable = false
+            // Set an OnClickListener to show a toast message
+            binding.discountRecyclerView.setOnClickListener {
+                Toast.makeText(requireContext(), "Discount items opens only after 5 PM", Toast.LENGTH_SHORT).show()
             }
+        } else {
+            // If not in disabled time, enable clicks and remove OnClickListener
+            binding.discountRecyclerView.isClickable = true
+            binding.discountRecyclerView.setOnClickListener(null)
         }
-
-        popupMenus.setOnDismissListener {
-            // Dismiss the PopupMenu when it's dismissed
-            popupMenus.dismiss()
-        }
-
-        popupMenus.show()
     }
 
     private fun showPopupMenu(view: View) {
@@ -158,7 +154,6 @@ class HomeFragment : Fragment() {
                     binding.dropdown.visibility = View.GONE
                     true
                 }
-
                 // Add more saved address clicks as needed
                 else -> false
             }
@@ -172,134 +167,48 @@ class HomeFragment : Fragment() {
         popupMenu.show()
     }
 
-    private fun retrieveAndDisplayPopularItems() {
-        val foodRef: DatabaseReference = database.reference.child("menu")
-        menuItems = mutableListOf()
+    private fun showPopupMenus(view: View) {
+        val popupMenus = PopupMenu(requireContext(), view)
+        popupMenus.menuInflater.inflate(R.menu.option_menu, popupMenus.menu)
 
-        foodRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                for (foodSnapshot in snapshot.children) {
-                    val menuItem = foodSnapshot.getValue(MenuItem::class.java)
-                    menuItem?.let {
-                        menuItems.add(it)
-                    }
+        // Set text color for the PopupMenu items
+        val menus = popupMenus.menu
+
+        popupMenus.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.about -> {
+                    // Handle "Use Current Location" click
+                    val intent = Intent(requireContext(), ContactusActivity::class.java)
+                    startActivity(intent)
+                    // Hide the dropdown icon after picking an address
+                    binding.dropdown.visibility = View.GONE
+                    true
                 }
-                Log.d("ITEMS", "onDataChange : Data Received")
-                randomPopularItems()
+                // Add more saved address clicks as needed
+                else -> false
             }
+        }
 
-            override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(requireContext(), "Data Not Fetching", Toast.LENGTH_SHORT).show()
-            }
-        })
+        popupMenus.setOnDismissListener {
+            // Dismiss the PopupMenu when it's dismissed
+            popupMenus.dismiss()
+        }
+
+        popupMenus.show()
     }
 
-    private fun retrieveAndDisplayMenu1Items() {
-        val menu1Ref: DatabaseReference = database.reference.child("menu1")
-        val menu1Items = mutableListOf<MenuItem>()
-
-        menu1Ref.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                for (menu1Snapshot in snapshot.children) {
-                    val menuItem = menu1Snapshot.getValue(MenuItem::class.java)
-                    menuItem?.let {
-                        menu1Items.add(it)
-                    }
-                }
-                Log.d("MENU1_ITEMS", "onDataChange : Data Received")
-                setMenu1ItemAdapter(menu1Items)
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(requireContext(), "Data Not Fetching", Toast.LENGTH_SHORT).show()
-            }
-        })
-    }
-
-    private fun retrieveAndDisplayMenu3Items() {
-        val menu3Ref: DatabaseReference = database.reference.child("menu2")
-        val menu3Items = mutableListOf<MenuItem>()
-
-        menu3Ref.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                for (menu3Snapshot in snapshot.children) {
-                    val menuItem = menu3Snapshot.getValue(MenuItem::class.java)
-                    menuItem?.let {
-                        menu3Items.add(it)
-                    }
-                }
-                Log.d("MENU3_ITEMS", "onDataChange : Data Received")
-                setMenu3ItemAdapter(menu3Items)
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(requireContext(), "Data Not Fetching", Toast.LENGTH_SHORT).show()
-            }
-        })
-    }
-
-    private fun retrieveAndDisplayDiscountItems() {
-        val discountRef: DatabaseReference = database.reference.child("discount")
-        val discountItems = mutableListOf<DiscountItem>()
-
-        discountRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                for (discountSnapshot in snapshot.children) {
-                    val menuItem = discountSnapshot.getValue(DiscountItem::class.java)
-                    menuItem?.let {
-                        discountItems.add(it)
-                    }
-                }
-                Log.d("DISCOUNT_ITEMS", "onDataChange : Data Received")
-                setDiscountItemAdapter(discountItems)
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(requireContext(), "Discount Data Not Fetching", Toast.LENGTH_SHORT).show()
-            }
-        })
-    }
-
-    private fun randomPopularItems() {
-        val index = menuItems.indices.toList().shuffled()
-        val numItemToShow = 6
-        val subsetMenuItems = index.take(numItemToShow).map { menuItems[it] }
-        setPopularItemAdapter(subsetMenuItems)
-    }
-
-    private fun setPopularItemAdapter(subsetMenuItems: List<MenuItem>) {
-        val adapter = MenuAdapter(subsetMenuItems, requireContext())
-        binding.popularRecyclerView.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-        binding.popularRecyclerView.adapter = adapter
-    }
-
-    private fun setMenu1ItemAdapter(subsetMenuItems: List<MenuItem>) {
-        val adapter = MenuAdapter(subsetMenuItems, requireContext())
-        binding.popularRecyclerView1.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-        binding.popularRecyclerView1.adapter = adapter
-    }
-
-    private fun setMenu3ItemAdapter(subsetMenuItems: List<MenuItem>) {
-        val adapter = MenuAdapter(subsetMenuItems, requireContext())
-        binding.popularRecyclerView3.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-        binding.popularRecyclerView3.adapter = adapter
-    }
-    private fun setDiscountItemAdapter(discountItems: MutableList<DiscountItem>) {
-        val adapter = DiscountAdapter(discountItems, requireContext())
-        binding.discountRecyclerView.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-        binding.discountRecyclerView.adapter = adapter
-    }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupImageSlider()
     }
+
     private fun setupImageSlider() {
         val imageList = ArrayList<SlideModel>()
         // Add your image resources here
         imageList.add(SlideModel(R.drawable.ban, scaleType = ScaleTypes.FIT))
         imageList.add(SlideModel(R.drawable.banner1, scaleType = ScaleTypes.FIT))
         imageList.add(SlideModel(R.drawable.banner2, scaleType = ScaleTypes.FIT))
-        imageList.add(SlideModel(R.drawable.discountpic, scaleType = ScaleTypes.FIT))
+        imageList.add(SlideModel(R.drawable.banner3, scaleType = ScaleTypes.FIT))
 
         val imageSlide = binding.imageSlider
         imageSlide.setImageList(imageList)
@@ -322,8 +231,4 @@ class HomeFragment : Fragment() {
             }
         })
     }
-
-
-
-
 }

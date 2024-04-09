@@ -5,8 +5,11 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import com.example.seafishfy.R
 import com.example.seafishfy.databinding.ActivityLoginBinding
+import com.example.seafishfy.ui.activities.ViewModel.LoginViewModel
+
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -20,6 +23,7 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var binding: ActivityLoginBinding
+    private lateinit var viewModel: LoginViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,12 +31,11 @@ class LoginActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         auth = FirebaseAuth.getInstance()
+        viewModel = ViewModelProvider(this).get(LoginViewModel::class.java)
         configureGoogleSignIn()
 
-        // Check if user is already signed in
-        if (auth.currentUser != null) {
-            // User is already signed in, navigate to MainActivity
-            startActivity(Intent(this, MainActivity::class.java))
+        if (viewModel.isUserLoggedIn()) {
+            startActivity(Intent(this, LocationActivity::class.java))
             finish()
         }
 
@@ -61,31 +64,24 @@ class LoginActivity : AppCompatActivity() {
             val task = GoogleSignIn.getSignedInAccountFromIntent(data)
             try {
                 val account = task.getResult(ApiException::class.java)!!
-                firebaseAuthWithGoogle(account.idToken!!)
+                viewModel.signInWithGoogle(account.idToken!!,
+                    onSuccess = {
+                        startActivity(Intent(this, LocationActivity::class.java))
+                        finish()
+                    },
+                    onFailure = { errorMessage ->
+                        Log.w(TAG, "Google sign in failed")
+                        Toast.makeText(baseContext, errorMessage, Toast.LENGTH_SHORT).show()
+                    })
             } catch (e: ApiException) {
                 Log.w(TAG, "Google sign in failed", e)
             }
         }
     }
 
-    private fun firebaseAuthWithGoogle(idToken: String) {
-        val credential = GoogleAuthProvider.getCredential(idToken, null)
-        auth.signInWithCredential(credential)
-            .addOnCompleteListener(this) { task ->
-                if (task.isSuccessful) {
-                    // Sign in success, update UI with the signed-in user's information
-                    Log.d(TAG, "signInWithCredential:success")
-                    val user = auth.currentUser
-                    // Navigate to MainActivity
-                    startActivity(Intent(this, MainActivity::class.java))
-                    finish()
-                } else {
-                    // If sign in fails, display a message to the user.
-                    Log.w(TAG, "signInWithCredential:failure", task.exception)
-                    Toast.makeText(baseContext, "Authentication failed.",
-                        Toast.LENGTH_SHORT).show()
-                }
-            }
+    override fun onBackPressed() {
+        super.onBackPressed()
+        finishAffinity()
     }
 
     companion object {

@@ -1,6 +1,5 @@
 package com.example.seafishfy.ui.activities.fragments
 
-
 import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -8,23 +7,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContentProviderCompat
+import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.seafishfy.databinding.FragmentCartBinding
 import com.example.seafishfy.ui.activities.PayoutActivity
+import com.example.seafishfy.ui.activities.ViewModel.CartViewModel
 import com.example.seafishfy.ui.activities.adapters.CartAdapter
-import com.example.seafishfy.ui.activities.models.CartItems
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
 
-class CartFragment : Fragment() {
+class CartFragment : Fragment(), CartProceedClickListener {
     private lateinit var binding: FragmentCartBinding
-    private lateinit var auth: FirebaseAuth
-    private lateinit var database: FirebaseDatabase
-    private lateinit var userId: String
+    private lateinit var viewModel: CartViewModel
     private lateinit var cartAdapter: CartAdapter
 
     override fun onCreateView(
@@ -37,45 +31,24 @@ class CartFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        auth = FirebaseAuth.getInstance()
-        database = FirebaseDatabase.getInstance()
-        userId = auth.currentUser?.uid ?: ""
+        viewModel = ViewModelProvider(this).get(CartViewModel::class.java)
         retrieveCartItems()
 
         binding.cartProceedButton.setOnClickListener {
-            getOrderItemsDetail()
+            onCartProceedClicked()
         }
     }
 
-    private fun getOrderItemsDetail() {
-        val orderIdReference: DatabaseReference = database.reference.child("user").child(userId).child("cartItems")
-
-        val foodQuantities = cartAdapter.getUpdatedItemsQuantities()
-        val foodName = mutableListOf<String>()
-        val foodPrice = mutableListOf<String>()
-        val foodDescription = mutableListOf<String>()
-        val foodIngredient = mutableListOf<String>()
-        val foodImage = mutableListOf<String>()
-
-        orderIdReference.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                for (foodSnapshot in snapshot.children){
-                    val orderItems = foodSnapshot.getValue(CartItems::class.java)
-                    orderItems?.let {
-                        foodName.add(it.foodName.toString())
-                        foodPrice.add(it.foodPrice.toString())
-                        foodDescription.add(it.foodDescription.toString())
-                        foodIngredient.add(it.foodIngredients.toString())
-                        foodImage.add(it.foodImage.toString())
-                    }
+    override fun onCartProceedClicked() {
+        viewModel.isCartEmpty { isEmpty ->
+            if (isEmpty) {
+                Toast.makeText(requireContext(), "First, you need to add products to the cart", Toast.LENGTH_SHORT).show()
+            } else {
+                viewModel.getOrderItemsDetail(cartAdapter) { foodName, foodPrice, foodDescription, foodIngredient, foodImage, foodQuantities ->
+                    orderNow(foodName, foodPrice, foodDescription, foodIngredient, foodImage, foodQuantities)
                 }
-                orderNow(foodName, foodPrice, foodDescription, foodIngredient, foodImage, foodQuantities)
             }
-
-            override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(requireContext(),"Order Making failed. Please Tray Again", Toast.LENGTH_SHORT).show()
-            }
-        })
+        }
     }
 
     private fun orderNow(
@@ -84,8 +57,7 @@ class CartFragment : Fragment() {
         foodDescription: MutableList<String>,
         foodIngredient: MutableList<String>,
         foodImage: MutableList<String>,
-        foodQuantities: MutableList<Int>,
-
+        foodQuantities: MutableList<Int>
     ) {
         if (isAdded && context != null){
             val intent = Intent(requireContext(), PayoutActivity::class.java)
@@ -100,35 +72,9 @@ class CartFragment : Fragment() {
     }
 
     private fun retrieveCartItems() {
-        val foodReferencer : DatabaseReference = database.reference.child("user").child(userId).child("cartItems")
-
-        val foodNames = mutableListOf<String>()
-        val foodPrices = mutableListOf<String>()
-        val foodDescriptions = mutableListOf<String>()
-        val foodIngredients = mutableListOf<String>()
-        val foodImageUri = mutableListOf<String>()
-        val quantity = mutableListOf<Int>()
-
-        foodReferencer.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                for (foodSnapshot in snapshot.children){
-                    val cartItems = foodSnapshot.getValue(CartItems::class.java)
-                    cartItems?.let {
-                        foodNames.add(it.foodName.toString())
-                        foodPrices.add("₹" + it.foodPrice.toString())
-                        foodDescriptions.add(it.foodDescription.toString())
-                        foodIngredients.add(it.foodIngredients.toString())
-                        foodImageUri.add(it.foodImage.toString())
-                        it.foodQuantity?.let { it1 -> quantity.add(it1) }
-                    }
-                }
-                setAdapter(foodNames, foodPrices, foodDescriptions, foodIngredients, foodImageUri, quantity)
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(requireContext(),"data no fetch",Toast.LENGTH_SHORT).show()
-            }
-        })
+        viewModel.retrieveCartItems { foodNames, foodPrices, foodDescriptions, foodIngredients, foodImageUri, quantity ->
+            setAdapter(foodNames, foodPrices, foodDescriptions, foodIngredients, foodImageUri, quantity)
+        }
     }
 
     private fun setAdapter(
@@ -143,4 +89,8 @@ class CartFragment : Fragment() {
         binding.cartRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.cartRecyclerView.adapter = cartAdapter
     }
+}
+
+interface CartProceedClickListener {
+    fun onCartProceedClicked()
 }

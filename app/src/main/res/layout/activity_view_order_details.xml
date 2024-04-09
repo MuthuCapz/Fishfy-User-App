@@ -3,14 +3,39 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/lblue"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-
+    <ImageButton
+        android:id="@+id/detailGoToBackImageButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="6dp"
+        android:layout_marginTop="6dp"
+        android:background="@android:color/transparent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/arrow_left"
+        android:contentDescription="@string/image_desc_text" />
+<TextView
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    android:layout_marginStart="50dp"
+    android:layout_marginEnd="50dp"
+    android:layout_marginTop="50dp"
+    android:textColor="@color/navy"
+    app:layout_constraintEnd_toEndOf="parent"
+    android:text="
+Note: Orders can only be canceled within 10 minutes of placing them. Once this time has passed, cancellations are not possible."
+android:textAlignment="center"/>
     <androidx.cardview.widget.CardView
         android:id="@+id/viewOrder"
         android:layout_width="match_parent"
-        android:layout_height="350dp"
+        android:layout_height="370dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="20dp"
+        android:backgroundTint="@color/white"
+        android:layout_marginTop="100dp"
         android:layout_marginEnd="8dp"
         app:cardCornerRadius="22dp"
         app:cardElevation="15dp"
@@ -25,6 +50,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:paddingLeft="15dp"
+
             android:paddingRight="15dp"
             android:orientation="horizontal">
             <ImageView
@@ -140,6 +166,7 @@
             android:layout_height="48dp"
             android:layout_marginTop="270dp"
             android:textSize="16dp"
+            android:textColor="@color/white"
             android:fontFamily="@font/lato_regular"
             android:backgroundTint="@color/navy"
             android:layout_marginStart="40dp"
@@ -154,6 +181,17 @@
             android:textColor="@color/black"
             android:layout_marginTop="270dp"
             android:layout_marginStart="220dp"/>
+        <TextView
+            android:id="@+id/time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Order Time"
+            android:textSize="16dp"
+            android:fontFamily="@font/lato_regular"
+            android:textColor="@color/black"
+            android:layout_marginTop="330dp"
+            android:layout_marginStart="250dp"/>
+
 
     </androidx.cardview.widget.CardView>
 
