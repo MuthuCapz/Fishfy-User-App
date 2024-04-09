@@ -576,6 +576,7 @@ class PayoutActivity : AppCompatActivity() {
                                 "Transaction Successful",
                                 Toast.LENGTH_SHORT
                             ).show()
+                            navigateToCongratsFragment(adjustedTotalAmount)
 
                         } else {
                             Toast.makeText(
@@ -583,7 +584,7 @@ class PayoutActivity : AppCompatActivity() {
                                 "Transaction Failed",
                                 Toast.LENGTH_SHORT
                             ).show()
-                            navigateToCongratsFragment(adjustedTotalAmount)
+
                         }
                     }
                 }
