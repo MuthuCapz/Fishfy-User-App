@@ -1,16 +1,20 @@
-package com.example.seafishfy.ui.activities.viewmodels
+package com.example.seafishfy.ui.activities.ViewModel
+
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.seafishfy.ui.activities.models.MenuItem
 import com.google.firebase.database.*
 
 class SearchViewModel : ViewModel() {
-    val menuItemsLiveData: MutableLiveData<List<MenuItem>> = MutableLiveData()
+
+    private val _menuItems = MutableLiveData<List<MenuItem>>()
+    val menuItems: LiveData<List<MenuItem>> = _menuItems
 
     private lateinit var database: FirebaseDatabase
+    private val originalMenuItems = mutableListOf<MenuItem>()
 
     fun retrieveMenuItems() {
-        val orignelMenuItems = mutableListOf<MenuItem>()
         database = FirebaseDatabase.getInstance()
         val foodReferencer1: DatabaseReference = database.reference.child("menu")
         val foodReferencer2: DatabaseReference = database.reference.child("menu1")
@@ -24,10 +28,10 @@ class SearchViewModel : ViewModel() {
                     for (foodSnapshot in snapshot.children) {
                         val menuItem = foodSnapshot.getValue(MenuItem::class.java)
                         menuItem?.let {
-                            orignelMenuItems.add(it)
+                            originalMenuItems.add(it)
                         }
                     }
-                    menuItemsLiveData.postValue(orignelMenuItems)
+                    _menuItems.value = originalMenuItems.toList()
                 }
 
                 override fun onCancelled(error: DatabaseError) {
@@ -35,5 +39,12 @@ class SearchViewModel : ViewModel() {
                 }
             })
         }
+    }
+
+    fun filterMenuItems(query: String) {
+        val filteredMenuItem = originalMenuItems.filter {
+            it.foodName?.contains(query, ignoreCase = true) == true
+        }
+        _menuItems.value = filteredMenuItem
     }
 }

@@ -52,9 +52,10 @@
             android:orientation="horizontal">
 
             <TextView
-                android:layout_width="20dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
+                android:layout_marginEnd="2dp"
                 android:layout_weight="1"
                 android:fontFamily="@font/yeon_sung_regular"
                 android:text="@string/name"
@@ -70,7 +71,8 @@
                 android:fontFamily="@font/lato_regular"
                 android:hint="Admin"
                 android:inputType="text"
-                android:paddingEnd="8dp"
+                android:paddingStart="10dp"
+                android:paddingEnd="2dp"
                 android:id="@+id/payoutName"
                 android:textColor="@color/black" />
         </LinearLayout>
@@ -136,9 +138,10 @@
             android:orientation="horizontal">
 
             <TextView
-                android:layout_width="20dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
+                android:layout_marginEnd="2dp"
                 android:layout_weight="1"
                 android:fontFamily="@font/yeon_sung_regular"
                 android:text="Phone"
@@ -146,51 +149,20 @@
                 android:textSize="20sp" />
 
             <EditText
+                android:id="@+id/payoutPhoneNumber"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:background="@android:color/transparent"
                 android:ems="10"
-                android:id="@+id/payoutPhoneNumber"
                 android:fontFamily="@font/lato_regular"
                 android:hint="123456789"
                 android:inputType="number"
-                android:paddingEnd="8dp"
+                android:paddingStart="20dp"
+                android:paddingEnd="2dp"
                 android:textColor="@color/black" />
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginStart="10dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginEnd="10dp"
-            android:layout_marginBottom="10dp"
-            android:layout_weight="1"
-            android:background="@drawable/profile_edit_text"
-            android:elevation="2dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="100dp"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:fontFamily="@font/yeon_sung_regular"
-                android:gravity="center"
-                android:text="Payment Method"
-                android:textAlignment="viewStart"
-                android:textSize="20sp"
-                tools:ignore="RtlCompat" />
-
-            <ImageView
-                android:layout_width="200dp"
-                android:layout_height="60dp"
-                android:layout_weight="1"
-                android:background="@android:color/transparent"
-                android:src="@drawable/gpay" />
-        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -218,14 +190,14 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:fontFamily="@font/lato_regular"
-                android:text="$30"
+                android:text="₹30"
                 android:id="@+id/payoutTotalAmount"
                 android:layout_marginEnd="10dp"
                 android:paddingEnd="40dp"
                 android:background="@android:color/transparent"
                 android:textAlignment="textEnd"
                 android:textColor="@color/navy"
-                android:textSize="30sp" />
+                android:textSize="18sp" />
         </LinearLayout>
 
     </LinearLayout>
@@ -240,7 +212,7 @@
         android:background="@drawable/profile_edit_text"
         android:elevation="5dp"
         android:fontFamily="@font/yeon_sung_regular"
-        android:text="Place My Order"
+        android:text="Make payment"
         android:textAllCaps="false"
         android:textColor="@color/navy"
         android:textSize="20sp"

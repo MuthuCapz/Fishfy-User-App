@@ -1,6 +1,5 @@
 package com.example.seafishfy.ui.activities.adapters
 
-
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -13,10 +12,11 @@ import com.example.seafishfy.ui.activities.DetailsActivity
 import com.example.seafishfy.ui.activities.models.MenuItem
 
 class SearchAdapter(
-    private var menuItems: List<MenuItem>,
-    private val requireContext: Context,
+    context1: List<Any>,
+    private val context: Context
 ) : RecyclerView.Adapter<SearchAdapter.MenuViewHolder>() {
-    private var filteredMenuItems: List<MenuItem> = menuItems
+
+    private var menuItems: List<MenuItem> = emptyList()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MenuViewHolder {
         val binding = SearchItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -24,10 +24,15 @@ class SearchAdapter(
     }
 
     override fun onBindViewHolder(holder: MenuViewHolder, position: Int) {
-        holder.bind(filteredMenuItems[position])
+        holder.bind(position)
     }
 
-    override fun getItemCount(): Int = filteredMenuItems.size
+    override fun getItemCount(): Int = menuItems.size
+
+    fun updateItems(items: List<MenuItem>) {
+        menuItems = items
+        notifyDataSetChanged()
+    }
 
     inner class MenuViewHolder(private val binding: SearchItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -42,35 +47,26 @@ class SearchAdapter(
         }
 
         private fun openDetailsActivity(position: Int) {
-            val menuItem = filteredMenuItems[position]
-
-            // Intent to open details activity and Pass data
-            val intent = Intent(requireContext, DetailsActivity::class.java).apply {
+            val menuItem = menuItems[position]
+            val intent = Intent(context, DetailsActivity::class.java).apply {
                 putExtra("MenuItemName", menuItem.foodName)
                 putExtra("MenuItemPrice", menuItem.foodPrice)
                 putExtra("MenuItemDescription", menuItem.foodDescription)
                 putExtra("MenuItemImage", menuItem.foodImage)
             }
-            requireContext.startActivity(intent)  // Start the  details Activity
+            context.startActivity(intent)
         }
 
-        fun bind(menuItem: MenuItem) {
+        fun bind(position: Int) {
+            val menuItem = menuItems[position]
             binding.apply {
                 menuFoodName.text = menuItem.foodName
                 val priceWithPrefix = "₹${menuItem.foodPrice}" // Prefixing the price with "₹"
                 menuPrice.text = priceWithPrefix
                 val url = Uri.parse(menuItem.foodImage)
-                Glide.with(requireContext).load(url).into(menuImage)
+                Glide.with(context).load(url).into(menuImage)
             }
         }
     }
-
-    fun filter(query: String) {
-        filteredMenuItems = if (query.isEmpty()) {
-            menuItems
-        } else {
-            menuItems.filter { it.foodName?.contains(query, ignoreCase = true) == true }
-        }
-        notifyDataSetChanged()
-    }
 }
+
