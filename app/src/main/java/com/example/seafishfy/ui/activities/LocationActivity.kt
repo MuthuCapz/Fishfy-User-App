@@ -146,7 +146,10 @@ class LocationActivity : AppCompatActivity() {
         }
         alertDialog.show()
     }
-
+    override fun onBackPressed() {
+        super.onBackPressed()
+        finishAffinity() // This closes the entire app
+    }
     private fun navigateToMainActivity(address: String, locality: String) {
         val intent = Intent(this, MainActivity::class.java)
         intent.putExtra("ADDRESS", address)

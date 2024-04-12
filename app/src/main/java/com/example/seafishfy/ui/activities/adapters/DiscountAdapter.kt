@@ -28,7 +28,7 @@ class DiscountAdapter(
 
     override fun onBindViewHolder(holder: DiscountViewHolder, position: Int) {
         holder.bind(position)
-        setAnimation(holder.itemView, position)
+
     }
 
     override fun getItemCount(): Int = discountItems.size
@@ -85,24 +85,6 @@ class DiscountAdapter(
                 Glide.with(context).load(url).into(discountimage)
             }
         }
-    }
-    private fun setAnimation(view: View, position: Int) {
-        val animation = AnimationUtils.loadAnimation(context, R.anim.slide_in_left)
-        animation.setAnimationListener(object : Animation.AnimationListener {
-            override fun onAnimationStart(animation: Animation?) {
-                // Animation started
-            }
-
-            override fun onAnimationEnd(animation: Animation?) {
-                // Animation ended, trigger animation again
-                view.startAnimation(animation)
-            }
-
-            override fun onAnimationRepeat(animation: Animation?) {
-                // Animation repeated
-            }
-        })
-        view.startAnimation(animation)
     }
 
 }

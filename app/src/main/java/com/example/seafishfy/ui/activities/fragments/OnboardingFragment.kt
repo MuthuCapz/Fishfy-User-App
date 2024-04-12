@@ -36,12 +36,12 @@ class OnboardingFragment : Fragment() {
             IntroSlide(
                 "Welcome to Fishfy!!!",
                 " Dive into the freshest catch with Fisfy! We're here to make your seafood cravings a delightful experience. Let's get started!",
-                "fishing.json"
+                "ak.json"
             ),
             IntroSlide(
                 "Choose Your Favorites",
                 "Tell us what you love! Select your favorite types of seafood to tailor your Fishfy experience.",
-                "eat.json"
+                "food.json"
             ),
             IntroSlide(
                 "Doorstep Delivery",

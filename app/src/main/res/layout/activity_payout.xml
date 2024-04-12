@@ -22,11 +22,11 @@
         android:id="@+id/textView18"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/edit"
+        android:text="Fill the details"
         android:layout_marginTop="8dp"
-        android:fontFamily="@font/yeon_sung_regular"
+        android:fontFamily="@font/inika_regular"
         android:textColor="@color/navy"
-        android:textSize="24sp"
+        android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/payoutBackButton" />
@@ -57,7 +57,7 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginEnd="2dp"
                 android:layout_weight="1"
-                android:fontFamily="@font/yeon_sung_regular"
+                android:fontFamily="@font/inika_regular"
                 android:text="@string/name"
                 android:textColor="@color/black"
                 android:textSize="20sp" />
@@ -72,7 +72,7 @@
                 android:hint="Admin"
                 android:inputType="text"
                 android:paddingStart="10dp"
-                android:paddingEnd="2dp"
+                android:paddingEnd="8dp"
                 android:id="@+id/payoutName"
                 android:textColor="@color/black" />
         </LinearLayout>
@@ -93,7 +93,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
-                android:fontFamily="@font/yeon_sung_regular"
+                android:fontFamily="@font/inika_regular"
                 android:text="Address"
                 android:textColor="@color/black"
                 android:textSize="20sp" />
@@ -105,7 +105,7 @@
                 android:layout_marginBottom="5dp"
                 android:layout_weight="1"
                 android:background="@android:color/transparent"
-                android:ems="9"
+                android:ems="7"
                 android:textSize="16dp"
                 android:id="@+id/payoutAddress"
                 android:fontFamily="@font/lato_regular"
@@ -143,8 +143,9 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginEnd="2dp"
                 android:layout_weight="1"
-                android:fontFamily="@font/yeon_sung_regular"
+                android:fontFamily="@font/inika_regular"
                 android:text="Phone"
+                android:ems="3"
                 android:textColor="@color/black"
                 android:textSize="20sp" />
 
@@ -158,7 +159,6 @@
                 android:fontFamily="@font/lato_regular"
                 android:hint="123456789"
                 android:inputType="number"
-                android:paddingStart="20dp"
                 android:paddingEnd="2dp"
                 android:textColor="@color/black" />
         </LinearLayout>
@@ -181,8 +181,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
-                android:fontFamily="@font/yeon_sung_regular"
+                android:fontFamily="@font/inika_regular"
                 android:text="Total Amount"
+                android:textColor="@color/black"
                 android:textSize="20sp" />
 
             <TextView
@@ -190,7 +191,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:fontFamily="@font/lato_regular"
-                android:text="₹30"
+                android:text=""
                 android:id="@+id/payoutTotalAmount"
                 android:layout_marginEnd="10dp"
                 android:paddingEnd="40dp"
@@ -211,7 +212,7 @@
         android:layout_marginBottom="25dp"
         android:background="@drawable/profile_edit_text"
         android:elevation="5dp"
-        android:fontFamily="@font/yeon_sung_regular"
+        android:fontFamily="@font/inika_regular"
         android:text="Make payment"
         android:textAllCaps="false"
         android:textColor="@color/navy"

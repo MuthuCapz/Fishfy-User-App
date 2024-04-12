@@ -86,7 +86,10 @@ class MainActivity : AppCompatActivity() {
                 animationView.setComposition(composition)
             }
     }
-
+    override fun onBackPressed() {
+        super.onBackPressed()
+        finishAffinity() // This closes the entire app
+    }
     private fun showPopupMenu(view: View) {
         val popupMenu = PopupMenu(this, view)
         popupMenu.menuInflater.inflate(R.menu.address, popupMenu.menu)
