@@ -12,7 +12,7 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.seafishfy.databinding.RecentCartItemBinding
 import com.example.seafishfy.ui.activities.ViewOrderDetails
 import com.example.seafishfy.ui.activities.models.Order
-import com.example.seafishfy.ui.activities.viewmodel.HistoryViewModel
+import com.example.seafishfy.ui.activities.ViewModel.HistoryViewModel
 
 class RecentBuyAdapter(
     private val context: Context,

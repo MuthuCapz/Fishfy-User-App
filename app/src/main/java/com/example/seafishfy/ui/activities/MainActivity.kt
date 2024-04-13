@@ -33,6 +33,8 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+
+
         auth = FirebaseAuth.getInstance()
 
         // Initialize ViewModel
@@ -86,10 +88,7 @@ class MainActivity : AppCompatActivity() {
                 animationView.setComposition(composition)
             }
     }
-    override fun onBackPressed() {
-        super.onBackPressed()
-        finishAffinity() // This closes the entire app
-    }
+
     private fun showPopupMenu(view: View) {
         val popupMenu = PopupMenu(this, view)
         popupMenu.menuInflater.inflate(R.menu.address, popupMenu.menu)
@@ -124,5 +123,16 @@ class MainActivity : AppCompatActivity() {
         }
 
         popupMenu.show()
+    }
+
+    override fun onBackPressed() {
+        // Check if there are fragments in the back stack
+        if (supportFragmentManager.backStackEntryCount > 0) {
+            // Pop the fragment from the back stack
+            supportFragmentManager.popBackStack()
+        } else {
+            // If no fragments in the back stack, let the system handle the back button press
+            super.onBackPressed()
+        }
     }
 }

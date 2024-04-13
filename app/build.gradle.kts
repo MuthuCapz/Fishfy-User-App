@@ -78,7 +78,7 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore-ktx:24.10.2")
     testImplementation("junit:junit:4.13.2")
     implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0")
-
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2")
     implementation ("com.squareup.picasso:picasso:2.71828")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")

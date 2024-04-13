@@ -1,4 +1,4 @@
-package com.example.seafishfy.ui.activities.viewmodel
+package com.example.seafishfy.ui.activities.ViewModel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -7,8 +7,10 @@ import com.example.seafishfy.ui.activities.models.Order
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
-import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 class HistoryViewModel : ViewModel() {
 
@@ -41,16 +43,20 @@ class HistoryViewModel : ViewModel() {
         }
     }
 
-    fun cancelOrder(orderId: String, callback: (Boolean) -> Unit) {
-        val orderRef = database.child(orderId)
-        orderRef.updateChildren(
-            mapOf(
-                "cancellationMessage" to "Order Cancelled"
-            )
-        ).addOnSuccessListener {
-            callback(true)
-        }.addOnFailureListener {
-            callback(false)
+    suspend fun cancelOrder(orderId: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                val orderRef = database.child(orderId)
+                orderRef.updateChildren(
+                    mapOf(
+                        "cancellationMessage" to "Order Cancelled"
+                    )
+                ).await()
+                true
+            } catch (e: Exception) {
+                // Handle exception
+                false
+            }
         }
     }
 }

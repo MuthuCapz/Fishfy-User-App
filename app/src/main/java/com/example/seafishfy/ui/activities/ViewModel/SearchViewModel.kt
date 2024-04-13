@@ -5,6 +5,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.seafishfy.ui.activities.models.MenuItem
 import com.google.firebase.database.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class SearchViewModel : ViewModel() {
 
@@ -22,29 +25,35 @@ class SearchViewModel : ViewModel() {
 
         val menuReferences = listOf(foodReferencer1, foodReferencer2, foodReferencer3)
 
-        menuReferences.forEach { reference ->
-            reference.addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    for (foodSnapshot in snapshot.children) {
-                        val menuItem = foodSnapshot.getValue(MenuItem::class.java)
-                        menuItem?.let {
-                            originalMenuItems.add(it)
+        CoroutineScope(Dispatchers.IO).launch {
+            menuReferences.forEach { reference ->
+                reference.addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        val items = mutableListOf<MenuItem>()
+                        for (foodSnapshot in snapshot.children) {
+                            val menuItem = foodSnapshot.getValue(MenuItem::class.java)
+                            menuItem?.let {
+                                items.add(it)
+                            }
                         }
+                        originalMenuItems.addAll(items)
+                        _menuItems.postValue(originalMenuItems.toList())
                     }
-                    _menuItems.value = originalMenuItems.toList()
-                }
 
-                override fun onCancelled(error: DatabaseError) {
-                    // Handle onCancelled
-                }
-            })
+                    override fun onCancelled(error: DatabaseError) {
+                        // Handle onCancelled
+                    }
+                })
+            }
         }
     }
 
     fun filterMenuItems(query: String) {
-        val filteredMenuItem = originalMenuItems.filter {
-            it.foodName?.contains(query, ignoreCase = true) == true
+        CoroutineScope(Dispatchers.Default).launch {
+            val filteredMenuItem = originalMenuItems.filter {
+                it.foodName?.contains(query, ignoreCase = true) == true
+            }
+            _menuItems.postValue(filteredMenuItem)
         }
-        _menuItems.value = filteredMenuItem
     }
 }

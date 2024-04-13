@@ -6,9 +6,12 @@ import android.os.Build
 import android.view.View
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.airbnb.lottie.LottieAnimationView
 import com.example.seafishfy.databinding.ActivityOrderStatusBinding
 import com.google.firebase.database.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class OrderStatusViewModel : ViewModel() {
 
@@ -29,56 +32,62 @@ class OrderStatusViewModel : ViewModel() {
     }
 
     private fun observeOrderStatusChanges() {
-        database.child("status").child(itemPushKey)
-            .addValueEventListener(object : ValueEventListener {
-                @RequiresApi(Build.VERSION_CODES.O)
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    val status = dataSnapshot.child("message").getValue(String::class.java)
-                    updateUI(status)
-                }
+        viewModelScope.launch(Dispatchers.IO) {
+            database.child("status").child(itemPushKey)
+                .addValueEventListener(object : ValueEventListener {
+                    @RequiresApi(Build.VERSION_CODES.O)
+                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                        val status = dataSnapshot.child("message").getValue(String::class.java)
+                        updateUI(status)
+                    }
 
-                override fun onCancelled(databaseError: DatabaseError) {
-                    // Handle error
-                }
-            })
+                    override fun onCancelled(databaseError: DatabaseError) {
+                        // Handle error
+                    }
+                })
+        }
     }
 
     private fun observeEstimatedTimeChanges() {
-        database.child("Estimated Time").child(itemPushKey)
-            .addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    val estimatedTime =
-                        dataSnapshot.child("estimated_time").getValue(String::class.java)
-                    binding.estimatedtime.text = estimatedTime ?: "Waiting for Update"
-                }
+        viewModelScope.launch(Dispatchers.IO) {
+            database.child("Estimated Time").child(itemPushKey)
+                .addValueEventListener(object : ValueEventListener {
+                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                        val estimatedTime =
+                            dataSnapshot.child("estimated_time").getValue(String::class.java)
+                        binding.estimatedtime.text = estimatedTime ?: "Waiting for Update"
+                    }
 
-                override fun onCancelled(databaseError: DatabaseError) {
-                    // Handle error
-                }
-            })
+                    override fun onCancelled(databaseError: DatabaseError) {
+                        // Handle error
+                    }
+                })
+        }
     }
 
     private fun observeTimestampChanges() {
-        database.child("status").child(itemPushKey).child("timestamp")
-            .addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    val timestamp = dataSnapshot.getValue(String::class.java)
-                    val formattedTimestamp = timestamp ?: ""
-                    binding.delitime.text = "Delivered Time: $formattedTimestamp"
-                    if (timestamp != null) {
-                        binding.delitime.visibility = View.VISIBLE
-                        orderDeliveredAnimationView.visibility = View.VISIBLE
-                        orderDeliveredAnimationView.playAnimation()
-                    } else {
-                        binding.delitime.visibility = View.INVISIBLE
-                        orderDeliveredAnimationView.visibility = View.INVISIBLE
+        viewModelScope.launch(Dispatchers.IO) {
+            database.child("status").child(itemPushKey).child("timestamp")
+                .addValueEventListener(object : ValueEventListener {
+                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                        val timestamp = dataSnapshot.getValue(String::class.java)
+                        val formattedTimestamp = timestamp ?: ""
+                        binding.delitime.text = "Delivered Time: $formattedTimestamp"
+                        if (timestamp != null) {
+                            binding.delitime.visibility = View.VISIBLE
+                            orderDeliveredAnimationView.visibility = View.VISIBLE
+                            orderDeliveredAnimationView.playAnimation()
+                        } else {
+                            binding.delitime.visibility = View.INVISIBLE
+                            orderDeliveredAnimationView.visibility = View.INVISIBLE
+                        }
                     }
-                }
 
-                override fun onCancelled(databaseError: DatabaseError) {
-                    // Handle error
-                }
-            })
+                    override fun onCancelled(databaseError: DatabaseError) {
+                        // Handle error
+                    }
+                })
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

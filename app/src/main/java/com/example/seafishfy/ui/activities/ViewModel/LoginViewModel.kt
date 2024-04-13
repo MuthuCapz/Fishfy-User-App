@@ -1,8 +1,11 @@
 package com.example.seafishfy.ui.activities.ViewModel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class LoginViewModel : ViewModel() {
 
@@ -10,14 +13,18 @@ class LoginViewModel : ViewModel() {
 
     fun signInWithGoogle(idToken: String, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
-        auth.signInWithCredential(credential)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
+        viewModelScope.launch {
+            try {
+                val result = auth.signInWithCredential(credential).await()
+                if (result.user != null) {
                     onSuccess.invoke()
                 } else {
                     onFailure.invoke("Authentication failed.")
                 }
+            } catch (e: Exception) {
+                onFailure.invoke("Authentication failed: ${e.message}")
             }
+        }
     }
 
     fun isUserLoggedIn(): Boolean {

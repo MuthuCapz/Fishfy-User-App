@@ -1,27 +1,27 @@
 package com.example.seafishfy.ui.activities.ViewModel
 
-// HomeViewModel.kt
-
-
-
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.seafishfy.ui.activities.models.DiscountItem
 import com.example.seafishfy.ui.activities.models.MenuItem
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class HomeViewModel : ViewModel() {
     private val database: FirebaseDatabase = FirebaseDatabase.getInstance()
     private val databaseReference: DatabaseReference = database.getReference("locations")
 
     private val _address = MutableLiveData<String?>()
-    val address: MutableLiveData<String?>
+    val address: LiveData<String?>
         get() = _address
 
     private val _locality = MutableLiveData<String?>()
-    val locality: MutableLiveData<String?>
+    val locality: LiveData<String?>
         get() = _locality
 
     private val _popularItems = MutableLiveData<List<MenuItem>>()
@@ -41,116 +41,103 @@ class HomeViewModel : ViewModel() {
         get() = _discountItems
 
     init {
-        retrieveAddressAndLocality()
-        retrievePopularItems()
-        retrieveMenu1Items()
-        retrieveMenu3Items()
-        retrieveDiscountItems()
+        retrieveData()
     }
 
-    private fun retrieveAddressAndLocality() {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid
-        userId?.let { uid ->
-            val userLocationRef = databaseReference.child(uid)
-            userLocationRef.addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    if (snapshot.exists()) {
-                        val address = snapshot.child("address").getValue(String::class.java)
-                        val locality = snapshot.child("locality").getValue(String::class.java)
-
-                        _address.value = address
-                        _locality.value = locality
-                    }
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-                    // Handle error
-                }
-            })
+    private fun retrieveData() {
+        viewModelScope.launch {
+            retrieveAddressAndLocality()
+            retrievePopularItems()
+            retrieveMenu1Items()
+            retrieveMenu3Items()
+            retrieveDiscountItems()
         }
     }
 
-    private fun retrievePopularItems() {
+    private suspend fun retrieveAddressAndLocality() {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        userId?.let { uid ->
+            val userLocationRef = databaseReference.child(uid)
+            try {
+                val snapshot = userLocationRef.get().await()
+                if (snapshot.exists()) {
+                    val address = snapshot.child("address").getValue(String::class.java)
+                    val locality = snapshot.child("locality").getValue(String::class.java)
+
+                    _address.value = address
+                    _locality.value = locality
+                }
+            } catch (e: Exception) {
+                // Handle error
+            }
+        }
+    }
+
+    private suspend fun retrievePopularItems() {
         val foodRef: DatabaseReference = database.reference.child("menu")
         val menuItems = mutableListOf<MenuItem>()
-
-        foodRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                for (foodSnapshot in snapshot.children) {
-                    val menuItem = foodSnapshot.getValue(MenuItem::class.java)
-                    menuItem?.let {
-                        menuItems.add(it)
-                    }
+        try {
+            val snapshot = foodRef.get().await()
+            for (foodSnapshot in snapshot.children) {
+                val menuItem = foodSnapshot.getValue(MenuItem::class.java)
+                menuItem?.let {
+                    menuItems.add(it)
                 }
-                _popularItems.value = menuItems
             }
-
-            override fun onCancelled(error: DatabaseError) {
-                // Handle error
-            }
-        })
+            _popularItems.value = menuItems
+        } catch (e: Exception) {
+            // Handle error
+        }
     }
 
-    private fun retrieveMenu1Items() {
+    private suspend fun retrieveMenu1Items() {
         val menu1Ref: DatabaseReference = database.reference.child("menu1")
         val menu1Items = mutableListOf<MenuItem>()
-
-        menu1Ref.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                for (menu1Snapshot in snapshot.children) {
-                    val menuItem = menu1Snapshot.getValue(MenuItem::class.java)
-                    menuItem?.let {
-                        menu1Items.add(it)
-                    }
+        try {
+            val snapshot = menu1Ref.get().await()
+            for (menu1Snapshot in snapshot.children) {
+                val menuItem = menu1Snapshot.getValue(MenuItem::class.java)
+                menuItem?.let {
+                    menu1Items.add(it)
                 }
-                _menu1Items.value = menu1Items
             }
-
-            override fun onCancelled(error: DatabaseError) {
-                // Handle error
-            }
-        })
+            _menu1Items.value = menu1Items
+        } catch (e: Exception) {
+            // Handle error
+        }
     }
 
-    private fun retrieveMenu3Items() {
+    private suspend fun retrieveMenu3Items() {
         val menu3Ref: DatabaseReference = database.reference.child("menu2")
         val menu3Items = mutableListOf<MenuItem>()
-
-        menu3Ref.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                for (menu3Snapshot in snapshot.children) {
-                    val menuItem = menu3Snapshot.getValue(MenuItem::class.java)
-                    menuItem?.let {
-                        menu3Items.add(it)
-                    }
+        try {
+            val snapshot = menu3Ref.get().await()
+            for (menu3Snapshot in snapshot.children) {
+                val menuItem = menu3Snapshot.getValue(MenuItem::class.java)
+                menuItem?.let {
+                    menu3Items.add(it)
                 }
-                _menu3Items.value = menu3Items
             }
-
-            override fun onCancelled(error: DatabaseError) {
-                // Handle error
-            }
-        })
+            _menu3Items.value = menu3Items
+        } catch (e: Exception) {
+            // Handle error
+        }
     }
 
-    private fun retrieveDiscountItems() {
+    private suspend fun retrieveDiscountItems() {
         val discountRef: DatabaseReference = database.reference.child("discount")
         val discountItems = mutableListOf<DiscountItem>()
-
-        discountRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                for (discountSnapshot in snapshot.children) {
-                    val menuItem = discountSnapshot.getValue(DiscountItem::class.java)
-                    menuItem?.let {
-                        discountItems.add(it)
-                    }
+        try {
+            val snapshot = discountRef.get().await()
+            for (discountSnapshot in snapshot.children) {
+                val menuItem = discountSnapshot.getValue(DiscountItem::class.java)
+                menuItem?.let {
+                    discountItems.add(it)
                 }
-                _discountItems.value = discountItems
             }
-
-            override fun onCancelled(error: DatabaseError) {
-                // Handle error
-            }
-        })
+            _discountItems.value = discountItems
+        } catch (e: Exception) {
+            // Handle error
+        }
     }
 }

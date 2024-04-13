@@ -1,4 +1,5 @@
 package com.example.seafishfy.ui.activities.fragments
+
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,7 +10,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.seafishfy.databinding.FragmentHistoryBinding
 import com.example.seafishfy.ui.activities.adapters.RecentBuyAdapter
-import com.example.seafishfy.ui.activities.viewmodel.HistoryViewModel
+import com.example.seafishfy.ui.activities.ViewModel.HistoryViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class HistoryFragment : Fragment() {
 
@@ -35,22 +39,35 @@ class HistoryFragment : Fragment() {
   binding.recentRecyclerView.adapter = adapter
 
   observeOrders()
-  viewModel.fetchOrders()
  }
 
  private fun observeOrders() {
   viewModel.orders.observe(viewLifecycleOwner) { orders ->
-   adapter.submitList(orders)
+   orders?.let {
+    adapter.submitList(orders)
+   }
   }
  }
 
  fun onCancelOrder(orderId: String) {
-  viewModel.cancelOrder(orderId) { isSuccess ->
+  CoroutineScope(Dispatchers.Main).launch {
+   val isSuccess = viewModel.cancelOrder(orderId)
    if (isSuccess) {
     Toast.makeText(requireContext(), "Your order has been cancelled", Toast.LENGTH_SHORT).show()
    } else {
     Toast.makeText(requireContext(), "Failed to cancel order", Toast.LENGTH_SHORT).show()
    }
+  }
+ }
+
+ override fun onResume() {
+  super.onResume()
+  fetchOrders()
+ }
+
+ private fun fetchOrders() {
+  CoroutineScope(Dispatchers.Main).launch {
+   viewModel.fetchOrders()
   }
  }
 }
