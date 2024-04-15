@@ -394,32 +394,13 @@ class PayoutActivity : AppCompatActivity() {
                             .appendQueryParameter("am", adjustedTotalAmount.toString()) // Adjusted total amount
                             .appendQueryParameter("cu", "INR") // Currency
                             .build()
-                        val phonePePackageName = getPhonePePackageName(this)
-                        if (phonePePackageName != null) {
-                            // PhonePe is installed, use phonePePackageName
-                            val intent = Intent(Intent.ACTION_VIEW)
-                            intent.data = uri
-                            intent.setPackage(phonePePackageName)
-                            startActivityForResult(intent, PHONEPE_REQUEST_CODE)
-                        } else {
-                            // PhonePe is not installed, handle accordingly
-                            // For example, prompt the user to install PhonePe
+                        val intent = Intent(Intent.ACTION_VIEW)
+                        intent.setData(uri)
+                        intent.setPackage(PHONEPE_PACKAGE_NAME)
+                        startActivityForResult(intent, PHONEPE_REQUEST_CODE)
                         }
                     }
                 }
-        }
-
-    private fun getPhonePePackageName(context: Context): String? {
-        val pm = context.packageManager
-        val packages = pm.getInstalledApplications(PackageManager.GET_META_DATA)
-        for (packageInfo in packages) {
-            if (packageInfo.packageName.contains("phonepe", ignoreCase = true)) {
-                return packageInfo.packageName
-            }
-        }
-        return null
-    }
-
 
     private fun redirectToPaytm() {
         paymentMethod = "Paytm"
@@ -577,7 +558,6 @@ class PayoutActivity : AppCompatActivity() {
                                 Toast.LENGTH_SHORT
                             ).show()
 
-
                         } else {
                             Toast.makeText(
                                 this@PayoutActivity,
@@ -585,7 +565,6 @@ class PayoutActivity : AppCompatActivity() {
                                 Toast.LENGTH_SHORT
                             ).show()
                             navigateToCongratsFragment(adjustedTotalAmount)
-
                         }
                     }
                 }
@@ -595,7 +574,7 @@ class PayoutActivity : AppCompatActivity() {
 
     private fun navigateToCongratsFragment(adjustedTotalAmount:Int) {
 
-                    userId = auth.currentUser?.uid ?: ""
+        userId = auth.currentUser?.uid ?: ""
         val timeFormat = SimpleDateFormat("HH:mm a", Locale.getDefault())
         val currentTimeMillis = System.currentTimeMillis()
         val formattedTime = timeFormat.format(currentTimeMillis)
@@ -715,6 +694,7 @@ class PayoutActivity : AppCompatActivity() {
 
         const val PAYTM_PACKAGE_NAME = "net.one97.paytm"
         private const val GOOGLE_TEZ_PACKAGE_NAME = "com.google.android.apps.nbu.paisa.user"
+         const val  PHONEPE_PACKAGE_NAME = "com.phonepe.app"
         // You can choose any integer value here
 
         private const val PRICE_ADJUSTMENT_5_KM = 0
