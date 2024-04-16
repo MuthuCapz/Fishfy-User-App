@@ -57,7 +57,9 @@
 
         />
 
-    <TextView
+
+
+        <TextView
     android:id="@+id/estimatedtime"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
@@ -70,6 +72,17 @@
 
          />
     </LinearLayout>
+    <TextView
+        android:id="@+id/username"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="heelo"
+        android:textSize="16sp"
+        android:fontFamily="@font/inika_regular"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginStart="100dp"
+        android:layout_marginTop="115dp"/>
     <ImageView
         android:id="@+id/confirmOrder"
         android:layout_width="70dp"
@@ -87,7 +100,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginStart="300dp"
-        android:layout_marginTop="145dp"/>
+        android:layout_marginTop="155dp"/>
 <TextView
     android:id="@+id/conform"
     android:layout_width="wrap_content"
@@ -98,7 +111,7 @@
     android:fontFamily="@font/lato_regular"
     android:textSize="20sp"
     android:layout_marginStart="90dp"
-    android:layout_marginTop="145dp"
+    android:layout_marginTop="155dp"
     app:layout_constraintStart_toStartOf="parent"
     app:layout_constraintTop_toTopOf="parent"/>
     <ImageView

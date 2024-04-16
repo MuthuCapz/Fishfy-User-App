@@ -29,6 +29,7 @@ class OrderStatusViewModel : ViewModel() {
         observeOrderStatusChanges()
         observeEstimatedTimeChanges()
         observeTimestampChanges()
+        observeUsernameChanges()
     }
 
     private fun observeOrderStatusChanges() {
@@ -64,6 +65,23 @@ class OrderStatusViewModel : ViewModel() {
                 })
         }
     }
+    private fun observeUsernameChanges() {
+        viewModelScope.launch(Dispatchers.IO) {
+            database.child("status").child(itemPushKey).child("username")
+                .addValueEventListener(object : ValueEventListener {
+                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                        val username = dataSnapshot.getValue(String::class.java)
+                        val displayText = "The order was taken by ${username ?: "..."}"
+                        binding.username.text = displayText
+                    }
+
+                    override fun onCancelled(databaseError: DatabaseError) {
+                        // Handle error
+                    }
+                })
+        }
+    }
+
 
     private fun observeTimestampChanges() {
         viewModelScope.launch(Dispatchers.IO) {
