@@ -25,6 +25,8 @@ class ViewOrderDetails : AppCompatActivity() {
     private lateinit var viewModel: ViewODViewModel
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var orderId: String
+    val ONE_MINUTE_IN_MILLIS = 60000
+
     private lateinit var cancelHandler: Handler
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,7 +41,6 @@ class ViewOrderDetails : AppCompatActivity() {
         }
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
         orderId = intent.getStringExtra("order_id") ?: ""
 
         if (orderId.isNotEmpty()) {
@@ -63,6 +64,34 @@ class ViewOrderDetails : AppCompatActivity() {
                 displayOrderDetails(order)
             }
         }
+        // Check order status from Firebase and enable/disable radio button accordingly
+        viewModel.fetchOrderStatus(orderId) { status ->
+            when (status) {
+                "Order confirmed" -> {
+                    binding.radio.setOnClickListener {
+                        showOrderTakenDialog()
+                    }
+                }
+                "Order picked" -> {
+                    binding.radio.setOnClickListener {
+                        showOrderTakenDialog()
+                    }
+                }
+                "Order delivered" -> {
+                    binding.radio.setOnClickListener {
+                        showOrderTakenDialog()
+                    }
+                    disableOrderView1()
+                }
+                else -> {
+                    binding.radio.isEnabled = true
+                    binding.radio.setOnClickListener {
+                        showCancelOrderDialog()
+                    }
+                }
+            }
+        }
+
 
         viewModel.orderImages.observe(this) { imageUrls ->
             imageUrls.forEachIndexed { index, imageUrl ->
@@ -94,6 +123,19 @@ class ViewOrderDetails : AppCompatActivity() {
         }
     }
 
+    private fun showOrderTakenDialog() {
+        val alertDialogBuilder = AlertDialog.Builder(this, R.style.CustomDialogTheme)
+        alertDialogBuilder.setMessage("You can't cancel your order because the driver has already taken it.")
+            .setCancelable(false)
+            .setPositiveButton("OK") { dialog, _ ->
+                binding.radio.isChecked = false
+                dialog.dismiss()
+            }
+        val alertDialog = alertDialogBuilder.create()
+        alertDialog.show()
+    }
+
+
     private fun loadImageIntoImageView(imageUrl: String, imageView: ImageView) {
         Glide.with(this@ViewOrderDetails)
             .load(imageUrl)
@@ -114,11 +156,47 @@ class ViewOrderDetails : AppCompatActivity() {
                 intent.putExtra("itemPushKey", order.itemPushKey)
                 startActivity(intent)
             }
+            binding.radio.setOnClickListener {
+                showCancelOrderDialog()
+            }
 
         }
     }
 
+    private fun showCancelOrderDialog() {
+        // Check the current order status
+        viewModel.fetchOrderStatus(orderId) { status ->
+            when (status) {
+                "Order confirmed", "Order picked", "Order delivered" -> {
+                    showOrderTakenDialog()
+                }
+                else -> {
+                    // Show the cancel order dialog if the order status allows cancellation
+                    AlertDialog.Builder(this)
+                        .setMessage("Are you sure you want to cancel your order?")
+                        .setCancelable(false)
+                        .setPositiveButton("Yes") { _, _ ->
+                            viewModel.cancelOrder(orderId)
+                        }
+                        .setNegativeButton("No") { dialog, _ ->
+                            dialog.dismiss()
+                            binding.radio.isChecked = false
+                        }
+                        .show()
+                }
+            }
+        }
+    }
 
+    private fun disableOrderView1() {
+        binding.viewOrder.isEnabled = false
+        binding.viewOrder.setBackgroundColor(ContextCompat.getColor(this, R.color.Lgreen))
+        binding.viewOrder.alpha = 0.5f
+        // Display cancellation message on the disabled view
+        binding.orderstatus.isEnabled = true // Enable the orderstatus button
+        binding.radio.isEnabled = false
+
+    }
 
     private fun disableOrderView() {
         binding.viewOrder.isEnabled = false
@@ -129,6 +207,7 @@ class ViewOrderDetails : AppCompatActivity() {
         cancelledImageView.setImageResource(R.drawable.cancelimg)
         cancelledImageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
         binding.orderstatus.isEnabled = false
+        binding.radio.isEnabled = false
         val marginParams = ViewGroup.MarginLayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT

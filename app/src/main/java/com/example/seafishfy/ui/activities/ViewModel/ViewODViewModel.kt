@@ -10,6 +10,8 @@ import com.google.firebase.database.*
 class ViewODViewModel : ViewModel() {
     private lateinit var database: DatabaseReference
     private lateinit var auth: FirebaseAuth
+    val databases: FirebaseDatabase = FirebaseDatabase.getInstance()
+    val firebaseRef: DatabaseReference = databases.reference
 
     private val _orderDetails = MutableLiveData<Order?>()
     val orderDetails: LiveData<Order?>
@@ -55,7 +57,20 @@ class ViewODViewModel : ViewModel() {
             }
         })
     }
+    fun fetchOrderStatus(orderId: String, callback: (String?) -> Unit) {
+        // Assuming you have a reference to Firebase and the status is stored under a specific path
+        val statusRef = firebaseRef.child("status").child(orderId).child("message")
+        statusRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val status = snapshot.getValue(String::class.java)
+                callback(status)
+            }
 
+            override fun onCancelled(error: DatabaseError) {
+                // Handle error
+            }
+        })
+    }
     fun cancelOrder(orderId: String) {
         val cancellationMessage = "Order Cancelled"
         val orderCancellationRef = database.child(orderId).child("cancellationMessage")
