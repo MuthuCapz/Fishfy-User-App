@@ -210,7 +210,7 @@ class ViewOrderDetails : AppCompatActivity() {
         binding.radio.isEnabled = false
         val marginParams = ViewGroup.MarginLayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
+            ViewGroup.LayoutParams.WRAP_CONTENT 
         )
         marginParams.setMargins(150, 150, 150, 150)
         cancelledImageView.layoutParams = marginParams
