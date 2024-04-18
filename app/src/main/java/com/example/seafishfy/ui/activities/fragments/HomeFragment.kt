@@ -24,6 +24,7 @@ import com.example.seafishfy.databinding.FragmentHomeBinding
 import com.example.seafishfy.ui.activities.ContactusActivity
 import com.example.seafishfy.ui.activities.Discount
 import com.example.seafishfy.ui.activities.LocationActivity
+import com.example.seafishfy.ui.activities.Utils.ToastHelper
 import com.example.seafishfy.ui.activities.ViewModel.HomeViewModel
 import com.example.seafishfy.ui.activities.adapters.DiscountAdapter
 import com.example.seafishfy.ui.activities.adapters.MenuAdapter
@@ -117,7 +118,7 @@ class HomeFragment : Fragment() {
             binding.discountRecyclerView.isClickable = false
             // Set an OnClickListener to show a toast message
             binding.discountRecyclerView.setOnClickListener {
-                Toast.makeText(requireContext(), "Discount items opens only after 5 PM", Toast.LENGTH_SHORT).show()
+                context?.let { it1 -> ToastHelper.showCustomToast(it1, "Discount items open only after 5 Pm") }
             }
         } else {
             // If not in disabled time, enable clicks and remove OnClickListener
