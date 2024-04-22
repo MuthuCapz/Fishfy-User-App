@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.seafishfy.databinding.CartItemBinding
+import com.example.seafishfy.ui.activities.Utils.ToastHelper
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -102,7 +103,7 @@ class CartAdapter(
                     cartItemIngredients.removeAt(position)
 
                     notifyItemRemoved(position)
-                    Toast.makeText(context, "Item Deleted", Toast.LENGTH_SHORT).show()
+                    ToastHelper.showCustomToast(context, "Item deleted")
                 }.addOnFailureListener {
                     Toast.makeText(context, "Failed to Delete Item", Toast.LENGTH_SHORT).show()
                 }

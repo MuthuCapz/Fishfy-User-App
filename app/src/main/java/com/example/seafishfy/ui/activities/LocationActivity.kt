@@ -20,8 +20,10 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.seafishfy.R
 import com.example.seafishfy.databinding.ActivityLocationBinding
+import com.example.seafishfy.ui.activities.Utils.ToastHelper
 import com.example.seafishfy.ui.activities.ViewModel.LocationViewModel
 import com.example.seafishfy.ui.activities.adapters.AddressAdapter
+
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
@@ -98,7 +100,7 @@ class LocationActivity : AppCompatActivity() {
                     }
                 }
             } else {
-                Toast.makeText(this, "Please turn on location", Toast.LENGTH_LONG).show()
+                ToastHelper.showCustomToast(this, "Please turn on location")
                 val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
                 startActivity(intent)
             }
@@ -120,10 +122,10 @@ class LocationActivity : AppCompatActivity() {
                     if (saved) {
                         viewModel.storeLocationAndAddressInFirebase(userId, address, locality)
                     } else {
-                        Toast.makeText(this, "Address already saved", Toast.LENGTH_SHORT).show()
+                        ToastHelper.showCustomToast(this, "Address already saved")
                     }
                 } else {
-                    Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
+                    ToastHelper.showCustomToast(this, "User not authenticated")
                 }
                 dialog.dismiss()
                 navigateToMainActivity(address, locality)
@@ -133,7 +135,7 @@ class LocationActivity : AppCompatActivity() {
                 if (userId != null) {
                     viewModel.saveLocalityInFirebase(userId, locality)
                 } else {
-                    Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
+                    ToastHelper.showCustomToast(this, "User not authenticated")
                 }
                 dialog.dismiss()
                 navigateToMainActivity(address, locality)
@@ -146,10 +148,7 @@ class LocationActivity : AppCompatActivity() {
         }
         alertDialog.show()
     }
-    override fun onBackPressed() {
-        super.onBackPressed()
-        finishAffinity() // This closes the entire app
-    }
+
     private fun navigateToMainActivity(address: String, locality: String) {
         val intent = Intent(this, MainActivity::class.java)
         intent.putExtra("ADDRESS", address)
@@ -202,5 +201,9 @@ class LocationActivity : AppCompatActivity() {
     private fun getSavedAddressesFromSharedPreferences(): MutableList<String> {
         val savedAddressesSet = sharedPreferences.getStringSet("SAVED_ADDRESSES", HashSet<String>()) ?: HashSet()
         return savedAddressesSet.toMutableList()
+    }
+    override fun onBackPressed() {
+        super.onBackPressed()
+        finishAffinity() // This closes the entire app
     }
 }

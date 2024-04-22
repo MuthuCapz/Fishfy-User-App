@@ -3,16 +3,12 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.view.animation.Animation
-import android.view.animation.AnimationUtils
-import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.seafishfy.R
 import com.example.seafishfy.databinding.DiscountItemsBinding
 import com.example.seafishfy.ui.activities.DetailsActivity
+import com.example.seafishfy.ui.activities.Utils.ToastHelper
 import com.example.seafishfy.ui.activities.models.DiscountItem
 import java.util.*
 
@@ -45,7 +41,7 @@ class DiscountAdapter(
                     } else {
                         // Show toast message if DiscountRecyclerView is not clickable
                         // You can customize the message as needed
-                        Toast.makeText(context, "Discount items open only after 5 Pm", Toast.LENGTH_SHORT).show()
+                        ToastHelper.showCustomToast(context, "Discount items open only after 5 Pm")
                     }
                 }
             }

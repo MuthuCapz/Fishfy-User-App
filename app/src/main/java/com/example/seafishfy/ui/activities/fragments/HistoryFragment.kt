@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.seafishfy.databinding.FragmentHistoryBinding
+import com.example.seafishfy.ui.activities.Utils.ToastHelper
 import com.example.seafishfy.ui.activities.adapters.RecentBuyAdapter
 import com.example.seafishfy.ui.activities.ViewModel.HistoryViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -53,7 +54,7 @@ class HistoryFragment : Fragment() {
   CoroutineScope(Dispatchers.Main).launch {
    val isSuccess = viewModel.cancelOrder(orderId)
    if (isSuccess) {
-    Toast.makeText(requireContext(), "Your order has been cancelled", Toast.LENGTH_SHORT).show()
+    ToastHelper.showCustomToast(context, "Your order has been cancelled")
    } else {
     Toast.makeText(requireContext(), "Failed to cancel order", Toast.LENGTH_SHORT).show()
    }

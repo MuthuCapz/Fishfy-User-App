@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.widget.Toast
 import com.bumptech.glide.Glide
 import com.example.seafishfy.databinding.ActivityDetailsBinding
+import com.example.seafishfy.ui.activities.Utils.ToastHelper
 import com.example.seafishfy.ui.activities.models.CartItems
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
@@ -120,16 +121,15 @@ class DetailsActivity : AppCompatActivity() {
          // Save data to cart item to Firebase database
          database.child("user").child(userId).child("cartItems").push().setValue(cartItem)
             .addOnSuccessListener {
-               Toast.makeText(
+               ToastHelper.showCustomToast(
                   this,
                   "Discount item added to cart successfully 🥰",
-                  Toast.LENGTH_SHORT
-               ).show()
+               )
             }.addOnFailureListener {
-               Toast.makeText(this, "Failed to add discount item 😒", Toast.LENGTH_SHORT).show()
+               ToastHelper.showCustomToast(this, "Failed to add discount item 😒")
             }
       } else {
-         Toast.makeText(this, "Item details not found 😒", Toast.LENGTH_SHORT).show()
+         ToastHelper.showCustomToast(this, "Item details not found 😒")
       }
    }
 }

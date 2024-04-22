@@ -6,12 +6,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -25,6 +23,7 @@ import com.example.seafishfy.ui.activities.ContactusActivity
 import com.example.seafishfy.ui.activities.Discount
 import com.example.seafishfy.ui.activities.LocationActivity
 import com.example.seafishfy.ui.activities.Utils.ToastHelper
+
 import com.example.seafishfy.ui.activities.ViewModel.HomeViewModel
 import com.example.seafishfy.ui.activities.adapters.DiscountAdapter
 import com.example.seafishfy.ui.activities.adapters.MenuAdapter
@@ -118,7 +117,7 @@ class HomeFragment : Fragment() {
             binding.discountRecyclerView.isClickable = false
             // Set an OnClickListener to show a toast message
             binding.discountRecyclerView.setOnClickListener {
-                context?.let { it1 -> ToastHelper.showCustomToast(it1, "Discount items open only after 5 Pm") }
+                ToastHelper.showCustomToast(context, "Discount items open only after 5 Pm")
             }
         } else {
             // If not in disabled time, enable clicks and remove OnClickListener
@@ -226,8 +225,7 @@ class HomeFragment : Fragment() {
                     val intent = Intent(requireContext(), Discount::class.java)
                     startActivity(intent)
                 } else {
-                    val itemMessage = "Selected Image $position"
-                    Toast.makeText(requireContext(), itemMessage, Toast.LENGTH_SHORT).show()
+                    ToastHelper.showCustomToast(context, "Please select the Discount Banner")
                 }
             }
         })

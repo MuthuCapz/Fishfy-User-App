@@ -6,9 +6,10 @@ import android.view.LayoutInflater
 import android.widget.TextView
 import android.widget.Toast
 import com.example.seafishfy.R
+import kotlin.coroutines.CoroutineContext
 
 object ToastHelper {
-    fun showCustomToast(context: Context, message: String) {
+    fun showCustomToast(context: Context?, message: String) {
         val layout = LayoutInflater.from(context).inflate(R.layout.toast_layout, null)
         val text = layout.findViewById<TextView>(R.id.text)
         text.text = message

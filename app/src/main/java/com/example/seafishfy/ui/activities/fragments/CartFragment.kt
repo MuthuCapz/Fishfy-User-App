@@ -6,13 +6,11 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
-import androidx.core.content.ContentProviderCompat
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.seafishfy.databinding.FragmentCartBinding
 import com.example.seafishfy.ui.activities.PayoutActivity
+import com.example.seafishfy.ui.activities.Utils.ToastHelper
 import com.example.seafishfy.ui.activities.ViewModel.CartViewModel
 import com.example.seafishfy.ui.activities.adapters.CartAdapter
 
@@ -42,7 +40,7 @@ class CartFragment : Fragment(), CartProceedClickListener {
     override fun onCartProceedClicked() {
         viewModel.isCartEmpty { isEmpty ->
             if (isEmpty) {
-                Toast.makeText(requireContext(), "First, you need to add products to the cart", Toast.LENGTH_SHORT).show()
+                ToastHelper.showCustomToast(context, "First, you need to add products to the cart")
             } else {
                 viewModel.getOrderItemsDetail(cartAdapter) { foodName, foodPrice, foodDescription, foodIngredient, foodImage, foodQuantities ->
                     orderNow(foodName, foodPrice, foodDescription, foodIngredient, foodImage, foodQuantities)
