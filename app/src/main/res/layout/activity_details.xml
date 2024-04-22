@@ -53,7 +53,7 @@
             android:id="@+id/detailImageView"
             android:layout_width="match_parent"
             android:layout_height="200dp"
-            android:scaleType="centerCrop"
+            android:scaleType="fitXY"
             tools:srcCompat="@tools:sample/avatars"
             android:contentDescription="@string/image_desc_text" />
     </androidx.cardview.widget.CardView>
@@ -91,7 +91,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="25dp"
-        android:text="@string/short_description"
+        android:text="Recipe"
         android:textSize="20sp"
         android:textColor="@color/black"
         android:fontFamily="@font/inika_regular"
@@ -107,6 +107,7 @@
         android:layout_marginEnd="8dp"
         android:fontFamily="@font/inika_regular"
         android:textSize="14sp"
+        android:gravity="fill"
         android:text="@string/short_description_lorem"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
