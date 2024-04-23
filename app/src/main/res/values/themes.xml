@@ -10,6 +10,30 @@
         <item name="android:windowActionBarOverlay">true</item>
         <item name="windowActionBarOverlay">true</item>
     </style>
+    <style name="CustomAlertDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <!-- Set background color of the dialog -->
+        <item name="android:background">@android:color/white</item>
+        <!-- Set text color for title and message -->
+        <item name="android:textColorPrimary">@android:color/black</item>
+        <!-- Set text color for positive button (Retry) -->
+        <item name="android:textColorPrimaryInverse">@color/navy</item>
+    </style>
+
+    <!-- styles.xml -->
+    <style name="NetworkDialogStyle" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="android:windowBackground">@android:color/white</item>
+    </style>
+
+    <style name="RetryButtonStyle" parent="Widget.AppCompat.Button">
+        <item name="android:textColor">@color/navy</item>
+        <item name="android:background">@color/white</item>
+    </style>
+
+    <style name="BlueTitleAlertDialog" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <!-- Change title color to green -->
+        <item name="android:textColorPrimary">#316FF6</item>
+        <item name="colorAccent">@android:color/black</item>
+    </style>
     <style name="AppTheme.Dark" parent="Theme.AppCompat">
         <item name="android:windowBackground">@color/black</item>
         <!-- Add other dark theme attributes here -->

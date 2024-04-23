@@ -1,13 +1,16 @@
 // MainActivity.kt
 package com.example.seafishfy.ui.activities
 
+import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.view.View
 import android.widget.PopupMenu
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 
@@ -29,13 +32,17 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        if (!isNetworkAvailable()) {
+            showNetworkDialog()
+            return
+        }
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
 
 
         auth = FirebaseAuth.getInstance()
+
 
         // Initialize ViewModel
         viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
@@ -76,10 +83,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Observe the user address from ViewModel
-        viewModel.userAddress.observe(this, { userAddress ->
+        viewModel.userAddress.observe(this) { userAddress ->
             // Update UI with the user's address
             binding.tvAddress.text = "Address: $userAddress"
-        })
+        }
     }
 
     private fun loadAnimation(animationView: LottieAnimationView, animationFileName: String) {
@@ -124,6 +131,29 @@ class MainActivity : AppCompatActivity() {
 
         popupMenu.show()
     }
+    private fun isNetworkAvailable(): Boolean {
+        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkInfo = connectivityManager.activeNetworkInfo
+        return networkInfo != null && networkInfo.isConnected
+    }
+
+    private fun showNetworkDialog() {
+        val builder = AlertDialog.Builder(this, R.style.CustomAlertDialogTheme)
+        builder.setTitle("No Internet Connection")
+        builder.setMessage("Please check your network connection and try again.")
+        builder.setPositiveButton("Retry") { dialog, _ ->
+            dialog.dismiss()
+            recreate()
+        }
+        builder.setOnCancelListener {
+            finish()
+        }
+        val dialog = builder.create()
+        dialog.setCancelable(false)
+        dialog.setCanceledOnTouchOutside(false)
+        dialog.show()
+    }
+
 
     override fun onBackPressed() {
         // Check if there are fragments in the back stack
