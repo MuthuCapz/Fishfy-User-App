@@ -11,10 +11,12 @@
     <color name="bgColor">#D4DBE0</color>
     <color name="iconColor">#FEAD1D</color>
     <color name="colorPrimary">#5B1DCE</color>
-    <color name="navy"> #316FF6</color>
     <color name="Lgreen">#AAEAC4</color>
     <color name="lblue">#C4D7E6</color>
     <color name="blue">#4274DF</color>
+    <color name="navy"> #316FF6</color>
+    <color name="Dnavy">#010927</color>
+    <color name="Lblack">#171717</color>
     <color name="pink">#F4399A</color>
     <color name="colorPrimaryDark">#311B92</color>
     <color name="lpink">#F199B6</color>

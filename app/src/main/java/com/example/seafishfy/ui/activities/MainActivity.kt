@@ -2,6 +2,7 @@
 package com.example.seafishfy.ui.activities
 
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.net.ConnectivityManager
 import androidx.appcompat.app.AppCompatActivity
@@ -10,6 +11,7 @@ import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.view.View
 import android.widget.PopupMenu
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
@@ -139,8 +141,20 @@ class MainActivity : AppCompatActivity() {
 
     private fun showNetworkDialog() {
         val builder = AlertDialog.Builder(this, R.style.CustomAlertDialogTheme)
-        builder.setTitle("No Internet Connection")
-        builder.setMessage("Please check your network connection and try again.")
+        val title = TextView(this)
+        title.text = "No Internet Connection"
+        title.setTextColor(ContextCompat.getColor(this, R.color.Dnavy)) // Title color
+        title.textSize = 20f
+        title.setPadding(20, 25, 20, 20)
+        builder.setCustomTitle(title)
+
+        val message = TextView(this)
+        message.text = "Please check your network connection and try again."
+        message.setTextColor(ContextCompat.getColor(this, R.color.navy)) // Message color
+        message.textSize = 16f
+        message.setPadding(25, 20, 25, 0)
+        builder.setView(message)
+
         builder.setPositiveButton("Retry") { dialog, _ ->
             dialog.dismiss()
             recreate()
@@ -152,6 +166,10 @@ class MainActivity : AppCompatActivity() {
         dialog.setCancelable(false)
         dialog.setCanceledOnTouchOutside(false)
         dialog.show()
+
+        // Set button color programmatically
+        val positiveButton = dialog.getButton(DialogInterface.BUTTON_POSITIVE)
+        positiveButton.setTextColor(ContextCompat.getColor(this, R.color.Lblack))
     }
 
 

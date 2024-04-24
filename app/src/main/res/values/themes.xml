@@ -11,12 +11,8 @@
         <item name="windowActionBarOverlay">true</item>
     </style>
     <style name="CustomAlertDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
-        <!-- Set background color of the dialog -->
-        <item name="android:background">@android:color/white</item>
-        <!-- Set text color for title and message -->
-        <item name="android:textColorPrimary">@android:color/black</item>
-        <!-- Set text color for positive button (Retry) -->
-        <item name="android:textColorPrimaryInverse">@color/navy</item>
+        <item name="android:windowBackground">@color/white</item>
+        <item name="android:textColorPrimary">@color/navy</item> <!-- Text Color -->
     </style>
 
     <!-- styles.xml -->
