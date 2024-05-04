@@ -22,8 +22,8 @@
         android:id="@+id/textView18"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Fill the details"
-        android:layout_marginTop="8dp"
+        android:text="Fill The Details"
+        android:layout_marginTop="5dp"
         android:fontFamily="@font/inika_regular"
         android:textColor="@color/navy"
         android:textSize="20sp"
@@ -34,7 +34,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="15dp"
         android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -57,7 +57,7 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginEnd="2dp"
                 android:layout_weight="1"
-                android:fontFamily="@font/inika_regular"
+                android:fontFamily="@font/yeon_sung_regular"
                 android:text="@string/name"
                 android:textColor="@color/black"
                 android:textSize="20sp" />
@@ -68,7 +68,7 @@
                 android:layout_weight="1"
                 android:background="@android:color/transparent"
                 android:ems="10"
-                android:fontFamily="@font/lato_regular"
+                android:fontFamily="@font/inika_regular"
                 android:hint="Admin"
                 android:inputType="text"
                 android:paddingStart="10dp"
@@ -93,7 +93,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
-                android:fontFamily="@font/inika_regular"
+                android:fontFamily="@font/yeon_sung_regular"
                 android:text="Address"
                 android:textColor="@color/black"
                 android:textSize="20sp" />
@@ -108,7 +108,7 @@
                 android:ems="7"
                 android:textSize="16dp"
                 android:id="@+id/payoutAddress"
-                android:fontFamily="@font/lato_regular"
+                android:fontFamily="@font/inika_regular"
                 android:hint="Enables showing a submit button when the query is non-empty."
                 android:inputType="textMultiLine"
                 android:paddingEnd="8dp"
@@ -143,7 +143,7 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginEnd="2dp"
                 android:layout_weight="1"
-                android:fontFamily="@font/inika_regular"
+                android:fontFamily="@font/yeon_sung_regular"
                 android:text="Phone"
                 android:ems="3"
                 android:textColor="@color/black"
@@ -181,10 +181,11 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
-                android:fontFamily="@font/inika_regular"
+                android:fontFamily="@font/yeon_sung_regular"
                 android:text="Total Amount"
                 android:textColor="@color/black"
                 android:textSize="20sp" />
+
 
             <TextView
                 android:layout_width="wrap_content"
@@ -201,6 +202,17 @@
                 android:textSize="18sp" />
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/pathContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="invisible"
+            android:orientation="vertical"
+            android:layout_below="@id/payoutTotalAmount"
+            android:layout_marginTop="20dp"/>
+
+
+
     </LinearLayout>
 
     <androidx.appcompat.widget.AppCompatButton
@@ -212,7 +224,7 @@
         android:layout_marginBottom="25dp"
         android:background="@drawable/profile_edit_text"
         android:elevation="5dp"
-        android:fontFamily="@font/inika_regular"
+        android:fontFamily="@font/yeon_sung_regular"
         android:text="Make payment"
         android:textAllCaps="false"
         android:textColor="@color/navy"

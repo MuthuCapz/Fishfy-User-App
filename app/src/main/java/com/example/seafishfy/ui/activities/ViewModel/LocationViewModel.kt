@@ -14,12 +14,21 @@ class LocationViewModel(application: Application) : AndroidViewModel(application
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val database: DatabaseReference = FirebaseDatabase.getInstance().reference
 
-    fun saveLocalityInFirebase(userId: String, locality: String) {
+    fun saveLocalityInFirebase(
+        userId: String,
+        locality: String,
+        latitude: Double,
+        longitude: Double,
+        shoptextview: Any?
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val userLocationRef = database.child("locations").child(userId)
                 val locationMap = mapOf(
-                    "locality" to locality
+                    "locality" to locality,
+                    "latitude" to latitude,
+                    "longitude" to longitude,
+                    "shopname" to shoptextview
                 )
                 userLocationRef.setValue(locationMap).await()
                 // Handle success
@@ -29,13 +38,23 @@ class LocationViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun storeLocationAndAddressInFirebase(userId: String, address: String, locality: String) {
+    fun storeLocationAndAddressInFirebase(
+        userId: String,
+        address: String,
+        locality: String,
+        latitude: Double,
+        longitude: Double,
+        shoptextview: String
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val userLocationRef = database.child("locations").child(userId)
                 val locationMap = mapOf(
                     "address" to address,
-                    "locality" to locality
+                    "locality" to locality,
+                    "latitude" to latitude,
+                    "longitude" to longitude,
+                    "shopname"  to shoptextview
                 )
                 userLocationRef.setValue(locationMap).await()
                 // Handle success

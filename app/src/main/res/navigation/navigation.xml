@@ -35,42 +35,69 @@
         android:name="com.example.seafishfy.ui.activities.ContactusActivity"
         android:label="activity_contact"
         tools:layout="@layout/activity_contactus" />
-    <activity
-        android:id="@+id/MainActivity"
-        android:name="com.example.seafishfy.ui.activities.MainActivity"
-        android:label="activity_main"
-        tools:layout="@layout/activity_main" />
-    <activity
-        android:id="@+id/Splashscreen"
-        android:name="com.example.seafishfy.ui.activities.SplashScreen"
-        android:label="activity_splash_screen"
-        tools:layout="@layout/activity_splash_screen" />
     <fragment
         android:id="@+id/accountFragment"
         android:name="com.example.seafishfy.ui.activities.fragments.AccountFragment"
         android:label="fragment_account"
         tools:layout="@layout/fragment_account" />
+    <fragment
+        android:id="@+id/shopOneFragment"
+        android:name="com.example.seafishfy.ui.activities.fragments.ShopOneFragment"
+        android:label="fragment_shopone"
+        tools:layout="@layout/fragment_shop_one" />
+    <fragment
+        android:id="@+id/shopTwoFragment"
+        android:name="com.example.seafishfy.ui.activities.fragments.ShopTwoFragment"
+        android:label="fragment_shoptwo"
+        tools:layout="@layout/fragment_shop_two" />
+    <fragment
+        android:id="@+id/shopThreeFragment"
+        android:name="com.example.seafishfy.ui.activities.fragments.ShopThreeFragment"
+        android:label="fragment_shopthree"
+        tools:layout="@layout/fragment_shop_three" />
+    <fragment
+        android:id="@+id/shopFourFragment"
+        android:name="com.example.seafishfy.ui.activities.fragments.ShopFourFragment"
+        android:label="fragment_shopfour"
+        tools:layout="@layout/fragment_shop_four" />
+    <fragment
+        android:id="@+id/shopFiveFragment"
+        android:name="com.example.seafishfy.ui.activities.fragments.ShopFiveFragment"
+        android:label="fragment_shopfive"
+        tools:layout="@layout/fragment_shop_five" />
+    <fragment
+        android:id="@+id/shopSixFragment"
+        android:name="com.example.seafishfy.ui.activities.fragments.ShopSixFragment"
+        android:label="fragment_shopsix"
+        tools:layout="@layout/fragment_shop_six" />
+
+
+    <action
+        android:id="@+id/action_homeFragment_to_shoponefragment"
+        app:destination="@id/shopOneFragment" />
+    <action
+        android:id="@+id/action_homeFragment_to_shoptwofragment"
+        app:destination="@id/shopTwoFragment" />
+    <action
+        android:id="@+id/action_homeFragment_to_shopthreefragment"
+        app:destination="@id/shopThreeFragment" />
+    <action
+        android:id="@+id/action_homeFragment_to_shopfourfragment"
+        app:destination="@id/shopFourFragment" />
+    <action
+        android:id="@+id/action_homeFragment_to_shopfivefragment"
+        app:destination="@id/shopFiveFragment" />
+    <action
+        android:id="@+id/action_homeFragment_to_shopsixfragment"
+        app:destination="@id/shopSixFragment" />
     <action
         android:id="@+id/action_profileFragment_to_myProfileFragment"
         app:destination="@id/accountFragment" />
-    <action
-        android:id="@+id/action_Splashscreen_to_onboardingFragment"
-        app:destination="@id/onboardingFragment" />
     <action
         android:id="@+id/action_profileFragment_to_historyFragment"
         app:destination="@id/historyFragment" />
     <action
         android:id="@+id/action_profileFragment_to_about"
         app:destination="@id/contactusActivity" />
-    <action
-        android:id="@+id/action_onboardingFragment_to_MainActivity"
-        app:destination="@id/MainActivity"
-        app:popUpTo="@id/MainActivity"
-        app:popUpToInclusive="true" />
-    <fragment
-        android:id="@+id/onboardingFragment"
-        android:name="com.example.seafishfy.ui.activities.fragments.OnboardingFragment"
-        android:label="fragment_onboarding"
-        tools:layout="@layout/fragment_onboarding">
-    </fragment>
+
 </navigation>

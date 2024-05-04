@@ -26,7 +26,7 @@ class  MenuAdapter(
         return MenuViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: MenuViewHolder, position: Int) {  
+    override fun onBindViewHolder(holder: MenuViewHolder, position: Int) {
         holder.bind(position)
     }
 

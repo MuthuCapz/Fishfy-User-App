@@ -1,59 +1,77 @@
 package com.example.seafishfy.ui.activities.ViewModel
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.seafishfy.ui.activities.models.MenuItem
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class SearchViewModel : ViewModel() {
+    val menuItemsLiveData: MutableLiveData<List<MenuItem>> = MutableLiveData()
 
-    private val _menuItems = MutableLiveData<List<MenuItem>>()
-    val menuItems: LiveData<List<MenuItem>> = _menuItems
-
-    private lateinit var database: FirebaseDatabase
-    private val originalMenuItems = mutableListOf<MenuItem>()
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private var database: FirebaseDatabase = FirebaseDatabase.getInstance()
 
     fun retrieveMenuItems() {
-        database = FirebaseDatabase.getInstance()
-        val foodReferencer1: DatabaseReference = database.reference.child("menu")
-        val foodReferencer2: DatabaseReference = database.reference.child("menu1")
-        val foodReferencer3: DatabaseReference = database.reference.child("menu2")
+        val currentUserUid = FirebaseAuth.getInstance().currentUser?.uid
 
-        val menuReferences = listOf(foodReferencer1, foodReferencer2, foodReferencer3)
+        currentUserUid?.let { uid ->
+            database = FirebaseDatabase.getInstance()
+            val userLocationReference = database.reference.child("locations").child(uid)
 
-        CoroutineScope(Dispatchers.IO).launch {
-            menuReferences.forEach { reference ->
-                reference.addListenerForSingleValueEvent(object : ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        val items = mutableListOf<MenuItem>()
-                        for (foodSnapshot in snapshot.children) {
-                            val menuItem = foodSnapshot.getValue(MenuItem::class.java)
-                            menuItem?.let {
-                                items.add(it)
-                            }
+            userLocationReference.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val shopNamesString = snapshot.child("shopname").getValue(String::class.java)
+                    shopNamesString?.let { shopNames ->
+                        val shopNamesList = shopNames.split(",").map { it.trim() }
+                        shopNamesList.forEach { shopName ->
+                            fetchMenuItemsForShop(shopName)
                         }
-                        originalMenuItems.addAll(items)
-                        _menuItems.postValue(originalMenuItems.toList())
                     }
+                }
 
-                    override fun onCancelled(error: DatabaseError) {
-                        // Handle onCancelled
-                    }
-                })
-            }
+                override fun onCancelled(error: DatabaseError) {
+                    // Handle onCancelled
+                }
+            })
         }
     }
 
-    fun filterMenuItems(query: String) {
-        CoroutineScope(Dispatchers.Default).launch {
-            val filteredMenuItem = originalMenuItems.filter {
-                it.foodName?.contains(query, ignoreCase = true) == true
+    private fun fetchMenuItemsForShop(shopName: String) {
+        val menuReferences = listOf(
+            database.reference.child(shopName).child("menu"),
+            database.reference.child(shopName).child("menu1"),
+            database.reference.child(shopName).child("menu2")
+        )
+
+
+
+        viewModelScope.launch {
+            val menuItems = mutableListOf<MenuItem>()
+            withContext(Dispatchers.IO) {
+                menuReferences.forEach { reference ->
+                    reference.addListenerForSingleValueEvent(object : ValueEventListener {
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            for (foodSnapshot in snapshot.children) {
+                                val menuItem = foodSnapshot.getValue(MenuItem::class.java)
+                                menuItem?.let {
+                                    menuItems.add(it)
+                                }
+                            }
+                            menuItemsLiveData.postValue(menuItems.toList())
+                        }
+
+                        override fun onCancelled(error: DatabaseError) {
+                            // Handle onCancelled
+                        }
+                    })
+                }
             }
-            _menuItems.postValue(filteredMenuItem)
         }
     }
 }

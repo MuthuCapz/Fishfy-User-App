@@ -52,6 +52,8 @@ dependencies {
 
 //viewpager2
     implementation ("androidx.viewpager2:viewpager2:1.0.0")
+
+
 //indicator
     implementation ("me.relex:circleindicator:2.1.6")
     implementation ("androidx.datastore:datastore-preferences:1.0.0")

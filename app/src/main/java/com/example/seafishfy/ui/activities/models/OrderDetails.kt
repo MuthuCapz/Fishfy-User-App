@@ -21,6 +21,7 @@ class OrderDetails() : Serializable, Parcelable {
     var paymentMethod: String? = null
     var adjustedTotalAmount: String? = null
     var orderDate: String? = null
+    var ShopNames: MutableList<String>? = null
 
     constructor(parcel: Parcel) : this() {
         userUid = parcel.readString()
@@ -35,6 +36,7 @@ class OrderDetails() : Serializable, Parcelable {
         paymentMethod = parcel.readString()
         adjustedTotalAmount = parcel.readString()
         orderDate = parcel.readString()
+        ShopNames = parcel.createStringArrayList()
     }
 
     constructor(
@@ -52,7 +54,8 @@ class OrderDetails() : Serializable, Parcelable {
         itemPushKey: String?,
         orderDate: String, // New parameter for order date
         b: Boolean,
-        b1: Boolean
+        b1: Boolean,
+        pathContainer: MutableList<String>
     ) : this() {
         this.userUid = userId
         this.userName = name
@@ -69,6 +72,8 @@ class OrderDetails() : Serializable, Parcelable {
         this.orderAccepted = orderAccepted
         this.paymentReceived = paymentReceived
         this.orderDate = orderDate // Set order date
+        this.ShopNames = pathContainer
+
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -83,6 +88,7 @@ class OrderDetails() : Serializable, Parcelable {
         parcel.writeString(paymentMethod)
         parcel.writeString(adjustedTotalAmount)
         parcel.writeString(orderDate) // Write order date
+        parcel.writeStringList(ShopNames)
     }
 
     override fun describeContents(): Int {

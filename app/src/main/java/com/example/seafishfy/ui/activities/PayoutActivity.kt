@@ -13,7 +13,6 @@ import com.google.firebase.database.*
 import android.view.View
 import androidx.core.app.ActivityCompat
 import android.Manifest
-import android.content.Context
 import android.content.Intent
 import android.location.Location
 import android.content.pm.PackageManager
@@ -21,8 +20,8 @@ import android.location.Address
 import android.location.Geocoder
 import android.net.Uri
 import android.util.Log
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
-import com.example.seafishfy.ui.activities.Utils.ToastHelper
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import java.io.IOException
@@ -135,9 +134,9 @@ class PayoutActivity : AppCompatActivity() {
             phoneNumber = binding.payoutPhoneNumber.text.toString().trim()
 
             if (name.isBlank() && address.isBlank() && phoneNumber.isBlank()) {
-                ToastHelper.showCustomToast(this, "Please Enter all the Details")
+                Toast.makeText(this, "Please Enter all the Details", Toast.LENGTH_SHORT).show()
             } else if (!isValidPhoneNumber(phoneNumber)) {
-                ToastHelper.showCustomToast(this, "Please enter a valid phone number")
+                Toast.makeText(this, "Please enter a valid phone number", Toast.LENGTH_SHORT).show()
             } else {
                 placeTheOrder()
             }
@@ -149,6 +148,7 @@ class PayoutActivity : AppCompatActivity() {
             finish()
         }
     }
+
 
     private fun showPopupMenu(view: View) {
         val popupMenu = PopupMenu(this, view)
@@ -360,48 +360,48 @@ class PayoutActivity : AppCompatActivity() {
 
     private fun redirectToPhonepe() {
         paymentMethod = "Phonepe"
-        val destinationLocation = getLocationFromAddress("Spic Nagar")
-        if (destinationLocation != null) {
-            if (ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                // Request permissions here if needed
-                return
-            }
-        } else {
-            showToast("Error: Destination address not found")
-        }
-        mFusedLocationClient.lastLocation
-            .addOnSuccessListener { location ->
-                location?.let {
-                    val distance = destinationLocation?.let { it1 -> calculateDistance(it, it1) }
-                    val priceAdjustment =
-                        distance?.let { it1 -> adjustPriceBasedOnDistance(it1) }
-                    val adjustedTotalAmount =
-                        totalAmount.dropLast(1).toInt() + priceAdjustment!!
-
-                    binding.payoutTotalAmount.text = adjustedTotalAmount.toString()
-                    val uri = Uri.Builder()
-                        .scheme("upi")
-                        .authority("pay")
-                        .appendQueryParameter("pa", "9845779437.ibz@icici") // PhonePe VPA
-                        .appendQueryParameter("pn", "Sheeba") // Recipient Name
-                        .appendQueryParameter("tn", "Fish") // Transaction Note
-                        .appendQueryParameter("am", adjustedTotalAmount.toString()) // Adjusted total amount
-                        .appendQueryParameter("cu", "INR") // Currency
-                        .build()
-                    val intent = Intent(Intent.ACTION_VIEW)
-                    intent.setData(uri)
-                    intent.setPackage(PHONEPE_PACKAGE_NAME)
-                    startActivityForResult(intent, PHONEPE_REQUEST_CODE)
+            val destinationLocation = getLocationFromAddress("Spic Nagar")
+            if (destinationLocation != null) {
+                if (ActivityCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    // Request permissions here if needed
+                    return
                 }
+            } else {
+                showToast("Error: Destination address not found")
             }
-    }
+            mFusedLocationClient.lastLocation
+                .addOnSuccessListener { location ->
+                    location?.let {
+                        val distance = destinationLocation?.let { it1 -> calculateDistance(it, it1) }
+                        val priceAdjustment =
+                            distance?.let { it1 -> adjustPriceBasedOnDistance(it1) }
+                        val adjustedTotalAmount =
+                            totalAmount.dropLast(1).toInt() + priceAdjustment!!
+
+                        binding.payoutTotalAmount.text = adjustedTotalAmount.toString()
+                        val uri = Uri.Builder()
+                            .scheme("upi")
+                            .authority("pay")
+                            .appendQueryParameter("pa", "9845779437.ibz@icici") // PhonePe VPA
+                            .appendQueryParameter("pn", "Sheeba") // Recipient Name
+                            .appendQueryParameter("tn", "Fish") // Transaction Note
+                            .appendQueryParameter("am", adjustedTotalAmount.toString()) // Adjusted total amount
+                            .appendQueryParameter("cu", "INR") // Currency
+                            .build()
+                        val intent = Intent(Intent.ACTION_VIEW)
+                        intent.setData(uri)
+                        intent.setPackage(PHONEPE_PACKAGE_NAME)
+                        startActivityForResult(intent, PHONEPE_REQUEST_CODE)
+                        }
+                    }
+                }
 
     private fun redirectToPaytm() {
         paymentMethod = "Paytm"
@@ -553,16 +553,18 @@ class PayoutActivity : AppCompatActivity() {
                     }
                     if (requestCode == GOOGLE_PAY_REQUEST_CODE || requestCode == PAYTM_REQUEST_CODE || requestCode == PHONEPE_REQUEST_CODE) {
                         if (resultCode == RESULT_OK && status == "success") {
-                            ToastHelper.showCustomToast(
+                            Toast.makeText(
                                 this@PayoutActivity,
-                                "Transaction Successfull"
-                            )
+                                "Transaction Successful",
+                                Toast.LENGTH_SHORT
+                            ).show()
 
                         } else {
-                            ToastHelper.showCustomToast(
+                            Toast.makeText(
                                 this@PayoutActivity,
-                                "Transaction Failed"
-                            )
+                                "Transaction Failed",
+                                Toast.LENGTH_SHORT
+                            ).show()
                             navigateToCongratsFragment(adjustedTotalAmount)
                         }
                     }
@@ -571,8 +573,7 @@ class PayoutActivity : AppCompatActivity() {
     }
 
 
-    private fun navigateToCongratsFragment(adjustedTotalAmount:Int) {
-
+    private fun navigateToCongratsFragment(adjustedTotalAmount: Int) {
         userId = auth.currentUser?.uid ?: ""
         val timeFormat = SimpleDateFormat("HH:mm a", Locale.getDefault())
         val currentTimeMillis = System.currentTimeMillis()
@@ -580,6 +581,12 @@ class PayoutActivity : AppCompatActivity() {
         val time = formattedTime
         val itemPushKey = databaseReference.child("OrderDetails").push().key
         val orderDate = SimpleDateFormat("d MMMM yyyy", Locale.getDefault()).format(Date())
+
+        val ShopNames = mutableListOf<String>()
+        for (i in 0 until binding.pathContainer.childCount) {
+            val textView = binding.pathContainer.getChildAt(i) as TextView
+            ShopNames.add(textView.text.toString())
+        }
 
         val orderDetails = OrderDetails(
             userId,
@@ -597,21 +604,19 @@ class PayoutActivity : AppCompatActivity() {
             orderDate,
             true,
             true,
+            ShopNames // Add pathContainer text list to OrderDetails
+        )
 
-            )
-
-        val orderReference =
-            databaseReference.child("OrderDetails").child(itemPushKey!!)
+        val orderReference = databaseReference.child("OrderDetails").child(itemPushKey!!)
         orderReference.setValue(orderDetails)
             .addOnSuccessListener {
                 val bottomSheetDialog = CongratsBottomSheetFragment()
                 bottomSheetDialog.show(supportFragmentManager, "Test")
                 removeItemFromCart()
                 addOrderToHistory(orderDetails)
-
             }
             .addOnFailureListener {
-                ToastHelper.showCustomToast(this, "Failed to Order 😒")
+                Toast.makeText(this, "Failed to Order 😒", Toast.LENGTH_SHORT).show()
             }
     }
 
@@ -645,20 +650,32 @@ class PayoutActivity : AppCompatActivity() {
 
         return totalAmount
     }
-
     private fun setUserData() {
         val user = auth.currentUser
-        if (user != null){
+        if (user != null) {
             val userId = user.uid
-            val userReferencer = databaseReference.child("user").child(userId)
+            val userReference = databaseReference.child("user").child(userId)
 
-            userReferencer.addListenerForSingleValueEvent(object :ValueEventListener {
+            userReference.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
+                    if (snapshot.exists()) {
+                        val cartItemsSnapshot = snapshot.child("cartItems")
+                        if (cartItemsSnapshot.exists()) {
+                            // Clear the existing views from the pathContainer
+                            binding.pathContainer.removeAllViews()
 
-                    if(snapshot.exists()){
-                        val name = snapshot.child("name").getValue(String::class.java)?:""
-                        val address = snapshot.child("address").getValue(String::class.java)?:""
-                        val phoneNumber = snapshot.child("phone").getValue(String::class.java)?:""
+
+                            // Iterate through each itemPushKey
+                            cartItemsSnapshot.children.forEach { itemSnapshot ->
+                                val path = itemSnapshot.child("path").getValue(String::class.java)
+                                // Display the path for each product
+                                displayProductPath(path)
+                            }
+                        }
+
+                        val name = snapshot.child("name").getValue(String::class.java) ?: ""
+                        val address = snapshot.child("address").getValue(String::class.java) ?: ""
+                        val phoneNumber = snapshot.child("phone").getValue(String::class.java) ?: ""
 
                         binding.apply {
                             payoutName.setText(name)
@@ -671,9 +688,19 @@ class PayoutActivity : AppCompatActivity() {
                 override fun onCancelled(error: DatabaseError) {
                     Log.e(TAG, "Error reading user data", error.toException())
                 }
-
             })
         }
+    }
+
+    private fun displayProductPath(path: String?) {
+        // Display the path for each product in a TextView
+        // For simplicity, let's assume you have a LinearLayout named pathContainer to contain the TextViews
+        val textView = TextView(this)
+        textView.text = path
+        textView.textSize = 16f
+        textView.setPadding(0, 8, 0, 8)
+        binding.pathContainer.addView(textView)
+
     }
 
     private fun isValidPhoneNumber(phoneNumber: String): Boolean {
@@ -693,7 +720,7 @@ class PayoutActivity : AppCompatActivity() {
 
         const val PAYTM_PACKAGE_NAME = "net.one97.paytm"
         private const val GOOGLE_TEZ_PACKAGE_NAME = "com.google.android.apps.nbu.paisa.user"
-        const val  PHONEPE_PACKAGE_NAME = "com.phonepe.app"
+         const val  PHONEPE_PACKAGE_NAME = "com.phonepe.app"
         // You can choose any integer value here
 
         private const val PRICE_ADJUSTMENT_5_KM = 0

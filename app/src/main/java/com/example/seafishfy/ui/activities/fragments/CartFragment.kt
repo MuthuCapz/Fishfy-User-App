@@ -11,8 +11,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.seafishfy.databinding.FragmentCartBinding
 import com.example.seafishfy.ui.activities.PayoutActivity
 import com.example.seafishfy.ui.activities.Utils.ToastHelper
-import com.example.seafishfy.ui.activities.ViewModel.CartViewModel
 import com.example.seafishfy.ui.activities.adapters.CartAdapter
+import com.example.seafishfy.ui.activities.ViewModel.CartViewModel
 
 class CartFragment : Fragment(), CartProceedClickListener {
     private lateinit var binding: FragmentCartBinding
@@ -40,7 +40,7 @@ class CartFragment : Fragment(), CartProceedClickListener {
     override fun onCartProceedClicked() {
         viewModel.isCartEmpty { isEmpty ->
             if (isEmpty) {
-                ToastHelper.showCustomToast(context, "First, you need to add products to the cart")
+                context?.let { ToastHelper.showCustomToast(it, "First, you need to add products to the cart") }
             } else {
                 viewModel.getOrderItemsDetail(cartAdapter) { foodName, foodPrice, foodDescription, foodIngredient, foodImage, foodQuantities ->
                     orderNow(foodName, foodPrice, foodDescription, foodIngredient, foodImage, foodQuantities)

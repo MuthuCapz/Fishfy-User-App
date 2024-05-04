@@ -9,15 +9,16 @@ import android.widget.SearchView
 import android.widget.Toast
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.seafishfy.databinding.FragmentMenuBottomSheet2Binding
 import com.example.seafishfy.databinding.FragmentMenuBottomSheetBinding
 import com.example.seafishfy.ui.activities.adapters.SearchAdapter
 import com.example.seafishfy.ui.activities.models.MenuItem
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.firebase.database.*
 
-class MenuBottomSheetFragment : BottomSheetDialogFragment() {
+class MenuBottomSheetFragment2 : BottomSheetDialogFragment() {
 
-    private lateinit var binding: FragmentMenuBottomSheetBinding
+    private lateinit var binding: FragmentMenuBottomSheet2Binding
     private lateinit var database: FirebaseDatabase
     private lateinit var menuItems: MutableList<MenuItem>
 
@@ -25,7 +26,7 @@ class MenuBottomSheetFragment : BottomSheetDialogFragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding = FragmentMenuBottomSheetBinding.inflate(inflater, container, false)
+        binding = FragmentMenuBottomSheet2Binding.inflate(inflater, container, false)
 
         binding.backButton.setOnClickListener {
             dismiss()
@@ -39,7 +40,7 @@ class MenuBottomSheetFragment : BottomSheetDialogFragment() {
 
     private fun retrieveMenuItems() {
         database = FirebaseDatabase.getInstance()
-        val shop3Ref: DatabaseReference = database.reference.child("Shop 1")
+        val shop3Ref: DatabaseReference = database.reference.child("Shop 3")
         val menuReferences = listOf("menu1", "menu2", "menu")
 
         menuItems = mutableListOf()

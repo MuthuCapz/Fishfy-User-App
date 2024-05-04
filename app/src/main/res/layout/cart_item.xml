@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/bgColor">
+    >
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
@@ -14,8 +14,8 @@
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="5dp"
         app:cardCornerRadius="15dp"
+        android:backgroundTint="@color/white"
         app:cardElevation="5dp"
-        app:cardBackgroundColor="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -23,6 +23,7 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
+
             android:layout_height="match_parent">
 
             <androidx.cardview.widget.CardView
@@ -95,6 +96,7 @@
 
 
 
+
             <androidx.appcompat.widget.AppCompatImageButton
                 android:id="@+id/deteleImageButton"
                 android:layout_width="24dp"
@@ -104,7 +106,7 @@
                 android:background="@android:color/transparent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                android:layout_marginStart="300dp"
+                android:layout_marginStart="185dp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/quantityTextView"
                 app:srcCompat="@drawable/trash_can"

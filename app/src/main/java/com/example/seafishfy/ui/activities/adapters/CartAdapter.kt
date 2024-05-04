@@ -1,7 +1,5 @@
 package com.example.seafishfy.ui.activities.adapters
 
-
-
 import android.content.Context
 import android.net.Uri
 import android.view.LayoutInflater
@@ -87,9 +85,16 @@ class CartAdapter(
                 val uri = Uri.parse(uriString)
                 Glide.with(context).load(uri).into(cartImageView)
                 quantityTextView.text = cartItemQuantitys[position].toString()
+
+
+                val itemName = cartItems[position]
+                val firebasePaths = listOf("Shop 1", "Shop 2", "Shop 3", "Shop 4","Shop 5","Shop 6")
+                fetchItemPath(itemName, firebasePaths) { path ->
+                    // Update the TextView with the fetched path
+                   "Item not found in any path"
+                }
             }
         }
-
 
 
         private fun deleteItem(position: Int) {
@@ -103,9 +108,9 @@ class CartAdapter(
                     cartItemIngredients.removeAt(position)
 
                     notifyItemRemoved(position)
-                    ToastHelper.showCustomToast(context, "Item deleted")
+                    ToastHelper.showCustomToast(context, "Item Deleted")
                 }.addOnFailureListener {
-                    Toast.makeText(context, "Failed to Delete Item", Toast.LENGTH_SHORT).show()
+                    ToastHelper.showCustomToast(context, "Failed to Delete Item")
                 }
             }
         }
@@ -125,9 +130,50 @@ class CartAdapter(
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    Toast.makeText(context, "Failed to fetch data", Toast.LENGTH_SHORT).show()
+                    ToastHelper.showCustomToast(context, "Failed to fetch data")
                 }
             })
+        }
+    }
+
+    private fun fetchItemPath(
+        itemName: String,
+        paths: List<String>,
+        onComplete: (String?) -> Unit
+    ) {
+        val database = FirebaseDatabase.getInstance()
+
+        // Iterate through each shop path
+        for (shopPath in paths) {
+            val shopReference = database.reference.child(shopPath)
+            val childPaths = listOf("menu", "menu1", "menu2", "discount")
+            val userId = FirebaseAuth.getInstance().currentUser?.uid
+
+            userId?.let { uid ->
+
+                // Iterate through each child path within the shop
+                for (childPath in childPaths) {
+                    val childReference = shopReference.child(childPath)
+                    childReference.addListenerForSingleValueEvent(object : ValueEventListener {
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            // Check if the item exists in this child path under the shop
+                            snapshot.children.forEach { shopSnapshot ->
+                                if (shopSnapshot.child("foodName").value == itemName) {
+                                    onComplete("$shopPath")
+                                    return
+                                }
+                            }
+                        }
+
+                        override fun onCancelled(error: DatabaseError) {
+                            // Handle error
+                        }
+                    })
+                }
+
+            }
+            // If item not found in any path, onComplete will be invoked with null
+            onComplete(null)
         }
     }
 }

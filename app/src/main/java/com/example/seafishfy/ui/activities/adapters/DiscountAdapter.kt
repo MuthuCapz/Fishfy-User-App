@@ -51,7 +51,7 @@ class DiscountAdapter(
         private fun isDiscountRecyclerViewClickable(): Boolean {
             val currentTime = Calendar.getInstance(TimeZone.getTimeZone("Asia/Kolkata"))
             val hour = currentTime.get(Calendar.HOUR_OF_DAY)
-            return hour !in 7 until 17 // Returns true if not between 7 AM and 5 PM
+            return hour !in 7 until 15 // Returns true if not between 7 AM and 5 PM
         }
 
         // Open discount details activity
