@@ -620,10 +620,19 @@ class PayoutActivity : AppCompatActivity() {
             }
     }
 
-
     private fun removeItemFromCart() {
-        val cartItemReference = databaseReference.child("user").child(userId).child("CartItems")
-        cartItemReference.removeValue()
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        userId?.let { uid ->
+            val databaseReference: DatabaseReference = FirebaseDatabase.getInstance().reference
+            val cartItemReference = databaseReference.child("user").child(uid).child("cartItems")
+            cartItemReference.removeValue().addOnSuccessListener {
+                // Handle success
+                Toast.makeText(this, "Cart item removed successfully", Toast.LENGTH_SHORT).show()
+            }.addOnFailureListener { error ->
+                // Handle failure
+                Toast.makeText(this, "Failed to remove cartitems 😒", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun addOrderToHistory(orderDetails: OrderDetails) {

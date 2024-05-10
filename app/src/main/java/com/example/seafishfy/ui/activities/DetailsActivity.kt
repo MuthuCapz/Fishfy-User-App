@@ -173,7 +173,6 @@ class DetailsActivity : AppCompatActivity() {
    }
 
 
-
    private fun fetchItemPath1(
       itemName: String,
       itemDescription: String,
@@ -213,7 +212,6 @@ class DetailsActivity : AppCompatActivity() {
    }
 
 
-
    private fun updateQuantityText() {
       binding.quantityText.text = quantity.toString()
    }
@@ -225,47 +223,94 @@ class DetailsActivity : AppCompatActivity() {
 
       if (shopname != null) {
          if (foodName != null && foodPrice != null && foodDescription != null && foodImage != null) {
-            // Create a CartItems object for regular items
-            val cartItem = CartItems(
-               shopname.toString(),
-               foodName!!,
-               foodPrice!!,
-               foodDescription!!,
-               foodImage!!,
-               quantity
-            )
-            // Save data to cart item to Firebase database
-            database.child("user").child(userId).child("cartItems").push().setValue(cartItem)
-               .addOnSuccessListener {
-                  Toast.makeText(this, "Item added to cart successfully 🥰", Toast.LENGTH_SHORT)
-                     .show()
-               }.addOnFailureListener {
-                  Toast.makeText(this, "Failed to add item 😒", Toast.LENGTH_SHORT).show()
-               }
-         } else if (foodNames != null && foodPrices != null && foodDescriptions != null && foodImages != null) {
-            // Create a CartItems object for discount items
-            val cartItem = CartItems(
-               shopname.toString(),
-               foodNames!!,
-               foodPrices!!,
-               foodDescriptions!!,
-               foodImages!!,
-               quantity
-            )
+            val cartItemQuery = database.child("user").child(userId).child("cartItems")
+               .orderByChild("foodName").equalTo(foodName)
 
-            // Save data to cart item to Firebase database
-            database.child("user").child(userId).child("cartItems").push().setValue(cartItem)
-               .addOnSuccessListener {
-                  ToastHelper.showCustomToast(
-                     this,
-                     "Discount item added to cart successfully 🥰",
-                  )
-               }.addOnFailureListener {
-                  ToastHelper.showCustomToast(this, "Failed to add discount item 😒")
+            cartItemQuery.addListenerForSingleValueEvent(object : ValueEventListener {
+               override fun onDataChange(snapshot: DataSnapshot) {
+                  if (snapshot.exists()) {
+                     // Product already exists in the cart
+                     ToastHelper.showCustomToast(
+                        this@DetailsActivity,
+                        "This product is already in your cart"
+                     )
+                  } else {
+                     // Create a CartItems object for regular items
+                     val cartItem = CartItems(
+                        shopname.toString(),
+                        foodName!!,
+                        foodPrice!!,
+                        foodDescription!!,
+                        foodImage!!,
+                        quantity
+                     )
+                     // Save data to cart item to Firebase database
+                     database.child("user").child(userId).child("cartItems").push()
+                        .setValue(cartItem)
+                        .addOnSuccessListener {
+                           ToastHelper.showCustomToast(
+                              this@DetailsActivity,
+                              "Item added to cart successfully 🥰"
+                           )
+                        }.addOnFailureListener {
+                           ToastHelper.showCustomToast(
+                              this@DetailsActivity,
+                              "Failed to add item 😒"
+                           )
+                        }
+                  }
                }
-         } else {
-            ToastHelper.showCustomToast(this, "Item details not found 😒")
+
+               override fun onCancelled(error: DatabaseError) {
+                  // Handle onCancelled
+               }
+            })
          }
+      } else if (foodNames != null && foodPrices != null && foodDescriptions != null && foodImages != null) {
+         val cartItemQuery = database.child("user").child(userId).child("cartItems")
+            .orderByChild("foodNames").equalTo(foodNames)
+
+         cartItemQuery.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+               if (snapshot.exists()) {
+                  // Discount product already exists in the cart
+                  ToastHelper.showCustomToast(
+                     this@DetailsActivity,
+                     "This discount product is already in your cart"
+                  )
+               } else {
+                  // Create a CartItems object for discount items
+                  val cartItem = CartItems(
+                     shopname.toString(),
+                     foodNames!!,
+                     foodPrices!!,
+                     foodDescriptions!!,
+                     foodImages!!,
+                     quantity
+                  )
+
+                  // Save data to cart item to Firebase database
+                  database.child("user").child(userId).child("cartItems").push().setValue(cartItem)
+                     .addOnSuccessListener {
+                        ToastHelper.showCustomToast(
+                           this@DetailsActivity,
+                           "Discount item added to cart successfully 🥰"
+                        )
+                     }.addOnFailureListener {
+                        ToastHelper.showCustomToast(
+                           this@DetailsActivity,
+                           "Failed to add discount item 😒"
+                        )
+                     }
+               }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+               // Handle onCancelled
+            }
+         })
+      } else {
+         ToastHelper.showCustomToast(this, "Item details not found 😒")
       }
    }
 }

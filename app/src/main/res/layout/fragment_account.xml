@@ -68,7 +68,7 @@
         android:layout_marginStart="20dp"
         android:layout_marginBottom="40dp"
         android:layout_marginTop="597dp"
-        android:src="@drawable/logout_icon"
+        android:src="@drawable/logoutp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

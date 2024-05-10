@@ -12,6 +12,8 @@ import android.widget.PopupMenu
 import android.widget.Toast
 import kotlin.math.*
 import androidx.annotation.RequiresApi
+import kotlin.random.Random
+
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.denzcoskun.imageslider.constants.ScaleTypes
@@ -28,16 +30,26 @@ import com.google.firebase.database.*
 import java.util.*
 import androidx.navigation.fragment.findNavController
 import android.Manifest
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.viewModels
-import com.example.seafishfy.ui.activities.ViewModel.HomeViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
 import android.graphics.Color
+import android.graphics.drawable.AnimationDrawable
+import android.util.Log
+import android.view.animation.Animation
+import android.view.animation.AnimationSet
+import android.view.animation.AnimationUtils
+import android.view.animation.TranslateAnimation
 import com.example.seafishfy.ui.activities.Utils.ToastHelper
+import com.example.seafishfy.ui.activities.ViewModel.HomeViewModel
+import com.google.android.material.slider.Slider
+import androidx.core.text.HtmlCompat
+import com.google.android.play.integrity.internal.i
 
 
 class HomeFragment : Fragment() {
@@ -49,12 +61,18 @@ class HomeFragment : Fragment() {
     private val shop1Location = LatLng(8.8076189, 78.1283788)
     private val shop2Location = LatLng(	8.6701179, 78.093077)
     private val shop3Location = LatLng(
-        37.386051,-122.083855)
+        8.6701179, 78.093077)
     private val shop4Location = LatLng(8.8076189, 78.1283788)
     private val shop6Location = LatLng(8.6701179, 78.093077)
     private val shop5Location = LatLng(37.422580, -122.084330)
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val viewModel: HomeViewModel by viewModels()
+    private val imageResources = arrayOf(
+        R.drawable.ribbon1,
+        R.drawable.ribbon2,
+        R.drawable.ribbon3,
+        R.drawable.ribbon4
+    )
 
 
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
@@ -109,25 +127,90 @@ class HomeFragment : Fragment() {
             // Request location permission if not granted
             requestLocationPermission()
         }
+        val database = FirebaseDatabase.getInstance()
+        val shopReferences = arrayOf(
+            "Shop 1",
+            "Shop 2",
+            "Shop 3",
+            "Shop 4",
+            "Shop 5",
+            "Shop 6"
+        )
 
+        for (i in shopReferences.indices) {
+            val reference = database.getReference(shopReferences[i]).child("discount")
 
+            reference.addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        val imageList = ArrayList<SlideModel>()
 
-                // Retrieve and display address and locality
+                        for (discountSnapshot in dataSnapshot.children) {
+                            val discountItem = discountSnapshot.getValue(DiscountItem::class.java)
+                            discountItem?.let { item ->
+                                val imageUrl = item.foodImages
+                                val foodName = item.foodNames
+                                val discount = item.discounts
+
+                                imageUrl?.let {
+                                    // Construct title with HTML tags to set text size
+                                    val title = "<font size='17'>$foodName</font> - <font size='17'>$discount Off</font>"
+
+                                    // Construct SlideModel with image URL and title
+                                    val slideModel = SlideModel(imageUrl, HtmlCompat.fromHtml(title, HtmlCompat.FROM_HTML_MODE_COMPACT).toString(), ScaleTypes.FIT)
+                                    imageList.add(slideModel)
+                                }
+                            }
+                        }
+
+                        // Load images into the appropriate image slider based on shop index
+                        when (i) {
+                            0 -> binding.imageSlider1.setImageList(imageList, ScaleTypes.FIT)
+
+                            1 -> binding.imageSlider2.setImageList(imageList, ScaleTypes.FIT)
+                            2 -> binding.imageSlider3.setImageList(imageList, ScaleTypes.FIT)
+                            3 -> binding.imageSlider4.setImageList(imageList, ScaleTypes.FIT)
+                            4 -> binding.imageSlider5.setImageList(imageList, ScaleTypes.FIT)
+                            5 -> binding.imageSlider6.setImageList(imageList, ScaleTypes.FIT)
+                        }
+                    } else {
+                        Log.d(TAG, "No data found for ${shopReferences[i]}")
+                    }
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    Log.e(TAG, "onCancelled", databaseError.toException())
+                }
+            })
+        }
+
+        // Retrieve and display address and locality
         retrieveAddressAndLocality()
 
         binding.dropdown.setOnClickListener {
             showPopupMenu(it)
         }
+
         binding.dotsMenu.setOnClickListener {
             showPopupMenus(it)
         }
-        database = FirebaseDatabase.getInstance()
+        binding.cardView21.setOnClickListener {
+            ToastHelper.showCustomToast(requireContext(), "Show shops")
+        }
+        this@HomeFragment.database = FirebaseDatabase.getInstance()
 
 
 
 
         return binding.root
     }
+
+
+
+
+
+
+
 
     private fun hasLocationPermission(): Boolean {
         return (ActivityCompat.checkSelfPermission(
@@ -338,6 +421,37 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupImageSlider()
+        startAnimation()
+    }
+    private fun startAnimation() {
+        // Randomly select an image from the array
+        val randomImageIndex = Random.nextInt(imageResources.size)
+        val randomImage = imageResources[randomImageIndex]
+
+        // Set the randomly selected image to the ImageView
+        binding.discounts.setImageResource(randomImage)
+
+        // Load the animation
+        val animation = AnimationUtils.loadAnimation(requireContext(), R.anim.discount)
+
+        // Set animation listener to change image after exit animation completes
+        animation.setAnimationListener(object : Animation.AnimationListener {
+            override fun onAnimationStart(animation: Animation?) {}
+            override fun onAnimationRepeat(animation: Animation?) {}
+            override fun onAnimationEnd(animation: Animation?) {
+                // Randomly select a new image for the next animation
+                val newRandomImageIndex = Random.nextInt(imageResources.size)
+                val newRandomImage = imageResources[newRandomImageIndex]
+                binding.discounts.setImageResource(newRandomImage)
+
+                // Start the animation again
+                binding.discounts.startAnimation(animation)
+            }
+        })
+
+        // Start the animation
+        binding.discounts.startAnimation(animation)
+
     }
 
     private fun setupImageSlider() {
@@ -368,8 +482,12 @@ class HomeFragment : Fragment() {
                 }
             }
         })
+
+
     }
     companion object {
         private const val PERMISSIONS_REQUEST_LOCATION = 100
     }
 }
+
+

@@ -74,7 +74,7 @@ class MainActivity : AppCompatActivity() {
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNavigationView)
         val address = intent.getStringExtra("ADDRESS")
         val locality = intent.getStringExtra("LOCALITY")
-        val shoptextview=intent.getStringExtra("SHOP_TEXT_VIEW_VALUE")
+        val shoptextview = intent.getStringExtra("SHOP_TEXT_VIEW_VALUE")
 
         // Display the address and locality in TextViews
         binding.tvAddress.text = "Address: $address"
@@ -91,8 +91,19 @@ class MainActivity : AppCompatActivity() {
             // Update UI with the user's address
             binding.tvAddress.text = "Address: $userAddress"
         }
-    }
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+                R.id.shopOneFragment, R.id.shopTwoFragment, R.id.shopThreeFragment,
+                R.id.shopFourFragment, R.id.shopFiveFragment, R.id.shopSixFragment ,R.id.contactusActivity,R.id.accountFragment-> {
+                    bottomNav.visibility = View.GONE
+                }
 
+                else -> {
+                    bottomNav.visibility = View.VISIBLE
+                }
+            }
+        }
+    }
     private fun loadAnimation(animationView: LottieAnimationView, animationFileName: String) {
         LottieCompositionFactory.fromAsset(this, animationFileName)
             .addListener { composition ->

@@ -18,6 +18,7 @@ import com.example.seafishfy.ui.activities.models.DiscountItem
 import com.example.seafishfy.ui.activities.models.MenuItem
 import com.example.seafishfy.ui.activities.Utils.ToastHelper
 import com.example.seafishfy.ui.activities.ViewModel.ShopSixViewModel
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.util.*
 
 class ShopSixFragment : Fragment() {
@@ -32,7 +33,8 @@ class ShopSixFragment : Fragment() {
         binding = FragmentShopSixBinding.inflate(inflater, container, false)
 
         observeViewModel()
-
+        val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottomNavigationView)
+        bottomNav.visibility = View.GONE
         binding.menuItemTextView.setOnClickListener {
             val bottomSheetDialog = MenuBottomSheetFragment5()
             bottomSheetDialog.show(parentFragmentManager, "Test")
