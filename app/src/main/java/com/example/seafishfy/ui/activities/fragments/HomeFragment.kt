@@ -46,9 +46,9 @@ import android.view.animation.AnimationSet
 import android.view.animation.AnimationUtils
 import android.view.animation.TranslateAnimation
 import com.example.seafishfy.ui.activities.Utils.ToastHelper
-import com.example.seafishfy.ui.activities.ViewModel.HomeViewModel
 import com.google.android.material.slider.Slider
 import androidx.core.text.HtmlCompat
+import com.example.seafishfy.ui.activities.ViewModel.HomeViewModel
 import com.google.android.play.integrity.internal.i
 
 
@@ -61,10 +61,10 @@ class HomeFragment : Fragment() {
     private val shop1Location = LatLng(8.8076189, 78.1283788)
     private val shop2Location = LatLng(	8.6701179, 78.093077)
     private val shop3Location = LatLng(
-        8.6701179, 78.093077)
+        37.386051,-122.083855)
     private val shop4Location = LatLng(8.8076189, 78.1283788)
     private val shop6Location = LatLng(8.6701179, 78.093077)
-    private val shop5Location = LatLng(37.422580, -122.084330)
+    private val shop5Location = LatLng(37.386051,-122.083855)
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val viewModel: HomeViewModel by viewModels()
     private val imageResources = arrayOf(
@@ -86,6 +86,11 @@ class HomeFragment : Fragment() {
 
         databaseReference = FirebaseDatabase.getInstance().getReference("locations")
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+
+        // Check if user ID exists
+
+
         if (hasLocationPermission()) {
             getUserLocation { userLocation ->
                 if (userLocation != null) {
@@ -114,19 +119,41 @@ class HomeFragment : Fragment() {
                             }
                         }
                     }
-                } else {
-                    // Handle case where user location is null
-                    Toast.makeText(
-                        requireContext(),
-                        "Unable to retrieve user location",
-                        Toast.LENGTH_SHORT
-                    ).show()
                 }
             }
         } else {
             // Request location permission if not granted
             requestLocationPermission()
         }
+
+        userId?.let { uid ->
+            // Retrieve data under "locations" path for the current user
+            val userLocationRef = databaseReference.child(uid)
+            userLocationRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    if (snapshot.exists()) {
+                        // Retrieve shopname for the current user
+                        val shopNames = snapshot.child("shopname").getValue(String::class.java)
+                        shopNames?.let { shops ->
+                            // Split the shop names by comma and handle each one individually
+                            val shopNameList = shops.split(",").map { it.trim() }
+                            shopNameList.forEach { shop ->
+                                // Blur the card view associated with the shopname
+                                markUserShopsAsNormal(shopNames)
+                            }
+                        }
+                    } else {
+                        // Handle case where data doesn't exist for the user
+                        // For example, if the user hasn't set their shopname yet
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    // Handle error
+                }
+            })
+        }
+
         val database = FirebaseDatabase.getInstance()
         val shopReferences = arrayOf(
             "Shop 1",
@@ -154,7 +181,7 @@ class HomeFragment : Fragment() {
 
                                 imageUrl?.let {
                                     // Construct title with HTML tags to set text size
-                                    val title = "<font size='17'>$foodName</font> - <font size='17'>$discount Off</font>"
+                                    val title = "<font size='17' color='#FFFFFF'>$foodName</font> - <font size='17' color='#FFFFFF'>$discount Off</font>"
 
                                     // Construct SlideModel with image URL and title
                                     val slideModel = SlideModel(imageUrl, HtmlCompat.fromHtml(title, HtmlCompat.FROM_HTML_MODE_COMPACT).toString(), ScaleTypes.FIT)
@@ -201,16 +228,46 @@ class HomeFragment : Fragment() {
 
 
 
-
         return binding.root
     }
+    private fun markUserShopsAsNormal(userShopNames: String) {
+        // List of all shop names in your application
+        val allShopNames = listOf("Shop 1", "Shop 2", "Shop 3", "Shop 4", "Shop 5", "Shop 6")
 
+        // Split user's shop names by comma and trim whitespace
+        val userShopNameList = userShopNames.split(",").map { it.trim() }
 
+        // Find and mark the user's shop names as normal
+        for (shopName in allShopNames) {
+            val userCardView = getCardViewByShopName(shopName)
+            if (userShopNameList.contains(shopName)) {
+                // Enable and make clickable
+                userCardView.alpha = 1.0f
+                userCardView.setOnClickListener {
+                    navigateToShopFragment(allShopNames.indexOf(shopName) + 5) // Adjust index to match card view IDs
+                }
+            } else {
+                // Blur other card views
+                userCardView.alpha = 0.4f
+                userCardView.setOnClickListener{
+                    ToastHelper.showCustomToast(requireContext(), "This shop is not delivery for your locations")
+                    userCardView.isEnabled=false
+                } // Disable click listener
+            }
+        }
+    }
 
-
-
-
-
+    private fun getCardViewByShopName(shopName: String): View {
+        return when (shopName) {
+            "Shop 1" -> binding.cardView5
+            "Shop 2" -> binding.cardView6
+            "Shop 3" -> binding.cardView7
+            "Shop 4" -> binding.cardView8
+            "Shop 5" -> binding.cardView9
+            "Shop 6" -> binding.cardView10
+            else -> throw IllegalArgumentException("Invalid shop name: $shopName")
+        }
+    }
 
     private fun hasLocationPermission(): Boolean {
         return (ActivityCompat.checkSelfPermission(

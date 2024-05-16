@@ -1,14 +1,23 @@
 package com.example.seafishfy.ui.activities
 
+import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import com.bumptech.glide.Glide
+import androidx.fragment.app.Fragment
+import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
+import com.example.seafishfy.R
+
 import com.example.seafishfy.databinding.ActivityDetailsBinding
 import com.example.seafishfy.ui.activities.models.CartItems
 import com.example.seafishfy.ui.activities.models.DiscountItem
 import com.example.seafishfy.ui.activities.Utils.ToastHelper
+import com.example.seafishfy.ui.activities.fragments.CartFragment
+import com.example.seafishfy.ui.activities.fragments.MenuBottomSheetFragment
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -124,8 +133,9 @@ class DetailsActivity : AppCompatActivity() {
       //
       binding.detailAddToCartButton.setOnClickListener {
          addItemToCart()
-      }
 
+
+      }
 
    }
 
@@ -216,26 +226,74 @@ class DetailsActivity : AppCompatActivity() {
       binding.quantityText.text = quantity.toString()
    }
 
+
+
    private fun addItemToCart() {
+      val database = FirebaseDatabase.getInstance().reference
+      val userId = auth.currentUser?.uid ?: ""
+      val currentShopName = binding.shopname.text.toString()
+
+      // Get a reference to the user's cart items
+      val cartItemsRef = database.child("user").child(userId).child("cartItems")
+
+      // Fetch existing items in the cart
+      cartItemsRef.addListenerForSingleValueEvent(object : ValueEventListener {
+         override fun onDataChange(dataSnapshot: DataSnapshot) {
+            var differentShopFound = false
+
+            // Check if any item in the cart is from a different shop
+            for (itemSnapshot in dataSnapshot.children) {
+               val shopName = itemSnapshot.child("path").value as String
+               if (shopName != currentShopName) {
+                  differentShopFound = true
+                  break
+               }
+            }
+
+            if (differentShopFound) {
+               // Show dialog if different shop found
+               AlertDialog.Builder(this@DetailsActivity)
+                  .setTitle("Replace cart Item?")
+                  .setMessage("You have items from a different shop in your cart. Do you want to clear the cart and add this item?")
+                  .setPositiveButton("Replace") { _, _ ->
+                     // Clear the cart and add the new item
+                     cartItemsRef.removeValue().addOnSuccessListener {
+                        addItemToCartWithoutCheck()
+                     }
+                  }
+                  .setNegativeButton("No", null)
+                  .show()
+            } else {
+               // Proceed to add the item if no different shop found
+               addItemToCartWithoutCheck()
+            }
+         }
+
+         override fun onCancelled(databaseError: DatabaseError) {
+            // Handle error
+         }
+      })
+   }
+
+   private fun addItemToCartWithoutCheck() {
       val database = FirebaseDatabase.getInstance().reference
       val userId = auth.currentUser?.uid ?: ""
       val shopname = binding.shopname.text
 
       if (shopname != null) {
          if (foodName != null && foodPrice != null && foodDescription != null && foodImage != null) {
-            val cartItemQuery = database.child("user").child(userId).child("cartItems")
-               .orderByChild("foodName").equalTo(foodName)
+            // Check if the item already exists in the cart
+            val cartQuery = database.child("user").child(userId).child("cartItems")
+               .orderByChild("foodName")
+               .equalTo(foodName)
 
-            cartItemQuery.addListenerForSingleValueEvent(object : ValueEventListener {
-               override fun onDataChange(snapshot: DataSnapshot) {
-                  if (snapshot.exists()) {
-                     // Product already exists in the cart
-                     ToastHelper.showCustomToast(
-                        this@DetailsActivity,
-                        "This product is already in your cart"
-                     )
+            cartQuery.addListenerForSingleValueEvent(object : ValueEventListener {
+               override fun onDataChange(dataSnapshot: DataSnapshot) {
+                  if (dataSnapshot.exists()) {
+                     // Item already exists in the cart
+                     ToastHelper.showCustomToast(this@DetailsActivity, "This item is already in your cart")
                   } else {
-                     // Create a CartItems object for regular items
+                     // Item doesn't exist in the cart, add it
                      val cartItem = CartItems(
                         shopname.toString(),
                         foodName!!,
@@ -245,30 +303,25 @@ class DetailsActivity : AppCompatActivity() {
                         quantity
                      )
                      // Save data to cart item to Firebase database
-                     database.child("user").child(userId).child("cartItems").push()
-                        .setValue(cartItem)
+                     database.child("user").child(userId).child("cartItems").push().setValue(cartItem)
                         .addOnSuccessListener {
-                           ToastHelper.showCustomToast(
-                              this@DetailsActivity,
-                              "Item added to cart successfully 🥰"
-                           )
+                           ToastHelper.showCustomToast(this@DetailsActivity, "Item added to cart successfully 🥰")
                         }.addOnFailureListener {
-                           ToastHelper.showCustomToast(
-                              this@DetailsActivity,
-                              "Failed to add item 😒"
-                           )
+                           ToastHelper.showCustomToast(this@DetailsActivity, "Failed to add item 😒")
                         }
                   }
                }
 
-               override fun onCancelled(error: DatabaseError) {
-                  // Handle onCancelled
+               override fun onCancelled(databaseError: DatabaseError) {
+                  // Handle error
                }
             })
          }
-      } else if (foodNames != null && foodPrices != null && foodDescriptions != null && foodImages != null) {
+      }
+
+      if (foodNames != null && foodPrices != null && foodDescriptions != null && foodImages != null) {
          val cartItemQuery = database.child("user").child(userId).child("cartItems")
-            .orderByChild("foodNames").equalTo(foodNames)
+            .orderByChild("foodName").equalTo(foodNames) // Change this line
 
          cartItemQuery.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -290,11 +343,13 @@ class DetailsActivity : AppCompatActivity() {
                   )
 
                   // Save data to cart item to Firebase database
-                  database.child("user").child(userId).child("cartItems").push().setValue(cartItem)
+                  database.child("user").child(userId).child("cartItems").push()
+                     .setValue(cartItem)
                      .addOnSuccessListener {
                         ToastHelper.showCustomToast(
                            this@DetailsActivity,
                            "Discount item added to cart successfully 🥰"
+
                         )
                      }.addOnFailureListener {
                         ToastHelper.showCustomToast(
@@ -309,8 +364,6 @@ class DetailsActivity : AppCompatActivity() {
                // Handle onCancelled
             }
          })
-      } else {
-         ToastHelper.showCustomToast(this, "Item details not found 😒")
       }
    }
 }

@@ -11,6 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/bgColor"
+        android:layout_marginBottom="10dp"
         tools:context=".ui.activities.fragments.HomeFragment">
 
         <View
@@ -65,7 +66,7 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 android:layout_marginStart="10dp"
-                android:layout_marginTop="15dp"
+                android:layout_marginTop="20dp"
                 android:clickable="true"
                 android:onClick="showPopupMenu"
                 android:src="@drawable/baseline_arrow_drop_down_24"
@@ -116,8 +117,7 @@
             android:layout_width="match_parent"
             android:layout_height="200dp"
             android:layout_marginStart="10dp"
-
-            android:layout_marginTop="65dp"
+            android:layout_marginTop="75dp"
             android:layout_marginEnd="10dp"
             app:cardCornerRadius="30dp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -175,8 +175,8 @@
             android:layout_height="200dp"
             android:outlineSpotShadowColor="@color/textColor"
             app:cardCornerRadius="15dp"
-            android:layout_marginStart="30dp"
-            android:layout_marginEnd="30dp"
+            android:layout_marginStart="50dp"
+            android:layout_marginEnd="50dp"
             android:layout_marginTop="30dp"
             app:layout_constraintTop_toBottomOf="@id/title"
             app:layout_constraintStart_toStartOf="parent">
@@ -189,9 +189,9 @@
 
                 <ImageView
                     android:id="@+id/imageView60"
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:layout_marginTop="10dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="fitXY"
                     android:contentDescription="image_description"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -200,18 +200,21 @@
 
                 <TextView
                     android:id="@+id/textView150"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:layout_marginBottom="10dp"
+                    android:gravity="center"
                     android:fontFamily="@font/inika_regular"
-                    android:text="Shop 1"
+                    android:background="@drawable/wshape"
+                    android:text="Tuticorin"
                     android:textStyle="bold"
                     android:textColor="#316FF6"
                     android:textSize="16sp"
+                    app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="@+id/imageView60"
-                    app:layout_constraintStart_toStartOf="@+id/imageView60"
-                    app:layout_constraintTop_toBottomOf="@+id/imageView60"
-                    app:layout_constraintVertical_bias="0.686" />
+                    app:layout_constraintStart_toStartOf="parent"
+
+                      />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </androidx.cardview.widget.CardView>
@@ -221,8 +224,8 @@
             android:layout_height="200dp"
             android:outlineSpotShadowColor="@color/textColor"
             app:cardCornerRadius="15dp"
-            android:layout_marginStart="30dp"
-            android:layout_marginEnd="30dp"
+            android:layout_marginStart="50dp"
+            android:layout_marginEnd="50dp"
             android:layout_marginTop="30dp"
             app:layout_constraintTop_toBottomOf="@id/cardView5"
             app:layout_constraintStart_toStartOf="parent"
@@ -236,29 +239,32 @@
 
                 <ImageView
                     android:id="@+id/imageView61"
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:layout_marginTop="10dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="fitXY"
                     android:contentDescription="image_description"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:srcCompat="@drawable/shop3" />
+                    app:srcCompat="@drawable/shoppic1" />
 
                 <TextView
                     android:id="@+id/textView151"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:layout_marginBottom="10dp"
+                    android:gravity="center"
                     android:fontFamily="@font/inika_regular"
-                    android:text="Shop 2"
+                    android:text="Thirunelveli"
                     android:textStyle="bold"
                     android:textColor="#316FF6"
                     android:textSize="16sp"
+                    android:background="@drawable/wshape"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="@+id/imageView61"
-                    app:layout_constraintStart_toStartOf="@+id/imageView61"
-                    app:layout_constraintTop_toBottomOf="@+id/imageView61"
-                    app:layout_constraintVertical_bias="0.686" />
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+
+                      />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </androidx.cardview.widget.CardView>
@@ -268,8 +274,8 @@
             android:layout_height="200dp"
             android:outlineSpotShadowColor="@color/textColor"
             app:cardCornerRadius="15dp"
-            android:layout_marginStart="30dp"
-            android:layout_marginEnd="30dp"
+            android:layout_marginStart="50dp"
+            android:layout_marginEnd="50dp"
             android:layout_marginTop="30dp"
             app:layout_constraintTop_toBottomOf="@id/cardView7"
 
@@ -283,29 +289,31 @@
 
                 <ImageView
                     android:id="@+id/imageView64"
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:layout_marginTop="10dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="fitXY"
                     android:contentDescription="image_description"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:srcCompat="@drawable/shop4" />
+                    app:srcCompat="@drawable/shop3" />
 
                 <TextView
                     android:id="@+id/textView154"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:gravity="center"
+                    android:layout_marginBottom="10dp"
                     android:fontFamily="@font/inika_regular"
-                    android:text="Shop 4"
+                    android:text="Thiruchendhur"
                     android:textStyle="bold"
                     android:textColor="#316FF6"
                     android:textSize="16sp"
+                    android:background="@drawable/wshape"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="@+id/imageView64"
-                    app:layout_constraintStart_toStartOf="@+id/imageView64"
-                    app:layout_constraintTop_toBottomOf="@+id/imageView64"
-                    app:layout_constraintVertical_bias="0.686" />
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                      />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </androidx.cardview.widget.CardView>
@@ -315,8 +323,8 @@
             android:layout_height="200dp"
             android:outlineSpotShadowColor="@color/textColor"
             app:cardCornerRadius="15dp"
-            android:layout_marginStart="30dp"
-            android:layout_marginEnd="30dp"
+            android:layout_marginStart="50dp"
+            android:layout_marginEnd="50dp"
             android:layout_marginTop="30dp"
             app:layout_constraintTop_toBottomOf="@id/cardView9"
             app:layout_constraintStart_toStartOf="parent">
@@ -329,9 +337,9 @@
 
                 <ImageView
                     android:id="@+id/imageView68"
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:layout_marginTop="10dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="fitXY"
                     android:contentDescription="image_description"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -340,18 +348,20 @@
 
                 <TextView
                     android:id="@+id/textView158"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:gravity="center"
                     android:fontFamily="@font/inika_regular"
-                    android:text="Shop 6"
+                    android:text="Coimbatore"
                     android:textStyle="bold"
+                    android:layout_marginBottom="10dp"
                     android:textColor="#316FF6"
                     android:textSize="16sp"
+                    android:background="@drawable/wshape"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="@+id/imageView68"
-                    app:layout_constraintStart_toStartOf="@+id/imageView68"
-                    app:layout_constraintTop_toBottomOf="@+id/imageView68"
-                    app:layout_constraintVertical_bias="0.686" />
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                     />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </androidx.cardview.widget.CardView>
@@ -361,8 +371,8 @@
             android:layout_height="200dp"
             android:outlineSpotShadowColor="@color/textColor"
             app:cardCornerRadius="15dp"
-            android:layout_marginStart="30dp"
-            android:layout_marginEnd="30dp"
+            android:layout_marginStart="50dp"
+            android:layout_marginEnd="50dp"
             android:layout_marginTop="30dp"
             app:layout_constraintTop_toBottomOf="@id/cardView6"
 
@@ -377,9 +387,9 @@
 
                 <ImageView
                     android:id="@+id/imageView62"
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:layout_marginTop="10dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="fitXY"
                     android:contentDescription="image_description"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -388,18 +398,20 @@
 
                 <TextView
                     android:id="@+id/textView152"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:gravity="center"
                     android:fontFamily="@font/inika_regular"
-                    android:text="Shop 3"
+                    android:text="Madurai"
+                    android:layout_marginBottom="10dp"
                     android:textStyle="bold"
                     android:textColor="#316FF6"
                     android:textSize="16sp"
+                    android:background="@drawable/wshape"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="@+id/imageView62"
-                    app:layout_constraintStart_toStartOf="@+id/imageView62"
-                    app:layout_constraintTop_toBottomOf="@+id/imageView62"
-                    app:layout_constraintVertical_bias="0.686" />
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </androidx.cardview.widget.CardView>
@@ -409,8 +421,8 @@
             android:layout_height="200dp"
             android:outlineSpotShadowColor="@color/textColor"
             app:cardCornerRadius="15dp"
-            android:layout_marginStart="30dp"
-            android:layout_marginEnd="30dp"
+            android:layout_marginStart="50dp"
+            android:layout_marginEnd="50dp"
             android:layout_marginTop="30dp"
             app:layout_constraintTop_toBottomOf="@id/cardView8"
 
@@ -425,9 +437,9 @@
 
                 <ImageView
                     android:id="@+id/imageView67"
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:layout_marginTop="10dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="fitXY"
                     android:contentDescription="image_description"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -436,18 +448,20 @@
 
                 <TextView
                     android:id="@+id/textView157"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:gravity="center"
                     android:fontFamily="@font/inika_regular"
-                    android:text="Shop 5"
+                    android:text="Chennai"
                     android:textStyle="bold"
                     android:textColor="#316FF6"
+                    android:layout_marginBottom="10dp"
                     android:textSize="16sp"
+                    android:background="@drawable/wshape"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="@+id/imageView67"
-                    app:layout_constraintStart_toStartOf="@+id/imageView67"
-                    app:layout_constraintTop_toBottomOf="@+id/imageView67"
-                    app:layout_constraintVertical_bias="0.686" />
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                     />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </androidx.cardview.widget.CardView>
@@ -456,12 +470,13 @@
         <androidx.cardview.widget.CardView
             android:id="@+id/cardView21"
             android:layout_width="180dp"
-            android:layout_height="200dp"
+            android:layout_height="230dp"
             android:layout_marginStart="10dp"
             android:layout_marginTop="30dp"
-            android:layout_marginEnd="210dp"
+            android:layout_marginEnd="200dp"
             app:cardCornerRadius="20dp"
             app:layout_constraintEnd_toEndOf="parent"
+
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/discounts"
             >
@@ -478,16 +493,18 @@
                 app:iss_text_align="CENTER" />
 
 
-
             <TextView
                 android:id="@+id/textView23"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="170dp"
-                android:paddingStart="30dp"
-                android:text="Shop 1 "
+                android:layout_marginTop="190dp"
+                android:layout_marginStart="60dp"
+                android:layout_marginEnd="60dp"
+                android:textColor="@color/white"
+                android:text="Shop 1"
+
                 android:textStyle="bold"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 android:fontFamily="@font/lato_bold"/>
 
 
@@ -496,13 +513,14 @@
         <androidx.cardview.widget.CardView
             android:id="@+id/cardView22"
             android:layout_width="180dp"
-            android:layout_height="200dp"
-            android:layout_marginStart="210dp"
+            android:layout_height="230dp"
+            android:layout_marginStart="193dp"
             app:layout_constraintTop_toBottomOf="@id/discounts"
             android:layout_marginTop="30dp"
             android:layout_marginEnd="10dp"
             app:cardCornerRadius="20dp"
             app:layout_constraintEnd_toEndOf="parent"
+
             app:layout_constraintStart_toStartOf="parent"
             >
 
@@ -522,11 +540,13 @@
                 android:id="@+id/textView29"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="170dp"
-                android:paddingStart="30dp"
-                android:text="Shop 2 "
+                android:layout_marginTop="190dp"
+                android:layout_marginStart="60dp"
+                android:layout_marginEnd="60dp"
+                android:textColor="@color/white"
+                android:text="Shop 2"
                 android:textStyle="bold"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 android:fontFamily="@font/lato_bold"/>
 
 
@@ -535,13 +555,14 @@
         <androidx.cardview.widget.CardView
             android:id="@+id/cardView23"
             android:layout_width="180dp"
-            android:layout_height="200dp"
+            android:layout_height="230dp"
             android:layout_marginStart="10dp"
             app:layout_constraintTop_toBottomOf="@id/cardView21"
             android:layout_marginTop="25dp"
-            android:layout_marginEnd="210dp"
+            android:layout_marginEnd="200dp"
             app:cardCornerRadius="20dp"
             app:layout_constraintEnd_toEndOf="parent"
+
             app:layout_constraintStart_toStartOf="parent"
             >
 
@@ -561,11 +582,13 @@
                 android:id="@+id/textView30"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="170dp"
-                android:paddingStart="30dp"
-                android:text="Shop 3 "
+                android:layout_marginTop="190dp"
+                android:layout_marginStart="60dp"
+                android:layout_marginEnd="60dp"
+                android:textColor="@color/white"
+                android:text="Shop 3"
                 android:textStyle="bold"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 android:fontFamily="@font/lato_bold"/>
 
 
@@ -574,13 +597,14 @@
         <androidx.cardview.widget.CardView
             android:id="@+id/cardView24"
             android:layout_width="180dp"
-            android:layout_height="200dp"
-            android:layout_marginStart="210dp"
+            android:layout_height="230dp"
+            android:layout_marginStart="193dp"
             app:layout_constraintTop_toBottomOf="@id/cardView21"
             android:layout_marginTop="25dp"
             android:layout_marginEnd="10dp"
             app:cardCornerRadius="20dp"
             app:layout_constraintEnd_toEndOf="parent"
+
             app:layout_constraintStart_toStartOf="parent">
 
 
@@ -600,11 +624,13 @@
                 android:id="@+id/textView58"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="170dp"
-                android:paddingStart="30dp"
-                android:text="Shop 4 "
+                android:layout_marginTop="190dp"
+                android:layout_marginStart="60dp"
+                android:layout_marginEnd="60dp"
+                android:textColor="@color/white"
+                android:text="Shop 4"
                 android:textStyle="bold"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 android:fontFamily="@font/lato_bold"/>
 
         </androidx.cardview.widget.CardView>
@@ -612,13 +638,14 @@
         <androidx.cardview.widget.CardView
             android:id="@+id/cardView25"
             android:layout_width="180dp"
-            android:layout_height="200dp"
+            android:layout_height="230dp"
             android:layout_marginStart="10dp"
             app:layout_constraintTop_toBottomOf="@id/cardView23"
             android:layout_marginTop="25dp"
-            android:layout_marginEnd="210dp"
+            android:layout_marginEnd="200dp"
             app:cardCornerRadius="20dp"
             app:layout_constraintEnd_toEndOf="parent"
+
             app:layout_constraintStart_toStartOf="parent"
             >
 
@@ -638,11 +665,13 @@
                 android:id="@+id/textView56"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="170dp"
-                android:paddingStart="30dp"
-                android:text="Shop 5 "
+                android:layout_marginTop="190dp"
+                android:layout_marginStart="60dp"
+                android:layout_marginEnd="60dp"
+                android:textColor="@color/white"
+                android:text="Shop 5"
                 android:textStyle="bold"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 android:fontFamily="@font/lato_bold"/>
 
 
@@ -651,8 +680,8 @@
         <androidx.cardview.widget.CardView
             android:id="@+id/cardView27"
             android:layout_width="180dp"
-            android:layout_height="200dp"
-            android:layout_marginStart="210dp"
+            android:layout_height="230dp"
+            android:layout_marginStart="190dp"
             app:layout_constraintTop_toBottomOf="@id/cardView23"
             android:layout_marginTop="25dp"
             android:layout_marginEnd="10dp"
@@ -666,7 +695,6 @@
                 android:id="@+id/image_slider6"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-
                 app:iss_auto_cycle="true"
                 app:iss_delay="2000"
                 app:iss_no_dots="true"
@@ -678,11 +706,13 @@
                 android:id="@+id/textView59"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="170dp"
-                android:paddingStart="30dp"
-                android:text="Shop 6 "
+                android:layout_marginTop="190dp"
+                android:layout_marginStart="60dp"
+                android:layout_marginEnd="60dp"
+                android:textColor="@color/white"
+                android:text="Shop 6"
                 android:textStyle="bold"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 android:fontFamily="@font/lato_bold"/>
 
 

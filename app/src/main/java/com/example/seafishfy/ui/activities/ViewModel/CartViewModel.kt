@@ -15,12 +15,84 @@ class CartViewModel : ViewModel() {
     private var database: FirebaseDatabase = FirebaseDatabase.getInstance()
     private var userId: String = auth.currentUser?.uid ?: ""
 
+    fun retrieveCartItems(
+        cartItemsCallback: (foodNames: MutableList<String>, foodPrices: MutableList<String>, foodDescriptions: MutableList<String>, foodIngredients: MutableList<String>, foodImageUri: MutableList<String>, paths: MutableList<String>, quantity: MutableList<Int>) -> Unit
+    ) {
+        viewModelScope.launch {
+            val foodReferencer: DatabaseReference =
+                database.reference.child("user").child(userId).child("cartItems")
+
+            val foodNames = mutableListOf<String>()
+            val foodPrices = mutableListOf<String>()
+            val foodDescriptions = mutableListOf<String>()
+            val foodIngredients = mutableListOf<String>()
+            val foodImageUri = mutableListOf<String>()
+            val paths = mutableListOf<String>()
+            val quantity = mutableListOf<Int>()
+
+            foodReferencer.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    for (foodSnapshot in snapshot.children) {
+                        val cartItems = foodSnapshot.getValue(CartItems::class.java)
+                        cartItems?.let {
+                            foodNames.add(it.foodName.toString())
+                            foodPrices.add("₹" + it.foodPrice.toString())
+                            foodDescriptions.add(it.foodDescription.toString())
+                            foodIngredients.add(it.foodIngredients.toString())
+                            foodImageUri.add(it.foodImage.toString())
+                            paths.add(it.path.toString()) // Add path to the list
+                            it.foodQuantity?.let { it1 -> quantity.add(it1) }
+                        }
+                    }
+                    cartItemsCallback(
+                        foodNames,
+                        foodPrices,
+                        foodDescriptions,
+                        foodIngredients,
+                        foodImageUri,
+                        paths,
+                        quantity
+                    )
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    // Handle error
+                }
+            })
+        }
+    }
+
+    fun removeCartItem(itemId: String) {
+        viewModelScope.launch {
+            val itemReference: DatabaseReference =
+                database.reference.child("user").child(userId).child("cartItems").child(itemId)
+            itemReference.removeValue()
+        }
+    }
+
+    fun isCartEmpty(cartItemsCallback: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val cartReference: DatabaseReference =
+                database.reference.child("user").child(userId).child("cartItems")
+            cartReference.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    cartItemsCallback(!snapshot.exists())
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    // Handle error
+                }
+            })
+        }
+    }
+
     fun getOrderItemsDetail(
         cartAdapter: CartAdapter,
         orderNowCallback: (foodName: MutableList<String>, foodPrice: MutableList<String>, foodDescription: MutableList<String>, foodIngredient: MutableList<String>, foodImage: MutableList<String>, foodQuantities: MutableList<Int>) -> Unit
     ) {
         viewModelScope.launch {
-            val orderIdReference: DatabaseReference = database.reference.child("user").child(userId).child("cartItems")
+            val orderIdReference: DatabaseReference =
+                database.reference.child("user").child(userId).child("cartItems")
 
             val foodQuantities = cartAdapter.getUpdatedItemsQuantities()
             val foodName = mutableListOf<String>()
@@ -41,58 +113,14 @@ class CartViewModel : ViewModel() {
                             foodImage.add(it.foodImage.toString())
                         }
                     }
-                    orderNowCallback(foodName, foodPrice, foodDescription, foodIngredient, foodImage, foodQuantities)
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-                    // Handle error
-                }
-            })
-        }
-    }
-
-    fun retrieveCartItems(
-        cartItemsCallback: (foodNames: MutableList<String>, foodPrices: MutableList<String>, foodDescriptions: MutableList<String>, foodIngredients: MutableList<String>, foodImageUri: MutableList<String>, quantity: MutableList<Int>) -> Unit
-    ) {
-        viewModelScope.launch {
-            val foodReferencer: DatabaseReference = database.reference.child("user").child(userId).child("cartItems")
-
-            val foodNames = mutableListOf<String>()
-            val foodPrices = mutableListOf<String>()
-            val foodDescriptions = mutableListOf<String>()
-            val foodIngredients = mutableListOf<String>()
-            val foodImageUri = mutableListOf<String>()
-            val quantity = mutableListOf<Int>()
-
-            foodReferencer.addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    for (foodSnapshot in snapshot.children) {
-                        val cartItems = foodSnapshot.getValue(CartItems::class.java)
-                        cartItems?.let {
-                            foodNames.add(it.foodName.toString())
-                            foodPrices.add("₹" + it.foodPrice.toString())
-                            foodDescriptions.add(it.foodDescription.toString())
-                            foodIngredients.add(it.foodIngredients.toString())
-                            foodImageUri.add(it.foodImage.toString())
-                            it.foodQuantity?.let { it1 -> quantity.add(it1) }
-                        }
-                    }
-                    cartItemsCallback(foodNames, foodPrices, foodDescriptions, foodIngredients, foodImageUri, quantity)
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-                    // Handle error
-                }
-            })
-        }
-    }
-
-    fun isCartEmpty(cartItemsCallback: (Boolean) -> Unit) {
-        viewModelScope.launch {
-            val cartReference: DatabaseReference = database.reference.child("user").child(userId).child("cartItems")
-            cartReference.addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    cartItemsCallback(!snapshot.exists())
+                    orderNowCallback(
+                        foodName,
+                        foodPrice,
+                        foodDescription,
+                        foodIngredient,
+                        foodImage,
+                        foodQuantities
+                    )
                 }
 
                 override fun onCancelled(error: DatabaseError) {

@@ -35,6 +35,11 @@
         android:name="com.example.seafishfy.ui.activities.ContactusActivity"
         android:label="activity_contact"
         tools:layout="@layout/activity_contactus" />
+    <activity
+        android:id="@+id/detailsActivity"
+        android:name="com.example.seafishfy.ui.activities.DetailsActivity"
+        android:label="activity_contact"
+        tools:layout="@layout/activity_details" />
     <fragment
         android:id="@+id/accountFragment"
         android:name="com.example.seafishfy.ui.activities.fragments.AccountFragment"
@@ -99,5 +104,8 @@
     <action
         android:id="@+id/action_profileFragment_to_about"
         app:destination="@id/contactusActivity" />
+    <action
+        android:id="@+id/action_detailsActivity_to_cartFragment"
+        app:destination="@id/cartFragment" />
 
 </navigation>
