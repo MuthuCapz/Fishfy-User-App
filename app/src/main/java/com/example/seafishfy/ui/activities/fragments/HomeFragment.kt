@@ -46,9 +46,9 @@ import android.view.animation.AnimationSet
 import android.view.animation.AnimationUtils
 import android.view.animation.TranslateAnimation
 import com.example.seafishfy.ui.activities.Utils.ToastHelper
+import com.example.seafishfy.ui.activities.ViewModel.HomeViewModel
 import com.google.android.material.slider.Slider
 import androidx.core.text.HtmlCompat
-import com.example.seafishfy.ui.activities.ViewModel.HomeViewModel
 import com.google.android.play.integrity.internal.i
 
 
@@ -61,10 +61,10 @@ class HomeFragment : Fragment() {
     private val shop1Location = LatLng(8.8076189, 78.1283788)
     private val shop2Location = LatLng(	8.6701179, 78.093077)
     private val shop3Location = LatLng(
-        37.386051,-122.083855)
+        37.422580, -122.084330)
     private val shop4Location = LatLng(8.8076189, 78.1283788)
     private val shop6Location = LatLng(8.6701179, 78.093077)
-    private val shop5Location = LatLng(37.386051,-122.083855)
+    private val shop5Location = LatLng(37.422580, -122.084330)
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val viewModel: HomeViewModel by viewModels()
     private val imageResources = arrayOf(
@@ -181,7 +181,7 @@ class HomeFragment : Fragment() {
 
                                 imageUrl?.let {
                                     // Construct title with HTML tags to set text size
-                                    val title = "<font size='17' color='#FFFFFF'>$foodName</font> - <font size='17' color='#FFFFFF'>$discount Off</font>"
+                                    val title = "<font size='17'>$foodName</font> - <font size='17'>$discount Off</font>"
 
                                     // Construct SlideModel with image URL and title
                                     val slideModel = SlideModel(imageUrl, HtmlCompat.fromHtml(title, HtmlCompat.FROM_HTML_MODE_COMPACT).toString(), ScaleTypes.FIT)
@@ -192,14 +192,87 @@ class HomeFragment : Fragment() {
 
                         // Load images into the appropriate image slider based on shop index
                         when (i) {
-                            0 -> binding.imageSlider1.setImageList(imageList, ScaleTypes.FIT)
+                            0 -> {
+                                binding.imageSlider1.setImageList(imageList, ScaleTypes.FIT)
+                                binding.imageSlider1.setItemClickListener(object : ItemClickListener {
+                                    override fun doubleClick(position: Int) {
+                                        // Double click listener implementation
+                                    }
 
-                            1 -> binding.imageSlider2.setImageList(imageList, ScaleTypes.FIT)
-                            2 -> binding.imageSlider3.setImageList(imageList, ScaleTypes.FIT)
-                            3 -> binding.imageSlider4.setImageList(imageList, ScaleTypes.FIT)
-                            4 -> binding.imageSlider5.setImageList(imageList, ScaleTypes.FIT)
-                            5 -> binding.imageSlider6.setImageList(imageList, ScaleTypes.FIT)
+                                    override fun onItemSelected(position: Int) {
+                                        // Scroll to the top position of cardView5
+                                        scrollToCardView5()
+                                    }
+                                })
+
+                            }
+                            1 ->{
+                                binding.imageSlider2.setImageList(imageList, ScaleTypes.FIT)
+                                binding.imageSlider2.setItemClickListener(object : ItemClickListener {
+                                    override fun doubleClick(position: Int) {
+                                        // Double click listener implementation
+                                    }
+
+                                    override fun onItemSelected(position: Int) {
+                                        // Navigate to the same page as cardView5
+                                        scrollToCardView6()
+                                    }
+                                })
+                            }
+                            2 ->{
+                                binding.imageSlider3.setImageList(imageList, ScaleTypes.FIT)
+                                binding.imageSlider3.setItemClickListener(object : ItemClickListener {
+                                    override fun doubleClick(position: Int) {
+                                        // Double click listener implementation
+                                    }
+
+                                    override fun onItemSelected(position: Int) {
+                                        // Navigate to the same page as cardView5
+                                        scrollToCardView7()
+                                    }
+                                })
+                            }
+                            3 -> {
+                                binding.imageSlider4.setImageList(imageList, ScaleTypes.FIT)
+                                binding.imageSlider4.setItemClickListener(object : ItemClickListener {
+                                    override fun doubleClick(position: Int) {
+                                        // Double click listener implementation
+                                    }
+
+                                    override fun onItemSelected(position: Int) {
+                                        // Navigate to the same page as cardView5
+                                        scrollToCardView8()
+                                    }
+                                })
+                            }
+                            4 -> {
+                                binding.imageSlider5.setImageList(imageList, ScaleTypes.FIT)
+                                binding.imageSlider5.setItemClickListener(object : ItemClickListener {
+                                    override fun doubleClick(position: Int) {
+                                        // Double click listener implementation
+                                    }
+
+                                    override fun onItemSelected(position: Int) {
+                                        // Navigate to the same page as cardView5
+                                        scrollToCardView9()
+                                    }
+                                })
+                            }
+                            5 -> {
+                                binding.imageSlider6.setImageList(imageList, ScaleTypes.FIT)
+                                binding.imageSlider6.setItemClickListener(object : ItemClickListener {
+                                    override fun doubleClick(position: Int) {
+                                        // Double click listener implementation
+                                    }
+
+                                    override fun onItemSelected(position: Int) {
+                                        // Navigate to the same page as cardView5
+                                        scrollToCardView10()
+                                    }
+                                })
+                            }
                         }
+
                     } else {
                         Log.d(TAG, "No data found for ${shopReferences[i]}")
                     }
@@ -352,7 +425,7 @@ class HomeFragment : Fragment() {
     }
 
 
-        private fun navigateToShopFragment(index: Int) {
+    private fun navigateToShopFragment(index: Int) {
         when (index) {
             5 -> findNavController().navigate(R.id.action_homeFragment_to_shoponefragment)
             6 -> findNavController().navigate(R.id.action_homeFragment_to_shoptwofragment)
@@ -479,6 +552,36 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupImageSlider()
         startAnimation()
+    }
+
+    private fun scrollToCardView5() {
+        scrollToCardView(binding.cardView5)
+    }
+    private fun scrollToCardView6() {
+        scrollToCardView(binding.cardView6)
+    }
+    private fun scrollToCardView7() {
+        scrollToCardView(binding.cardView7)
+    }
+    private fun scrollToCardView8() {
+        scrollToCardView(binding.cardView8)
+    }
+    private fun scrollToCardView9() {
+        scrollToCardView(binding.cardView9)
+    }
+    private fun scrollToCardView10() {
+        scrollToCardView(binding.cardView10)
+    }
+
+
+
+    private fun scrollToCardView(cardView: View) {
+        // Get the top position of the cardView relative to the NestedScrollView
+        val scrollPosition = cardView.top
+        // Scroll to the position of the cardView
+        binding.scrollView.post {
+            binding.scrollView.smoothScrollTo(0, scrollPosition)
+        }
     }
     private fun startAnimation() {
         // Randomly select an image from the array

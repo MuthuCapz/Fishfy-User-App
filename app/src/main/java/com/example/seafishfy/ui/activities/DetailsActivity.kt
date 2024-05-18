@@ -1,9 +1,12 @@
 package com.example.seafishfy.ui.activities
 
 import android.content.Intent
+import android.graphics.text.LineBreaker
 import android.net.Uri
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.text.Layout
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.bumptech.glide.Glide
@@ -52,6 +55,9 @@ class DetailsActivity : AppCompatActivity() {
 
       // initialize Firabase Auth
       auth = FirebaseAuth.getInstance()
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+         binding.detailsShortDescriptionTextView.justificationMode = LineBreaker.JUSTIFICATION_MODE_INTER_WORD
+      }
       if (intent.hasExtra("MenuItemName")) {
          foodName = intent.getStringExtra("MenuItemName")
          foodPrice = intent.getStringExtra("MenuItemPrice")

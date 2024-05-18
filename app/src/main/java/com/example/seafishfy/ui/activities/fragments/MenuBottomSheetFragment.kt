@@ -40,7 +40,7 @@ class MenuBottomSheetFragment : BottomSheetDialogFragment() {
     private fun retrieveMenuItems() {
         database = FirebaseDatabase.getInstance()
         val shop3Ref: DatabaseReference = database.reference.child("Shop 1")
-        val menuReferences = listOf("menu1", "menu2", "menu", "discount")
+        val menuReferences = listOf("menu1", "menu2", "menu")
 
         menuItems = mutableListOf()
 

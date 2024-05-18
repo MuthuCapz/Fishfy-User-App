@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Handler
-import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.Toast
@@ -17,6 +16,7 @@ import com.bumptech.glide.Glide
 import com.example.seafishfy.R
 import com.example.seafishfy.databinding.ActivityViewOrderDetailsBinding
 import com.example.seafishfy.ui.activities.models.Order
+import com.example.seafishfy.ui.activities.Utils.ToastHelper
 import com.example.seafishfy.ui.activities.ViewModel.ViewODViewModel
 
 class ViewOrderDetails : AppCompatActivity() {
@@ -47,7 +47,7 @@ class ViewOrderDetails : AppCompatActivity() {
             viewModel.fetchOrderDetails(orderId)
             viewModel.fetchOrderImages(orderId)
         } else {
-            Toast.makeText(this, "Order id not found", Toast.LENGTH_SHORT).show()
+            ToastHelper.showCustomToast(this, "Order id not found")
             finish() // Finish activity if order id is not provided
         }
 
@@ -92,7 +92,6 @@ class ViewOrderDetails : AppCompatActivity() {
             }
         }
 
-
         viewModel.orderImages.observe(this) { imageUrls ->
             imageUrls.forEachIndexed { index, imageUrl ->
                 // Load image into respective ImageView based on index
@@ -109,7 +108,7 @@ class ViewOrderDetails : AppCompatActivity() {
 
         viewModel.orderCancellationStatus.observe(this) { cancelled ->
             if (cancelled) {
-                Toast.makeText(this, "Order cancelled", Toast.LENGTH_SHORT).show()
+                ToastHelper.showCustomToast(this, "Order cancelled")
                 // Disable the view
                 disableOrderView()
                 // Store cancellation status in SharedPreferences
@@ -135,7 +134,6 @@ class ViewOrderDetails : AppCompatActivity() {
         alertDialog.show()
     }
 
-
     private fun loadImageIntoImageView(imageUrl: String, imageView: ImageView) {
         Glide.with(this@ViewOrderDetails)
             .load(imageUrl)
@@ -159,7 +157,6 @@ class ViewOrderDetails : AppCompatActivity() {
             binding.radio.setOnClickListener {
                 showCancelOrderDialog()
             }
-
         }
     }
 
@@ -171,18 +168,23 @@ class ViewOrderDetails : AppCompatActivity() {
                     showOrderTakenDialog()
                 }
                 else -> {
-                    // Show the cancel order dialog if the order status allows cancellation
-                    AlertDialog.Builder(this)
-                        .setMessage("Are you sure you want to cancel your order?")
-                        .setCancelable(false)
-                        .setPositiveButton("Yes") { _, _ ->
-                            viewModel.cancelOrder(orderId)
-                        }
-                        .setNegativeButton("No") { dialog, _ ->
-                            dialog.dismiss()
-                            binding.radio.isChecked = false
-                        }
-                        .show()
+                    // Check if the order is already cancelled
+                    if (sharedPreferences.getBoolean("order_cancelled_$orderId", false)) {
+                        ToastHelper.showCustomToast(this, "Your order is already cancelled")
+                    } else {
+                        // Show the cancel order dialog if the order status allows cancellation
+                        AlertDialog.Builder(this)
+                            .setMessage("Are you sure you want to cancel your order?")
+                            .setCancelable(false)
+                            .setPositiveButton("Yes") { _, _ ->
+                                viewModel.cancelOrder(orderId)
+                            }
+                            .setNegativeButton("No") { dialog, _ ->
+                                dialog.dismiss()
+                                binding.radio.isChecked = false
+                            }
+                            .show()
+                    }
                 }
             }
         }
@@ -195,7 +197,7 @@ class ViewOrderDetails : AppCompatActivity() {
         // Display cancellation message on the disabled view
         binding.orderstatus.isEnabled = true // Enable the orderstatus button
         binding.radio.isEnabled = false
-
+        binding.radio.isClickable = false
     }
 
     private fun disableOrderView() {
@@ -210,7 +212,7 @@ class ViewOrderDetails : AppCompatActivity() {
         binding.radio.isEnabled = false
         val marginParams = ViewGroup.MarginLayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT 
+            ViewGroup.LayoutParams.WRAP_CONTENT
         )
         marginParams.setMargins(150, 150, 150, 150)
         cancelledImageView.layoutParams = marginParams

@@ -296,7 +296,7 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:srcCompat="@drawable/shop3" />
+                    app:srcCompat="@drawable/shop4" />
 
                 <TextView
                     android:id="@+id/textView154"
@@ -394,7 +394,7 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:srcCompat="@drawable/fishman" />
+                    app:srcCompat="@drawable/shop3" />
 
                 <TextView
                     android:id="@+id/textView152"
