@@ -36,17 +36,17 @@ class OnboardingFragment : Fragment() {
             IntroSlide(
                 "Welcome to Fishfy!!!",
                 " Dive into the freshest catch with Fisfy! We're here to make your seafood cravings a delightful experience. Let's get started!",
-                "shop.json"
+                "fisfy.jpg"
             ),
             IntroSlide(
                 "Choose Your Favorites",
                 "Tell us what you love! Select your favorite types of seafood to tailor your Fishfy experience.",
-                "cooking.json"
+                "favfood.jpg"
             ),
             IntroSlide(
                 "Doorstep Delivery",
                 " Enjoy the convenience of doorstep delivery! Simply place your order and have your fresh seafood delivered right to your doorstep at your preferred time.",
-                "delivery.json"
+                "deliboy.jpg"
             )
         )
     )
@@ -106,7 +106,10 @@ class OnboardingFragment : Fragment() {
 
 }
 
-    //suspend function to save the onboarding to datastore
+//suspend function to save the onboarding to datastore
+
+
+//suspend function to save the onboarding to datastore
 
 
 

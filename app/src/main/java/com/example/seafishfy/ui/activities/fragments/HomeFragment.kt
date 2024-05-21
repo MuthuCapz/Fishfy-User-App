@@ -58,7 +58,7 @@ class HomeFragment : Fragment() {
     private lateinit var database: FirebaseDatabase
     private lateinit var discountItems: MutableList<DiscountItem>
     private lateinit var databaseReference: DatabaseReference
-    private val shop1Location = LatLng(8.8076189, 78.1283788)
+    private val shop1Location = LatLng(8.198971, 77.303314)
     private val shop2Location = LatLng(	8.6701179, 78.093077)
     private val shop3Location = LatLng(
         37.422580, -122.084330)
