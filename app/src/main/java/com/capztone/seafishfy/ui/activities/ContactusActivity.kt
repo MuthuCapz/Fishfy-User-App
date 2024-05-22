@@ -1,11 +1,10 @@
-package com.example.seafishfy.ui.activities
+package com.capztone.seafishfy.ui.activities
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.ImageView
-import com.example.seafishfy.R
-import com.example.seafishfy.ui.activities.MainActivity
+import com.capztone.seafishfy.R
 
 
 class ContactusActivity : AppCompatActivity() {

@@ -1,4 +1,4 @@
-package com.example.seafishfy.ui.activities.fragments
+package com.capztone.seafishfy.ui.activities.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -6,8 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import com.example.seafishfy.R
-import com.example.seafishfy.databinding.FragmentProfileBinding
+import com.capztone.seafishfy.R
+import com.capztone.seafishfy.databinding.FragmentProfileBinding
 
 class ProfileFragment : Fragment() {
 

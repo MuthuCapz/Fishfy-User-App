@@ -1,16 +1,12 @@
 // OrderStatusActivity.kt
 
-package com.example.seafishfy.ui.activities
+package com.capztone.seafishfy.ui.activities
 
-import android.os.Build
 import android.os.Bundle
-import android.view.View
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import com.airbnb.lottie.LottieAnimationView
-import com.example.seafishfy.databinding.ActivityOrderStatusBinding
-import com.example.seafishfy.ui.activities.ViewModel.OrderStatusViewModel
+import com.capztone.seafishfy.databinding.ActivityOrderStatusBinding
+import com.capztone.seafishfy.ui.activities.ViewModel.OrderStatusViewModel
 
 import com.google.firebase.database.*
 

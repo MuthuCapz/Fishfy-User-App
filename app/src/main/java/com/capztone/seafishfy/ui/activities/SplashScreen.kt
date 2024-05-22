@@ -1,4 +1,4 @@
-package com.example.seafishfy.ui.activities
+package com.capztone.seafishfy.ui.activities
 
 import android.animation.Animator
 import android.animation.AnimatorSet
@@ -11,13 +11,10 @@ import android.view.animation.AnimationSet
 import android.view.animation.AnimationUtils
 import android.view.animation.TranslateAnimation
 import android.widget.ImageView
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
-import androidx.viewbinding.ViewBinding
-import com.airbnb.lottie.LottieAnimationView
-import com.example.seafishfy.R
-import com.example.seafishfy.databinding.ActivitySplashScreenBinding
+import com.capztone.seafishfy.R
+import com.capztone.seafishfy.databinding.ActivitySplashScreenBinding
 import com.google.firebase.auth.FirebaseAuth
 
 class SplashScreen : AppCompatActivity() {

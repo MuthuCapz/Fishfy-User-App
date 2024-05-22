@@ -1,5 +1,5 @@
 // MainViewModel.kt
-package com.example.seafishfy.ui.activities.ViewModel
+package com.capztone.seafishfy.ui.activities.ViewModel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

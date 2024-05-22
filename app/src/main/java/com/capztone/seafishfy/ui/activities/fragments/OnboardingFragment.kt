@@ -1,4 +1,4 @@
-package com.example.seafishfy.ui.activities.fragments
+package com.capztone.seafishfy.ui.activities.fragments
 
 import android.content.Intent
 import android.os.Bundle
@@ -8,18 +8,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.booleanPreferencesKey
 
-import androidx.lifecycle.lifecycleScope
-import androidx.navigation.findNavController
-import androidx.navigation.fragment.findNavController
 import androidx.viewpager2.widget.ViewPager2
-import com.example.seafishfy.R
-import com.example.seafishfy.databinding.FragmentOnboardingBinding
-import com.example.seafishfy.ui.activities.LoginActivity
-import com.example.seafishfy.ui.activities.adapters.IntroSliderAdapter
-import com.example.seafishfy.ui.activities.models.IntroSlide
-import kotlinx.coroutines.launch
+import com.capztone.seafishfy.R
+import com.capztone.seafishfy.databinding.FragmentOnboardingBinding
+import com.capztone.seafishfy.ui.activities.LoginActivity
+import com.capztone.seafishfy.ui.activities.adapters.IntroSliderAdapter
+import com.capztone.seafishfy.ui.activities.models.IntroSlide
 import java.util.prefs.Preferences
 import javax.inject.Inject
 

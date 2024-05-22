@@ -1,4 +1,4 @@
-package com.example.seafishfy.ui.activities.models
+package com.capztone.seafishfy.ui.activities.models
 
 data class DiscountItem(
     val foodNames: String? = null,

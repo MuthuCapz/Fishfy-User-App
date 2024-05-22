@@ -7,72 +7,72 @@
 
     <fragment
         android:id="@+id/homeFragment"
-        android:name="com.example.seafishfy.ui.activities.fragments.HomeFragment"
+        android:name="com.capztone.seafishfy.ui.activities.fragments.HomeFragment"
         android:label="fragment_home"
         tools:layout="@layout/fragment_home" />
     <fragment
         android:id="@+id/cartFragment"
-        android:name="com.example.seafishfy.ui.activities.fragments.CartFragment"
+        android:name="com.capztone.seafishfy.ui.activities.fragments.CartFragment"
         android:label="fragment_cart"
         tools:layout="@layout/fragment_cart" />
     <fragment
         android:id="@+id/searchFragment"
-        android:name="com.example.seafishfy.ui.activities.fragments.SearchFragment"
+        android:name="com.capztone.seafishfy.ui.activities.fragments.SearchFragment"
         android:label="fragment_search"
         tools:layout="@layout/fragment_search" />
     <fragment
         android:id="@+id/historyFragment"
-        android:name="com.example.seafishfy.ui.activities.fragments.HistoryFragment"
+        android:name="com.capztone.seafishfy.ui.activities.fragments.HistoryFragment"
         android:label="fragment_history"
         tools:layout="@layout/fragment_history" />
     <fragment
         android:id="@+id/profileFragment"
-        android:name="com.example.seafishfy.ui.activities.fragments.ProfileFragment"
+        android:name="com.capztone.seafishfy.ui.activities.fragments.ProfileFragment"
         android:label="fragment_profile"
         tools:layout="@layout/fragment_profile" />
     <activity
         android:id="@+id/contactusActivity"
-        android:name="com.example.seafishfy.ui.activities.ContactusActivity"
+        android:name="com.capztone.seafishfy.ui.activities.ContactusActivity"
         android:label="activity_contact"
         tools:layout="@layout/activity_contactus" />
     <activity
         android:id="@+id/detailsActivity"
-        android:name="com.example.seafishfy.ui.activities.DetailsActivity"
+        android:name="com.capztone.seafishfy.ui.activities.DetailsActivity"
         android:label="activity_contact"
         tools:layout="@layout/activity_details" />
     <fragment
         android:id="@+id/accountFragment"
-        android:name="com.example.seafishfy.ui.activities.fragments.AccountFragment"
+        android:name="com.capztone.seafishfy.ui.activities.fragments.AccountFragment"
         android:label="fragment_account"
         tools:layout="@layout/fragment_account" />
     <fragment
         android:id="@+id/shopOneFragment"
-        android:name="com.example.seafishfy.ui.activities.fragments.ShopOneFragment"
+        android:name="com.capztone.seafishfy.ui.activities.fragments.ShopOneFragment"
         android:label="fragment_shopone"
         tools:layout="@layout/fragment_shop_one" />
     <fragment
         android:id="@+id/shopTwoFragment"
-        android:name="com.example.seafishfy.ui.activities.fragments.ShopTwoFragment"
+        android:name="com.capztone.seafishfy.ui.activities.fragments.ShopTwoFragment"
         android:label="fragment_shoptwo"
         tools:layout="@layout/fragment_shop_two" />
     <fragment
         android:id="@+id/shopThreeFragment"
-        android:name="com.example.seafishfy.ui.activities.fragments.ShopThreeFragment"
+        android:name="com.capztone.seafishfy.ui.activities.fragments.ShopThreeFragment"
         android:label="fragment_shopthree"
         tools:layout="@layout/fragment_shop_three" />
     <fragment
         android:id="@+id/shopFourFragment"
-        android:name="com.example.seafishfy.ui.activities.fragments.ShopFourFragment"
+        android:name="com.capztone.seafishfy.ui.activities.fragments.ShopFourFragment"
         android:label="fragment_shopfour"
         tools:layout="@layout/fragment_shop_four" />
     <fragment
         android:id="@+id/shopFiveFragment"
-        android:name="com.example.seafishfy.ui.activities.fragments.ShopFiveFragment"
+        android:name="com.capztone.seafishfy.ui.activities.fragments.ShopFiveFragment"
         android:label="fragment_shopfive"
         tools:layout="@layout/fragment_shop_five" />
     <fragment
         android:id="@+id/shopSixFragment"
-        android:name="com.example.seafishfy.ui.activities.fragments.ShopSixFragment"
+        android:name="com.capztone.seafishfy.ui.activities.fragments.ShopSixFragment"
         android:label="fragment_shopsix"
         tools:layout="@layout/fragment_shop_six" />
 

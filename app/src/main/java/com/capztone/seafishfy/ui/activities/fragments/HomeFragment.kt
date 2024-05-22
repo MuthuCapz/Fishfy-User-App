@@ -1,4 +1,4 @@
-package com.example.seafishfy.ui.activities.fragments
+package com.capztone.seafishfy.ui.activities.fragments
 
 import android.content.Intent
 import android.os.Build
@@ -19,37 +19,31 @@ import androidx.fragment.app.Fragment
 import com.denzcoskun.imageslider.constants.ScaleTypes
 import com.denzcoskun.imageslider.interfaces.ItemClickListener
 import com.denzcoskun.imageslider.models.SlideModel
-import com.example.seafishfy.R
-import com.example.seafishfy.databinding.FragmentHomeBinding
-import com.example.seafishfy.ui.activities.ContactusActivity
-import com.example.seafishfy.ui.activities.Discount
-import com.example.seafishfy.ui.activities.LocationActivity
-import com.example.seafishfy.ui.activities.models.DiscountItem
+import com.capztone.seafishfy.databinding.FragmentHomeBinding
+import com.capztone.seafishfy.ui.activities.ContactusActivity
+import com.capztone.seafishfy.ui.activities.Discount
+import com.capztone.seafishfy.ui.activities.LocationActivity
+import com.capztone.seafishfy.ui.activities.models.DiscountItem
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import java.util.*
 import androidx.navigation.fragment.findNavController
 import android.Manifest
 import android.content.ContentValues.TAG
-import android.content.Context
 import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
+import com.capztone.seafishfy.R
 import androidx.fragment.app.viewModels
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
 import android.graphics.Color
-import android.graphics.drawable.AnimationDrawable
 import android.util.Log
 import android.view.animation.Animation
-import android.view.animation.AnimationSet
 import android.view.animation.AnimationUtils
-import android.view.animation.TranslateAnimation
-import com.example.seafishfy.ui.activities.Utils.ToastHelper
-import com.example.seafishfy.ui.activities.ViewModel.HomeViewModel
-import com.google.android.material.slider.Slider
+import com.capztone.seafishfy.ui.activities.Utils.ToastHelper
+import com.capztone.seafishfy.ui.activities.ViewModel.HomeViewModel
 import androidx.core.text.HtmlCompat
-import com.google.android.play.integrity.internal.i
 
 
 class HomeFragment : Fragment() {

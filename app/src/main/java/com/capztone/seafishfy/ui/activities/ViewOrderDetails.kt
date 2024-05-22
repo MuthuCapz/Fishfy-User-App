@@ -1,4 +1,4 @@
-package com.example.seafishfy.ui.activities
+package com.capztone.seafishfy.ui.activities
 
 import android.content.Context
 import android.content.Intent
@@ -7,17 +7,16 @@ import android.os.Bundle
 import android.os.Handler
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
-import com.example.seafishfy.R
-import com.example.seafishfy.databinding.ActivityViewOrderDetailsBinding
-import com.example.seafishfy.ui.activities.models.Order
-import com.example.seafishfy.ui.activities.Utils.ToastHelper
-import com.example.seafishfy.ui.activities.ViewModel.ViewODViewModel
+import com.capztone.seafishfy.R
+import com.capztone.seafishfy.databinding.ActivityViewOrderDetailsBinding
+import com.capztone.seafishfy.ui.activities.models.Order
+import com.capztone.seafishfy.ui.activities.Utils.ToastHelper
+import com.capztone.seafishfy.ui.activities.ViewModel.ViewODViewModel
 
 class ViewOrderDetails : AppCompatActivity() {
 

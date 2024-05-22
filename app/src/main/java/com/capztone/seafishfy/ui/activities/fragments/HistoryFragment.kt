@@ -1,4 +1,4 @@
-package com.example.seafishfy.ui.activities.fragments
+package com.capztone.seafishfy.ui.activities.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,10 +8,10 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.seafishfy.databinding.FragmentHistoryBinding
-import com.example.seafishfy.ui.activities.Utils.ToastHelper
-import com.example.seafishfy.ui.activities.adapters.RecentBuyAdapter
-import com.example.seafishfy.ui.activities.ViewModel.HistoryViewModel
+import com.capztone.seafishfy.databinding.FragmentHistoryBinding
+import com.capztone.seafishfy.ui.activities.Utils.ToastHelper
+import com.capztone.seafishfy.ui.activities.adapters.RecentBuyAdapter
+import com.capztone.seafishfy.ui.activities.ViewModel.HistoryViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

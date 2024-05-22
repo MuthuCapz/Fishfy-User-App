@@ -1,4 +1,4 @@
-package com.example.seafishfy.ui.activities.fragments
+package com.capztone.seafishfy.ui.activities.fragments
 import androidx.fragment.app.Fragment
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,10 +7,10 @@ import android.view.ViewGroup
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.seafishfy.databinding.FragmentSearchBinding
-import com.example.seafishfy.ui.activities.adapters.SearchAdapter
-import com.example.seafishfy.ui.activities.models.MenuItem
-import com.example.seafishfy.ui.activities.ViewModel.SearchViewModel
+import com.capztone.seafishfy.databinding.FragmentSearchBinding
+import com.capztone.seafishfy.ui.activities.adapters.SearchAdapter
+import com.capztone.seafishfy.ui.activities.models.MenuItem
+import com.capztone.seafishfy.ui.activities.ViewModel.SearchViewModel
 
 class SearchFragment : Fragment() {
     private lateinit var binding: FragmentSearchBinding

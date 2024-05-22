@@ -1,12 +1,11 @@
-package com.example.seafishfy.ui.activities.Utils
+package com.capztone.seafishfy.ui.activities.Utils
 
 import android.content.Context
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.widget.TextView
 import android.widget.Toast
-import com.example.seafishfy.R
-import kotlin.coroutines.CoroutineContext
+import com.capztone.seafishfy.R
 
 object ToastHelper {
     fun showCustomToast(context: Context?, message: String) {

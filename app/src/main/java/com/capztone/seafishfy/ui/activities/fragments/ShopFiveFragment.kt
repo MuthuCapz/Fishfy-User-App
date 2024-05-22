@@ -1,33 +1,22 @@
-package com.example.seafishfy.ui.activities.fragments
+package com.capztone.seafishfy.ui.activities.fragments
 
-import android.content.Intent
 import android.os.Bundle
-import android.text.SpannableString
-import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.PopupMenu
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.denzcoskun.imageslider.constants.ScaleTypes
-import com.denzcoskun.imageslider.interfaces.ItemClickListener
 import com.denzcoskun.imageslider.models.SlideModel
-import com.example.seafishfy.R
-import com.example.seafishfy.databinding.FragmentHomeBinding
-import com.example.seafishfy.databinding.FragmentShopFiveBinding
-import com.example.seafishfy.databinding.FragmentShopFourBinding
-import com.example.seafishfy.ui.activities.ContactusActivity
-import com.example.seafishfy.ui.activities.Discount
-import com.example.seafishfy.ui.activities.LocationActivity
-import com.example.seafishfy.ui.activities.adapters.DiscountAdapter
-import com.example.seafishfy.ui.activities.adapters.MenuAdapter
-import com.example.seafishfy.ui.activities.models.DiscountItem
-import com.example.seafishfy.ui.activities.models.MenuItem
-import com.example.seafishfy.ui.activities.Utils.ToastHelper
-import com.example.seafishfy.ui.activities.ViewModel.ShopFiveViewModel
+import com.capztone.seafishfy.R
+import com.capztone.seafishfy.databinding.FragmentShopFiveBinding
+import com.capztone.seafishfy.ui.activities.adapters.DiscountAdapter
+import com.capztone.seafishfy.ui.activities.adapters.MenuAdapter
+import com.capztone.seafishfy.ui.activities.models.DiscountItem
+import com.capztone.seafishfy.ui.activities.models.MenuItem
+import com.capztone.seafishfy.ui.activities.Utils.ToastHelper
+import com.capztone.seafishfy.ui.activities.ViewModel.ShopFiveViewModel
 import java.util.*
 
 class ShopFiveFragment : Fragment() {

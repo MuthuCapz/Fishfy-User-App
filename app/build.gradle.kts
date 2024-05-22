@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.seafishfy"
+    namespace = "com.capztone.seafishfy"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.seafishfy"
+        applicationId = "com.capztone.seafishfy"
         minSdk = 24
         targetSdk = 34
         versionCode = 1

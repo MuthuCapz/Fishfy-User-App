@@ -1,4 +1,4 @@
-package com.example.seafishfy.ui.activities.adapters
+package com.capztone.seafishfy.ui.activities.adapters
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -6,10 +6,10 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.seafishfy.databinding.DiscountItemsBinding
-import com.example.seafishfy.ui.activities.DetailsActivity
-import com.example.seafishfy.ui.activities.Utils.ToastHelper
-import com.example.seafishfy.ui.activities.models.DiscountItem
+import com.capztone.seafishfy.databinding.DiscountItemsBinding
+import com.capztone.seafishfy.ui.activities.DetailsActivity
+import com.capztone.seafishfy.ui.activities.Utils.ToastHelper
+import com.capztone.seafishfy.ui.activities.models.DiscountItem
 import java.util.*
 
 class DiscountAdapter(

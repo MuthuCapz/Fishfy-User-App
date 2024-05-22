@@ -1,14 +1,13 @@
-package com.example.seafishfy.ui.activities.adapters
+package com.capztone.seafishfy.ui.activities.adapters
 
 import android.content.Context
 import android.net.Uri
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.seafishfy.databinding.CartItemBinding
-import com.example.seafishfy.ui.activities.Utils.ToastHelper
+import com.capztone.seafishfy.databinding.CartItemBinding
+import com.capztone.seafishfy.ui.activities.Utils.ToastHelper
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError

@@ -1,5 +1,5 @@
 // MainActivity.kt
-package com.example.seafishfy.ui.activities
+package com.capztone.seafishfy.ui.activities
 
 import android.content.Context
 import android.content.DialogInterface
@@ -20,9 +20,9 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.airbnb.lottie.LottieAnimationView
 import com.airbnb.lottie.LottieCompositionFactory
-import com.example.seafishfy.R
-import com.example.seafishfy.databinding.ActivityMainBinding
-import com.example.seafishfy.ui.activities.ViewModel.MainViewModel
+import com.capztone.seafishfy.R
+import com.capztone.seafishfy.databinding.ActivityMainBinding
+import com.capztone.seafishfy.ui.activities.ViewModel.MainViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 

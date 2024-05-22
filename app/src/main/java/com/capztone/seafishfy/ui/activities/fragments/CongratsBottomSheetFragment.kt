@@ -1,12 +1,11 @@
-package com.example.seafishfy.ui.activities.fragments
+package com.capztone.seafishfy.ui.activities.fragments
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 
-import com.example.seafishfy.databinding.FragmentCongratsBottomSheetBinding
+import com.capztone.seafishfy.databinding.FragmentCongratsBottomSheetBinding
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.firebase.database.DatabaseReference

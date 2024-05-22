@@ -1,11 +1,11 @@
-package com.example.seafishfy.ui.activities.adapters
+package com.capztone.seafishfy.ui.activities.adapters
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.seafishfy.databinding.SlideItemContainerBinding
-import com.example.seafishfy.ui.activities.models.IntroSlide
+import com.capztone.seafishfy.databinding.SlideItemContainerBinding
+import com.capztone.seafishfy.ui.activities.models.IntroSlide
 
 class IntroSliderAdapter(private val introSlides: List<IntroSlide>)
     : RecyclerView.Adapter<IntroSliderAdapter.IntroSlideViewHolder>() {

@@ -1,4 +1,4 @@
-package com.example.seafishfy.ui.activities.adapters
+package com.capztone.seafishfy.ui.activities.adapters
 
 import android.content.Context
 import android.content.Intent
@@ -7,9 +7,9 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.seafishfy.databinding.MenuItemBinding
-import com.example.seafishfy.ui.activities.DetailsActivity
-import com.example.seafishfy.ui.activities.models.MenuItem
+import com.capztone.seafishfy.databinding.MenuItemBinding
+import com.capztone.seafishfy.ui.activities.DetailsActivity
+import com.capztone.seafishfy.ui.activities.models.MenuItem
 
 class  MenuAdapter(
 //    private val menuItemsName: MutableList<String>,

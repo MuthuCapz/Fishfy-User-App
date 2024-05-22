@@ -1,4 +1,4 @@
-package com.example.seafishfy.ui.activities.models
+package com.capztone.seafishfy.ui.activities.models
 
 import android.os.Parcel
 import android.os.Parcelable

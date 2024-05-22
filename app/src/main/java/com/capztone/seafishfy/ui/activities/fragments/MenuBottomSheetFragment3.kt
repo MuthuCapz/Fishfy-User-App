@@ -1,18 +1,15 @@
-package com.example.seafishfy.ui.activities.fragments
+package com.capztone.seafishfy.ui.activities.fragments
 
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.SearchView
 import android.widget.Toast
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.seafishfy.databinding.FragmentMenuBottomSheet3Binding
-import com.example.seafishfy.databinding.FragmentMenuBottomSheetBinding
-import com.example.seafishfy.ui.activities.adapters.SearchAdapter
-import com.example.seafishfy.ui.activities.models.MenuItem
+import com.capztone.seafishfy.databinding.FragmentMenuBottomSheet3Binding
+import com.capztone.seafishfy.ui.activities.adapters.SearchAdapter
+import com.capztone.seafishfy.ui.activities.models.MenuItem
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.firebase.database.*
 

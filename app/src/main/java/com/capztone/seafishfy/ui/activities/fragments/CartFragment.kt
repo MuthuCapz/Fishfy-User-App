@@ -1,4 +1,4 @@
-package com.example.seafishfy.ui.activities.fragments
+package com.capztone.seafishfy.ui.activities.fragments
 
 import android.content.ContentValues.TAG
 import android.content.Intent
@@ -11,11 +11,11 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.seafishfy.databinding.FragmentCartBinding
-import com.example.seafishfy.ui.activities.PayoutActivity
-import com.example.seafishfy.ui.activities.Utils.ToastHelper
-import com.example.seafishfy.ui.activities.adapters.CartAdapter
-import com.example.seafishfy.ui.activities.ViewModel.CartViewModel
+import com.capztone.seafishfy.databinding.FragmentCartBinding
+import com.capztone.seafishfy.ui.activities.PayoutActivity
+import com.capztone.seafishfy.ui.activities.Utils.ToastHelper
+import com.capztone.seafishfy.ui.activities.adapters.CartAdapter
+import com.capztone.seafishfy.ui.activities.ViewModel.CartViewModel
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot

@@ -1,4 +1,4 @@
-package com.example.seafishfy.ui.activities
+package com.capztone.seafishfy.ui.activities
 
 
 import android.Manifest
@@ -18,11 +18,11 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.example.seafishfy.R
-import com.example.seafishfy.databinding.ActivityLocationBinding
-import com.example.seafishfy.ui.activities.Utils.ToastHelper
-import com.example.seafishfy.ui.activities.adapters.AddressAdapter
-import com.example.seafishfy.ui.activities.ViewModel.LocationViewModel
+import com.capztone.seafishfy.R
+import com.capztone.seafishfy.databinding.ActivityLocationBinding
+import com.capztone.seafishfy.ui.activities.Utils.ToastHelper
+import com.capztone.seafishfy.ui.activities.adapters.AddressAdapter
+import com.capztone.seafishfy.ui.activities.ViewModel.LocationViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth

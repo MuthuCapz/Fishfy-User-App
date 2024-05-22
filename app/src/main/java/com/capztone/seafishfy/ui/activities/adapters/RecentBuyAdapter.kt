@@ -1,4 +1,4 @@
-package com.example.seafishfy.ui.activities.adapters
+package com.capztone.seafishfy.ui.activities.adapters
 
 import android.content.Context
 import android.content.Intent
@@ -9,10 +9,10 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
-import com.example.seafishfy.databinding.RecentCartItemBinding
-import com.example.seafishfy.ui.activities.ViewOrderDetails
-import com.example.seafishfy.ui.activities.models.Order
-import com.example.seafishfy.ui.activities.ViewModel.HistoryViewModel
+import com.capztone.seafishfy.databinding.RecentCartItemBinding
+import com.capztone.seafishfy.ui.activities.ViewOrderDetails
+import com.capztone.seafishfy.ui.activities.models.Order
+import com.capztone.seafishfy.ui.activities.ViewModel.HistoryViewModel
 
 class RecentBuyAdapter(
     private val context: Context,

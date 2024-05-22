@@ -1,13 +1,12 @@
-package com.example.seafishfy.ui.activities
+package com.capztone.seafishfy.ui.activities
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.PopupMenu
 import android.widget.Toast
-import com.example.seafishfy.R
-import com.example.seafishfy.databinding.ActivityPayoutBinding
-import com.example.seafishfy.ui.activities.fragments.CongratsBottomSheetFragment
-import com.example.seafishfy.ui.activities.models.OrderDetails
+import com.capztone.seafishfy.databinding.ActivityPayoutBinding
+import com.capztone.seafishfy.ui.activities.fragments.CongratsBottomSheetFragment
+import com.capztone.seafishfy.ui.activities.models.OrderDetails
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import android.view.View
@@ -27,6 +26,7 @@ import com.google.android.gms.location.LocationServices
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
+import com.capztone.seafishfy.R
 import java.util.Locale
 
 class PayoutActivity : AppCompatActivity() {

@@ -1,4 +1,4 @@
-package com.example.seafishfy.ui.activities.ViewModel
+package com.capztone.seafishfy.ui.activities.ViewModel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel

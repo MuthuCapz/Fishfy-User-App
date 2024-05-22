@@ -1,11 +1,11 @@
-package com.example.seafishfy.ui.activities.ViewModel
+package com.capztone.seafishfy.ui.activities.ViewModel
 
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.seafishfy.ui.activities.models.DiscountItem
+import com.capztone.seafishfy.ui.activities.models.DiscountItem
 import com.google.firebase.database.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

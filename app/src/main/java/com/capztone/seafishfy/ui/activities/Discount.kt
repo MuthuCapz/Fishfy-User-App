@@ -1,14 +1,14 @@
 // Discount.kt
-package com.example.seafishfy.ui.activities
+package com.capztone.seafishfy.ui.activities
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
-import com.example.seafishfy.databinding.ActivityDiscountBinding
-import com.example.seafishfy.ui.activities.ViewModel.DiscountViewModel
-import com.example.seafishfy.ui.activities.adapters.DiscountAdapter
-import com.example.seafishfy.ui.activities.models.DiscountItem
+import com.capztone.seafishfy.databinding.ActivityDiscountBinding
+import com.capztone.seafishfy.ui.activities.ViewModel.DiscountViewModel
+import com.capztone.seafishfy.ui.activities.adapters.DiscountAdapter
+import com.capztone.seafishfy.ui.activities.models.DiscountItem
 
 import java.util.*
 

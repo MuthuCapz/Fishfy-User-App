@@ -1,6 +1,6 @@
 // OrderStatusViewModel.kt
 
-package com.example.seafishfy.ui.activities.ViewModel
+package com.capztone.seafishfy.ui.activities.ViewModel
 
 import android.os.Build
 import android.view.View
@@ -8,7 +8,7 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.airbnb.lottie.LottieAnimationView
-import com.example.seafishfy.databinding.ActivityOrderStatusBinding
+import com.capztone.seafishfy.databinding.ActivityOrderStatusBinding
 import com.google.firebase.database.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

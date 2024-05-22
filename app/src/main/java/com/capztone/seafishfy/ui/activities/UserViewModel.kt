@@ -1,9 +1,9 @@
-package com.example.seafishfy.ui.activities
+package com.capztone.seafishfy.ui.activities
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.seafishfy.ui.activities.models.Location
+import com.capztone.seafishfy.ui.activities.models.Location
 import com.google.firebase.database.*
 
 class UserViewModel : ViewModel() {

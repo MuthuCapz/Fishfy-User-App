@@ -1,4 +1,4 @@
-package com.example.seafishfy.ui.activities.fragments
+package com.capztone.seafishfy.ui.activities.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,15 +9,14 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.denzcoskun.imageslider.constants.ScaleTypes
 import com.denzcoskun.imageslider.models.SlideModel
-import com.example.seafishfy.R
-import com.example.seafishfy.databinding.FragmentShopFourBinding
-import com.example.seafishfy.databinding.FragmentShopSixBinding
-import com.example.seafishfy.ui.activities.adapters.DiscountAdapter
-import com.example.seafishfy.ui.activities.adapters.MenuAdapter
-import com.example.seafishfy.ui.activities.models.DiscountItem
-import com.example.seafishfy.ui.activities.models.MenuItem
-import com.example.seafishfy.ui.activities.Utils.ToastHelper
-import com.example.seafishfy.ui.activities.ViewModel.ShopSixViewModel
+import com.capztone.seafishfy.R
+import com.capztone.seafishfy.databinding.FragmentShopSixBinding
+import com.capztone.seafishfy.ui.activities.adapters.DiscountAdapter
+import com.capztone.seafishfy.ui.activities.adapters.MenuAdapter
+import com.capztone.seafishfy.ui.activities.models.DiscountItem
+import com.capztone.seafishfy.ui.activities.models.MenuItem
+import com.capztone.seafishfy.ui.activities.Utils.ToastHelper
+import com.capztone.seafishfy.ui.activities.ViewModel.ShopSixViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.util.*
 

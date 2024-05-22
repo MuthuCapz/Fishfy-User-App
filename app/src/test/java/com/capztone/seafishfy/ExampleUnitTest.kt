@@ -1,4 +1,4 @@
-package com.example.seafishfy
+package com.capztone.seafishfy
 
 import org.junit.Test
 

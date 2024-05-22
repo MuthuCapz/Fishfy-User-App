@@ -1,8 +1,8 @@
-package com.example.seafishfy.ui.activities
+package com.capztone.seafishfy.ui.activities
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.example.seafishfy.databinding.ActivityStartBinding
+import com.capztone.seafishfy.databinding.ActivityStartBinding
 
 class StartActivity : AppCompatActivity() {
 
