@@ -34,23 +34,6 @@
         app:lottie_loop="true"
         android:contentDescription="@string/image_desc_text" />
 
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/goBackHomeButton"
-        android:layout_width="157dp"
-        android:layout_height="57dp"
-        android:layout_gravity="center|bottom"
-        android:layout_marginTop="32dp"
-        android:background="@drawable/greenbuttongradent"
-        android:fontFamily="@font/inika_regular"
-        android:text="Order Status"
-        android:textAllCaps="false"
-        android:textColor="@color/white"
-        android:textSize="20sp"
-        android:layout_marginBottom="32dp"
-        app:layout_constraintEnd_toEndOf="@+id/googleSignUpbutton"
-        app:layout_constraintStart_toStartOf="@+id/facebookSignUpButton"
-        app:layout_constraintTop_toBottomOf="@+id/facebookSignUpButton" />
-
         <View
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

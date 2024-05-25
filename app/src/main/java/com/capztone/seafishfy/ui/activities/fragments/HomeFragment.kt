@@ -53,12 +53,12 @@ class HomeFragment : Fragment() {
     private lateinit var discountItems: MutableList<DiscountItem>
     private lateinit var databaseReference: DatabaseReference
     private val shop1Location = LatLng(8.198971, 77.303314)
-    private val shop2Location = LatLng(	8.6701179, 78.093077)
+    private val shop2Location = LatLng(	13.0300, 80.2421)
     private val shop3Location = LatLng(
-        37.422580, -122.084330)
+        13.0640, 77.6504)
     private val shop4Location = LatLng(8.8076189, 78.1283788)
-    private val shop6Location = LatLng(8.6701179, 78.093077)
-    private val shop5Location = LatLng(37.422580, -122.084330)
+    private val shop6Location = LatLng(8.3451335,77.18204)
+    private val shop5Location = LatLng(8.3223816, 77.1729525)
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val viewModel: HomeViewModel by viewModels()
     private val imageResources = arrayOf(
@@ -478,7 +478,6 @@ class HomeFragment : Fragment() {
                     val intent = Intent(requireContext(), ContactusActivity::class.java)
                     startActivity(intent)
                     // Hide the dropdown icon after picking an address
-                    binding.dropdown.visibility = View.GONE
                     true
                 }
                 // Add more saved address clicks as needed
@@ -519,7 +518,6 @@ class HomeFragment : Fragment() {
                     val intent = Intent(requireContext(), LocationActivity::class.java)
                     startActivity(intent)
                     // Hide the dropdown icon after picking an address
-                    binding.dropdown.visibility = View.GONE
                     true
                 }
                 // Add more saved address clicks as needed
@@ -626,18 +624,11 @@ class HomeFragment : Fragment() {
 
             override fun onItemSelected(position: Int) {
                 // Check if the selected image is "ban"
-                if (position == 3) { // Assuming "ban" image is at position 0
-                    // Launch the DiscountActivity
-                    val intent = Intent(requireContext(), Discount::class.java)
-                    startActivity(intent)
-                } else {
-                    val itemMessage = "Selected Image $position"
-                    Toast.makeText(requireContext(), itemMessage, Toast.LENGTH_SHORT).show()
-                }
+
             }
+
+
         })
-
-
     }
     companion object {
         private const val PERMISSIONS_REQUEST_LOCATION = 100

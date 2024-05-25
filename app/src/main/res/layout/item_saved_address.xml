@@ -26,7 +26,7 @@
         app:layout_constraintTop_toTopOf="parent"
         android:gravity="center_horizontal"
         android:drawableStart="@drawable/baseline_location_pin_24"
-        android:layout_marginStart="20dp"
+        android:layout_marginStart="15dp"
         android:textColor="@color/black"
         android:hint="Address"/>
     </androidx.cardview.widget.CardView>

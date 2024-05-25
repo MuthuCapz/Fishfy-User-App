@@ -44,11 +44,11 @@ class LocationActivity : AppCompatActivity() {
     private lateinit var adapter: AddressAdapter
     private val adminDestinations = listOf(
         Pair(8.198971, 77.303314),   // Thoothukudi
-        Pair(8.6701179, 78.093077),   // Tirucendhur
-        Pair(37.386051,-122.083855) ,
+        Pair(13.0300, 80.2421),   // Tirucendhur
+        Pair(13.0640, 77.6504) ,
         Pair(8.8076189, 78.1283788),   // Thoothukudi
-        Pair(8.6701179, 78.093077),   // Tirucendhur
-        Pair(37.386051,-122.083855)// Chennai
+        Pair(8.3223816, 77.1729525),   // Tirucendhur
+        Pair(8.3451335,77.18204)// Chennai
     )
 
 

@@ -188,20 +188,43 @@
 
 
             <TextView
+                android:layout_width="10dp"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/lato_regular"
+                android:text=""
+                android:id="@+id/payoutTotalAmount"
+                android:layout_marginEnd="10dp"
+                android:paddingEnd="40dp"
+                android:visibility="invisible"
+                android:background="@android:color/transparent"
+                android:textAlignment="textEnd"
+                android:textColor="@color/navy"
+                android:textSize="18sp" />
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:fontFamily="@font/lato_regular"
                 android:text=""
-                android:id="@+id/payoutTotalAmount"
-                android:layout_marginEnd="10dp"
+                android:id="@+id/amountTotal"
+                android:layout_marginEnd="40dp"
                 android:paddingEnd="40dp"
                 android:background="@android:color/transparent"
                 android:textAlignment="textEnd"
                 android:textColor="@color/navy"
                 android:textSize="18sp" />
         </LinearLayout>
-
+        <TextView
+            android:id="@+id/viewamount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/navy"
+            android:layout_marginEnd="5dp"
+            android:textStyle="bold"
+            android:layout_marginTop="15dp"
+            android:textSize="17dp"
+            android:text="View Payment Details"
+            android:layout_marginStart="200dp"/>
         <LinearLayout
             android:id="@+id/pathContainer"
             android:layout_width="match_parent"

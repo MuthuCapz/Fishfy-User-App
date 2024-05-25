@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.PopupMenu
 import android.widget.Toast
+import com.capztone.seafishfy.R
 import com.capztone.seafishfy.databinding.ActivityPayoutBinding
 import com.capztone.seafishfy.ui.activities.fragments.CongratsBottomSheetFragment
 import com.capztone.seafishfy.ui.activities.models.OrderDetails
@@ -21,12 +22,12 @@ import android.net.Uri
 import android.util.Log
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import com.capztone.seafishfy.ui.activities.fragments.PayoutBottomSheetFragment
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
-import com.capztone.seafishfy.R
 import java.util.Locale
 
 class PayoutActivity : AppCompatActivity() {
@@ -37,6 +38,8 @@ class PayoutActivity : AppCompatActivity() {
     private lateinit var phoneNumber: String
     private lateinit var totalAmount: String
     private lateinit var paymentMethod: String
+
+
     private lateinit var auth: FirebaseAuth
     private lateinit var databaseReference: DatabaseReference
     private lateinit var userId: String
@@ -57,8 +60,14 @@ class PayoutActivity : AppCompatActivity() {
     private val PHONEPE_REQUEST_CODE = 101
     private val PAYTM_REQUEST_CODE = 102
     private val GOOGLE_PAY_REQUEST_CODE = 103
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val bottomSheetFragment = PayoutBottomSheetFragment()
+        val bundle = Bundle()
+        bundle.putInt("totalAmount", adjustedTotalAmount)
+        bottomSheetFragment.arguments = bundle
+        bottomSheetFragment.show(supportFragmentManager, "test")
 
         binding = ActivityPayoutBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -83,7 +92,8 @@ class PayoutActivity : AppCompatActivity() {
         binding.payoutTotalAmount.isEnabled = false
         var adjustedTotalAmount = totalAmount.dropLast(1).toInt()
 
-        adjustedTotalAmount =adjustedTotalAmount
+        retrieveFinalTotalFromFirebase()
+
         binding.payoutTotalAmount.text = "$totalAmount"
 
         binding.placeMyOrderButton.setOnClickListener {
@@ -98,15 +108,44 @@ class PayoutActivity : AppCompatActivity() {
                 Toast.makeText(this, "Please enter a valid phone number", Toast.LENGTH_SHORT).show()
             } else {
                 placeTheOrder()
+
             }
 
-//            val bottomSheetDialog = CongratsBottomSheetFragment()
-//            bottomSheetDialog.show(supportFragmentManager,"Test")
+//
         }
         binding.payoutBackButton.setOnClickListener {
             finish()
         }
+        binding.viewamount.setOnClickListener {
+            val bottomSheetFragment = PayoutBottomSheetFragment()
+            val bundle = Bundle()
+            bundle.putInt("totalAmount", adjustedTotalAmount)
+            bottomSheetFragment.arguments = bundle
+            bottomSheetFragment.show(supportFragmentManager, "test")
+        }
+    }
+    private fun retrieveFinalTotalFromFirebase() {
+        val user = auth.currentUser
+        if (user != null) {
+            val userId = user.uid
+            val userReference = databaseReference.child("Total Amount").child(userId)
 
+            userReference.child("finalTotal").addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val finalTotal = snapshot.getValue(Double::class.java)
+                    finalTotal?.let {
+                        // Round the finalTotal to the nearest integer
+                        val finalTotal = it.toInt()
+                        // Set the rounded total to the TextView
+                        binding.amountTotal.text = "$finalTotal ₹"
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e(TAG, "Error retrieving final total from Firebase", error.toException())
+                }
+            })
+        }
     }
 
 
@@ -160,11 +199,7 @@ class PayoutActivity : AppCompatActivity() {
                 location?.let {
                     // Reverse geocode the coordinates to get the address
                     val geocoder = Geocoder(this, Locale.getDefault())
-                    val destinationLocation = getLocationFromAddress("Spic Nagar")
-                    val distance = destinationLocation?.let { it1 -> calculateDistance(it, it1) }
-                    val adjustedTotalAmount = totalAmount.dropLast(1).toInt()
 
-                    binding.payoutTotalAmount.text = adjustedTotalAmount.toString()
 
                     try {
                         val addresses: List<Address>? =
@@ -185,30 +220,9 @@ class PayoutActivity : AppCompatActivity() {
             }
     }
 
-    private fun getLocationFromAddress(address: String): Location? {
-        // Implement code to get location from address
-        // You can use Geocoder to convert the address to latitude and longitude
-        val geocoder = Geocoder(this, Locale.getDefault())
-        try {
-            val addresses = geocoder.getFromLocationName(address, 1)
-            if (addresses != null) {
-                if (addresses.isNotEmpty()) {
-                    val destinationLocation = Location("Spic Nagar")
-                    destinationLocation.latitude = addresses!![0].latitude
-                    destinationLocation.longitude = addresses!![0].longitude
-                    return destinationLocation
-                }
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-        return null
-    }
 
-    private fun calculateDistance(location1: Location, location2: Location): Float {
-        // Calculate distance between two locations using Location.distanceTo() method
-        return location1.distanceTo(location2) / 1000 // Convert to kilometers
-    }
+
+
 
 
 
@@ -281,6 +295,8 @@ class PayoutActivity : AppCompatActivity() {
         builder.setTitle("Choose Payment Method")
         builder.setItems(paymentMethods) { dialog, which ->
             val selectedMethod = paymentMethods[which]
+
+
             when (selectedMethod) {
                 "Google Pay" -> {
                     // Handle Google Pay payment
@@ -307,113 +323,110 @@ class PayoutActivity : AppCompatActivity() {
     private fun redirectToPhonepe() {
         paymentMethod = "Phonepe"
 
+        val adjustedTotalAmount = binding.amountTotal.text.toString().replace("₹", "").trim().toInt()
 
-                        val adjustedTotalAmount =
-                            totalAmount.dropLast(1).toInt()
 
-                        binding.payoutTotalAmount.text = adjustedTotalAmount.toString()
-                        val uri = Uri.Builder()
-                            .scheme("upi")
-                            .authority("pay")
-                            .appendQueryParameter("pa", "9845779437.ibz@icici") // PhonePe VPA
-                            .appendQueryParameter("pn", "Sheeba") // Recipient Name
-                            .appendQueryParameter("tn", "Fish") // Transaction Note
-                            .appendQueryParameter("am", adjustedTotalAmount.toString()) // Adjusted total amount
-                            .appendQueryParameter("cu", "INR") // Currency
-                            .build()
-                        val intent = Intent(Intent.ACTION_VIEW)
-                        intent.setData(uri)
-                        intent.setPackage(PHONEPE_PACKAGE_NAME)
-                        startActivityForResult(intent, PHONEPE_REQUEST_CODE)
-                        }
+        binding.payoutTotalAmount.text = adjustedTotalAmount.toString()
+        val uri = Uri.Builder()
+            .scheme("upi")
+            .authority("pay")
+            .appendQueryParameter("pa", "9845779437.ibz@icici") // PhonePe VPA
+            .appendQueryParameter("pn", "Sheeba") // Recipient Name
+            .appendQueryParameter("tn", "Fish") // Transaction Note
+            .appendQueryParameter("am", adjustedTotalAmount.toString()) // Adjusted total amount
+            .appendQueryParameter("cu", "INR") // Currency
+            .build()
+        val intent = Intent(Intent.ACTION_VIEW)
+        intent.setData(uri)
+        intent.setPackage(PHONEPE_PACKAGE_NAME)
+        startActivityForResult(intent, PHONEPE_REQUEST_CODE)
+    }
 
 
     private fun redirectToPaytm() {
         paymentMethod = "Paytm"
 
-                    val adjustedTotalAmount = totalAmount.dropLast(1).toInt()
+        val adjustedTotalAmount = binding.amountTotal.text.toString().replace("₹", "").trim().toInt()
 
-                    binding.payoutTotalAmount.text = adjustedTotalAmount.toString()
-                    val uri = Uri.Builder()
-                        .scheme("upi")
-                        .authority("pay")
-                        .appendQueryParameter("pa", "9845779437.ibz@icici")
-                        .appendQueryParameter("pn", "Fishfy")
-                        .appendQueryParameter("mc", "BCR2DN4T7XIZHYD3")
-                        .appendQueryParameter("tn", "Fish")
-                        .appendQueryParameter(
-                            "am",
-                            adjustedTotalAmount.toString()
-                        ) // Adjusted total amount
-                        .appendQueryParameter("cu", "INR")
-                        .build()
-                    val intent = Intent(Intent.ACTION_VIEW)
-                    intent.setData(uri)
-                    intent.setPackage(PAYTM_PACKAGE_NAME)
-                    startActivityForResult(intent, PAYTM_REQUEST_CODE)
-                }
+        binding.payoutTotalAmount.text = adjustedTotalAmount.toString()
+        val uri = Uri.Builder()
+            .scheme("upi")
+            .authority("pay")
+            .appendQueryParameter("pa", "9845779437.ibz@icici")
+            .appendQueryParameter("pn", "Fishfy")
+            .appendQueryParameter("mc", "BCR2DN4T7XIZHYD3")
+            .appendQueryParameter("tn", "Fish")
+            .appendQueryParameter(
+                "am",
+                adjustedTotalAmount.toString()
+            ) // Adjusted total amount
+            .appendQueryParameter("cu", "INR")
+            .build()
+        val intent = Intent(Intent.ACTION_VIEW)
+        intent.setData(uri)
+        intent.setPackage(PAYTM_PACKAGE_NAME)
+        startActivityForResult(intent, PAYTM_REQUEST_CODE)
+    }
 
 
 
     private fun redirectToGooglePay() {
         paymentMethod = "Google Pay"
 
-                    val adjustedTotalAmount = totalAmount.dropLast(1).toInt()
+        val adjustedTotalAmount = binding.amountTotal.text.toString().replace("₹", "").trim().toInt()
 
-                    binding.payoutTotalAmount.text = adjustedTotalAmount.toString()
-                    val uri = Uri.Builder()
-                        .scheme("upi")
-                        .authority("pay")
-                        .appendQueryParameter("pa", "9845779437.ibz@icici")
-                        .appendQueryParameter("pn", "Fishfy")
-                        .appendQueryParameter("mc", "BCR2DN4T7XIZHYD3")
-                        .appendQueryParameter("tn", "Fish")
-                        .appendQueryParameter(
-                            "am",
-                            adjustedTotalAmount.toString()
-                        ) // Adjusted total amount
-                        .appendQueryParameter("cu", "INR")
-                        .build()
-                    val intent = Intent(Intent.ACTION_VIEW)
-                    intent.setData(uri)
-                    intent.setPackage(GOOGLE_TEZ_PACKAGE_NAME)
-                    startActivityForResult(intent, GOOGLE_PAY_REQUEST_CODE)
-                }
+        binding.payoutTotalAmount.text = adjustedTotalAmount.toString()
+        val uri = Uri.Builder()
+            .scheme("upi")
+            .authority("pay")
+            .appendQueryParameter("pa", "9845779437.ibz@icici")
+            .appendQueryParameter("pn", "Fishfy")
+            .appendQueryParameter("mc", "BCR2DN4T7XIZHYD3")
+            .appendQueryParameter("tn", "Fish")
+            .appendQueryParameter(
+                "am",
+                adjustedTotalAmount.toString()
+            ) // Adjusted total amount
+            .appendQueryParameter("cu", "INR")
+            .build()
+        val intent = Intent(Intent.ACTION_VIEW)
+        intent.setData(uri)
+        intent.setPackage(GOOGLE_TEZ_PACKAGE_NAME)
+        startActivityForResult(intent, GOOGLE_PAY_REQUEST_CODE)
+    }
 
 
     public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
 
 
 
-                    val adjustedTotalAmount = totalAmount.dropLast(1).toInt()
+        val adjustedTotalAmount = binding.amountTotal.text.toString().replace("₹", "").trim().toInt()
 
-                    super.onActivityResult(requestCode, resultCode, data)
-                    if (data != null) {
-                        status = data.getStringExtra("Status")!!.lowercase(Locale.getDefault())
-                    }
-                    if (requestCode == GOOGLE_PAY_REQUEST_CODE || requestCode == PAYTM_REQUEST_CODE || requestCode == PHONEPE_REQUEST_CODE) {
-                        if (resultCode == RESULT_OK && status == "success") {
-                            Toast.makeText(
-                                this@PayoutActivity,
-                                "Transaction Successful",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            navigateToCongratsFragment(adjustedTotalAmount)
-                        } else {
-                            Toast.makeText(
-                                this@PayoutActivity,
-                                "Transaction Failed",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    }
-                }
-
-
+        super.onActivityResult(requestCode, resultCode, data)
+        if (data != null) {
+            status = data.getStringExtra("Status")!!.lowercase(Locale.getDefault())
+        }
+        if (requestCode == GOOGLE_PAY_REQUEST_CODE || requestCode == PAYTM_REQUEST_CODE || requestCode == PHONEPE_REQUEST_CODE) {
+            if (resultCode == RESULT_OK && status == "success") {
+                Toast.makeText(
+                    this@PayoutActivity,
+                    "Transaction Successful",
+                    Toast.LENGTH_SHORT
+                ).show()
+                navigateToCongratsFragment(adjustedTotalAmount)
+            } else {
+                Toast.makeText(
+                    this@PayoutActivity,
+                    "Transaction Failed",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
 
     private fun navigateToCongratsFragment(adjustedTotalAmount: Int) {
         userId = auth.currentUser?.uid ?: ""
-        val timeFormat = SimpleDateFormat("HH:mm a", Locale.getDefault())
+        val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
         val currentTimeMillis = System.currentTimeMillis()
         val formattedTime = timeFormat.format(currentTimeMillis)
         val time = formattedTime
@@ -483,18 +496,16 @@ class PayoutActivity : AppCompatActivity() {
 
     private fun calculateTotalAmount(): Int {
         var totalAmount = 0
-        for (i in 0 until foodItemPrice.size){
-            var price = foodItemPrice[i]
-            val lastChar = price.last()
-            val priceIntValue = if (lastChar == '₹') {
+        for (i in 0 until foodItemPrice.size) {
+            val price = foodItemPrice[i]
+            val priceIntValue = if (price.last() == '₹') {
                 price.dropLast(1).toInt()
-            }else {
+            } else {
                 price.toInt()
             }
-            var quantity = foodItemQuantities[i]
-            totalAmount += priceIntValue *quantity
+            val quantity = foodItemQuantities[i]
+            totalAmount += priceIntValue * quantity
         }
-
         return totalAmount
     }
     private fun setUserData() {
@@ -559,6 +570,7 @@ class PayoutActivity : AppCompatActivity() {
         return formattedPhoneNumber.matches("^\\+91[6-9][0-9]{9}$".toRegex())
     }
 
+
     companion object {
         private const val TAG = "PayoutActivity"
         private const val REQUEST_LOCATION_PERMISSION = 100
@@ -567,7 +579,7 @@ class PayoutActivity : AppCompatActivity() {
 
         const val PAYTM_PACKAGE_NAME = "net.one97.paytm"
         private const val GOOGLE_TEZ_PACKAGE_NAME = "com.google.android.apps.nbu.paisa.user"
-         const val  PHONEPE_PACKAGE_NAME = "com.phonepe.app"
+        const val  PHONEPE_PACKAGE_NAME = "com.phonepe.app"
         // You can choose any integer value here
 
 
