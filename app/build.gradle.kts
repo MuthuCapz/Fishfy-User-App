@@ -2,18 +2,19 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
+    id("kotlin-kapt")
 }
 
 android {
-    namespace = "com.capztone.seafishfy"
+    namespace = "com.capztone.fishfy"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.capztone.seafishfy"
+        applicationId = "com.capztone.fishfy"
         minSdk = 24
         targetSdk = 34
-        versionCode = 11
-        versionName = "1.1"
+        versionCode = 15
+        versionName = "1.1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -50,8 +51,12 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("com.github.denzcoskun:ImageSlideshow:0.1.2")
     implementation("com.airbnb.android:lottie:4.2.0")
-    // glide for Image
+    implementation("androidx.room:room-runtime:2.4.3")
+    implementation("com.google.firebase:firebase-crashlytics-buildtools:3.0.2")
+    kapt("androidx.room:room-compiler:2.4.3")
+        implementation("androidx.room:room-ktx:2.4.3")
 
+    implementation ("com.google.code.gson:gson:2.10.1")
 //viewpager2
     implementation ("androidx.viewpager2:viewpager2:1.0.0")
     implementation ("com.hbb20:ccp:2.6.0")
@@ -74,7 +79,7 @@ dependencies {
     implementation("com.google.android.gms:play-services-maps:18.2.0")
     implementation("com.google.maps.android:android-maps-utils:3.8.2")
     implementation ("com.google.maps.android:android-maps-utils:3.8.2")
-
+    implementation ("com.github.Marvel999:Android-Loading-Animation:1.0.0")
     implementation("com.google.firebase:firebase-storage-ktx:21.0.0")
     implementation("androidx.activity:activity:1.8.0")
     testImplementation("junit:junit:4.13.2")
@@ -84,3 +89,5 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 }
+
+
