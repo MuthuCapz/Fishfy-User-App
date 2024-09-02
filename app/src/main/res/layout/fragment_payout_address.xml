@@ -13,6 +13,7 @@
         android:layout_height="match_parent"
         android:background="@drawable/bg"
         android:orientation="vertical"
+        android:paddingBottom="30dp"
         tools:context=".ui.activities.fragments.PayoutAddressFragment"
         tools:ignore="MissingDefaultResource">
 
@@ -59,31 +60,7 @@
             app:layout_constraintTop_toBottomOf="@id/saved"
             />
 
-
-        <TextView
-            android:id="@+id/new_address"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="210dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginBottom="25dp"
-            android:elevation="5dp"
-            android:drawablePadding="5dp"
-            android:fontFamily="@font/nunito"
-            android:text="Add Address"
-            android:drawableStart="@drawable/baseline_add_circle_outline_24"
-            android:textFontWeight="500"
-            android:lineHeight="20px"
-            android:textAllCaps="false"
-            android:textColor="@color/navy"
-            android:textSize="16sp"
-            android:drawableTint="@color/navy"
-            app:layout_constraintTop_toBottomOf="@id/addressrecycler"
-            android:layout_marginTop="10dp"
-android:gravity="center"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
+      
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

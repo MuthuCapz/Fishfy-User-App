@@ -2,6 +2,7 @@ package com.capztone.fishfy.ui.activities.adapters
 
 import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
@@ -21,6 +22,7 @@ import com.google.firebase.database.*
 import android.text.InputFilter
 import android.text.TextWatcher
 import com.capztone.fishfy.databinding.DialogDeleteConfirmationBinding
+import com.capztone.fishfy.ui.activities.MapsActivity
 import com.capztone.fishfy.ui.activities.Utils.AddressStorage
 
 class AddressAdapter(private val context: Context, private val onItemClick: (String) -> Unit) : RecyclerView.Adapter<AddressAdapter.AddressViewHolder>() {
@@ -198,7 +200,9 @@ checked()
 
             binding.Edit.setOnClickListener {
                 if (binding.selectaddress.isChecked) {
-                    showEditDialog(address.addressType, address.address)
+                    // Navigate to MapsActivity
+                    val intent = Intent(binding.root.context, MapsActivity::class.java)
+                    binding.root.context.startActivity(intent)
                 } else {
                     Toast.makeText(
                         binding.root.context,
@@ -207,6 +211,7 @@ checked()
                     ).show()
                 }
             }
+
 
             binding.Delete.setOnClickListener {
                 if (binding.selectaddress.isChecked) {

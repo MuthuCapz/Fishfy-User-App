@@ -104,7 +104,9 @@
         android:label="fragment_payaddress"
         tools:layout="@layout/fragment_payout_address" />
 
-
+    <action
+        android:id="@+id/action_payoutAddressFragment_to_addressFragment"
+        app:destination="@id/addressFragment" />
     <action
         android:id="@+id/action_addressfragment_to_profileManualAddress"
         app:destination="@id/addressFragment" />

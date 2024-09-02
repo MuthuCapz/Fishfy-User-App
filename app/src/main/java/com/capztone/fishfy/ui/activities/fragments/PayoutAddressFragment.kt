@@ -8,10 +8,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import android.widget.Toast
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.capztone.fishfy.R
 import com.capztone.fishfy.databinding.FragmentPayoutAddressBinding
 import com.capztone.fishfy.ui.activities.ProfileManualAddress
 import com.capztone.fishfy.ui.activities.adapters.PayoutAddressAdapter
@@ -75,13 +77,6 @@ class  PayoutAddressFragment : BottomSheetDialogFragment(),PayoutAddressAdapter.
             adapter = addressAdapter
         }
 
-        binding.newAddress.setOnClickListener {
-            val intent = Intent(requireContext(), ProfileManualAddress::class.java)
-            startActivity(intent)
-        }
-
-        // Handle click on Address_comfirm button
-        // Handle click on Address_confirm button
 
     }
 

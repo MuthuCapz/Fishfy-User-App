@@ -269,7 +269,7 @@ class PayoutAddressAdapter(
                                 binding.selectaddress.isChecked = false
                                 ToastHelper.showCustomToast(
                                     context,
-                                    "Products are from different shops. Update address in profile")
+                                    "Does not deliver to your location. Change address in profile")
 
                             }
                         }
