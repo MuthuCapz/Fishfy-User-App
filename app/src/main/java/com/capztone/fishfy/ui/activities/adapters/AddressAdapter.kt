@@ -271,6 +271,13 @@ checked()
                 if (cartItemsRef != null) {
                     cartItemsRef.removeValue()
                 }
+                // Remove all firebaseKeys under Favourite -> userid
+                val favouriteRef = userId?.let { it1 ->
+                    FirebaseDatabase.getInstance().getReference("Favourite").child(it1)
+                }
+                if (favouriteRef != null) {
+                    favouriteRef.removeValue() // This will delete all firebaseKey under Favourite -> userid
+                }
                 if (adapterPosition != RecyclerView.NO_POSITION) {
                     selectedPosition = adapterPosition
                     saveSelectedPosition(selectedPosition) // Save the selected position

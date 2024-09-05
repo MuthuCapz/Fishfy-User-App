@@ -114,6 +114,8 @@
                 android:textColor="@color/black"
                 android:textColorHint="@color/ThickAsh"
                 android:textSize="13sp"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
                 android:paddingBottom="20dp"
                 android:backgroundTint="@color/ash"
                 android:lineHeight="1dp"/>
@@ -141,6 +143,8 @@
                 android:hint="Mobile number"
                 android:inputType="number"
                 android:maxLength="10"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
                 android:fontFamily="@font/nunito"
                 android:textColor="@color/black"
                 android:textColorHint="@color/ThickAsh"

@@ -235,7 +235,7 @@ class DeleteAccountActivity : AppCompatActivity() {
                         saveDeleteReason(userId)
                         scheduleDeletion(userId)
                         Toast.makeText(this, "Your account deletion request has been submitted", Toast.LENGTH_SHORT).show()
-                        sendSMSAndNavigate()
+                        navigateToAppropriateActivity()
                     } else {
                         Toast.makeText(this, "Request failed", Toast.LENGTH_SHORT).show()
                         sendSMSAndNavigate()
