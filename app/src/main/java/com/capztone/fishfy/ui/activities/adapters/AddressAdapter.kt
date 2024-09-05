@@ -21,6 +21,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import android.text.InputFilter
 import android.text.TextWatcher
+import android.view.KeyEvent
 import com.capztone.fishfy.databinding.DialogDeleteConfirmationBinding
 import com.capztone.fishfy.ui.activities.MapsActivity
 import com.capztone.fishfy.ui.activities.Utils.AddressStorage
@@ -240,6 +241,7 @@ checked()
             // Create the AlertDialog
             val dialogBuilder = AlertDialog.Builder(context)
                 .setView(dialogView)
+                .setCancelable(false) // Prevent closing the dialog with the back button
 
             // Create the dialog
             val dialog = dialogBuilder.create()
@@ -248,15 +250,18 @@ checked()
             // Find the buttons in the dialog layout
             val btnDialogNo = dialogView.findViewById<AppCompatButton>(R.id.btnDialogNo)
             val btnDialogYes = dialogView.findViewById<AppCompatButton>(R.id.btnDialogYes)
-
+// Flag to track if a selection is made
+            var isSelectionMade = false
             // Set up button click listeners
             btnDialogNo.setOnClickListener {
+                isSelectionMade = true
                 dialog.dismiss()
                 binding.selectaddress.isChecked= false// Close the dialog
 
             }
 
             btnDialogYes.setOnClickListener {
+                isSelectionMade = true
                 val cartItemsRef =
                     userId?.let { it1 ->
                         FirebaseDatabase.getInstance().getReference("user").child(
@@ -281,6 +286,15 @@ checked()
                     dialog.dismiss()
                 }
             }
+            dialog.setOnKeyListener { _, keyCode, _ ->
+                if (keyCode == KeyEvent.KEYCODE_BACK && !isSelectionMade) {
+                    Toast.makeText(context, "Please select Yes or No", Toast.LENGTH_SHORT).show()
+                    true // Intercept back button
+                } else {
+                    false // Allow normal back button behavior
+                }
+            }
+
 
             // Show the dialog
             dialog.show()
