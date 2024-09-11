@@ -106,7 +106,7 @@ class VerifyNumberActivity : AppCompatActivity() {
                     is FirebaseTooManyRequestsException -> {
                         Toast.makeText(
                             this@VerifyNumberActivity,
-                            "The SMS quota for the project has been exceeded",
+                            "Please try again later or Continue with Google login",
                             Toast.LENGTH_SHORT
                         ).show()
                         returnToEnterNumberActivity()
