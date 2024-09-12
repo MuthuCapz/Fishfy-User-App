@@ -288,8 +288,8 @@ class ManualLocation : AppCompatActivity() {
                 false
             }
 
-            name.length !in 3..10 -> {
-                binding.etName.error = "Name must be between 3 and 10 characters"
+            name.length !in 3..20 -> {
+                binding.etName.error = "Name must be between 3 and 20 characters"
                 setMandatoryFieldIndicatorVisible(true, "Name *", binding.name)
                 false
             }
