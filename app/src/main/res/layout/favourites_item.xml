@@ -48,7 +48,7 @@
                     android:id="@+id/heart"
                     android:layout_width="30dp"
                     android:layout_height="30dp"
-                    android:background="@drawable/f"
+                    android:background="@drawable/ffff"
                     android:layout_marginTop="5dp"
                     android:layout_marginStart="50dp"/>
 

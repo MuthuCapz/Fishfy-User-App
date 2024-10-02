@@ -355,6 +355,8 @@ class CurrentLocationBottomSheet : DialogFragment() {
         val userId = auth.currentUser?.uid ?: return
         val addressType = selectedAddressType ?: return // Ensure addressType is not null
         val uidid = "spXRl1jY4yTlhDKZJzLicp8E9kc2"
+        // Join the list with commas to form the full address string
+
 
         // Retrieve the "User Distance" value from Firebase
         val adminDistanceRef = database.child("Admins").child(uidid).child("User Distance")
@@ -420,6 +422,13 @@ class CurrentLocationBottomSheet : DialogFragment() {
                         locationData["longitude"] = longitude
                         locationData["locality"] = locality
 
+                        // Store address in the "PayoutAddress -> userid -> address" path
+                        val payoutAddressRef = database.child("PayoutAddress").child(userId)
+                        payoutAddressRef.setValue(locationData).addOnSuccessListener {
+                            Toast.makeText(requireContext(), "Address stored successfully in PayoutAddress", Toast.LENGTH_SHORT).show()
+                        }.addOnFailureListener {
+                            Toast.makeText(requireContext(), "Failed to store address in PayoutAddress", Toast.LENGTH_SHORT).show()
+                        }
 
                         if (nearbyShops.isNotEmpty()) {
                             locationData["shopname"] = shopsWithinThreshold

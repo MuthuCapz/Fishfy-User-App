@@ -18,6 +18,7 @@ import java.io.IOException
 import android.location.Address
 import android.location.Geocoder
 import android.os.Build
+import android.util.Log
 import android.widget.TextView
 import androidx.appcompat.widget.AppCompatButton
 import com.google.firebase.database.DataSnapshot
@@ -495,7 +496,24 @@ class ManualLocation : AppCompatActivity() {
 
                         // Join the nearby shop names into a single string
                         val shopsWithinThreshold = nearbyShops.joinToString(", ")
-
+                        // Store the address in PayoutAddress
+                        database.child("PayoutAddress").child(userId).child("address")
+                            .setValue(fullAddressString)
+                            .addOnCompleteListener { addressSaveTask ->
+                                if (addressSaveTask.isSuccessful) {
+                                    Toast.makeText(
+                                        this@ManualLocation,
+                                        "Address saved successfully in PayoutAddress",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                } else {
+                                    Toast.makeText(
+                                        this@ManualLocation,
+                                        "Failed to save address in PayoutAddress: ${addressSaveTask.exception?.message}",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
                         // Store the address, latitude, longitude, and nearby shops in Firebase
                         val locationData = hashMapOf(
                             "address" to fullAddressString,
@@ -504,7 +522,6 @@ class ManualLocation : AppCompatActivity() {
                             "locality"  to locality,
                             "addressType" to selectedAddressType
                         )
-
 
                         if (nearbyShops.isNotEmpty()) {
                             locationData["shopname"] = shopsWithinThreshold

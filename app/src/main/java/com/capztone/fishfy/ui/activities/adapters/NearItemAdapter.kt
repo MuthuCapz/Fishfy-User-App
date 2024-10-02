@@ -557,7 +557,7 @@ class NearItemAdapter(
 
             binding.shopname.text = menuItem.path ?: ""
             binding.Qty.text=menuItem.productQuantity
-            binding.fav.setImageResource(if (menuItem.favorite) R.drawable.f else R.drawable.ff)
+            binding.fav.setImageResource(if (menuItem.favorite) R.drawable.ffff else R.drawable.fff)
 
 
             Glide.with(binding.root.context)

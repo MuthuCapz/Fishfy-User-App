@@ -369,6 +369,7 @@ class PayoutActivity : AppCompatActivity() {
                     "Transaction Failed",
                     Toast.LENGTH_SHORT
                 ).show()
+
             }
         }
     }
