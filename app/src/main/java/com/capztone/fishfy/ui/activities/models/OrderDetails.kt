@@ -40,12 +40,12 @@ class OrderDetails() : Parcelable {
 
     constructor(
         userId: String?,
-         foodItemName: MutableList<String>?,
+        foodItemName: MutableList<String>?,
         foodItemPrice: MutableList<String>?,
         foodItemImage: MutableList<String>?,
         foodItemQuantities: MutableList<Int>?,
         address: String?,
-         time: String?,
+        time: String?,
         paymentMethod: String?,
         adjustedTotalAmount: Int,
         itemPushKey: String?,

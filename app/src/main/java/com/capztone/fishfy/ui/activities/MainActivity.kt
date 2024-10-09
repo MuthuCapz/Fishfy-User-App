@@ -212,22 +212,20 @@ class MainActivity : AppCompatActivity() {
 
                 // Determine visibility based on cart items count
                 if (count > 0) {
-                    if (!isCartFragmentVisible()) {
-                        binding.showItemCardView.visibility = View.VISIBLE
-                        binding.addcart.visibility = View.VISIBLE
+
+                        if (!isCartFragmentVisible()) {
+                            binding.showItemCardView.visibility = View.VISIBLE
+                            binding.addcart.visibility = View.VISIBLE
 
 
-
-                    }
-
-                    else {
+                        } else {
+                            binding.showItemCardView.visibility = View.GONE
+                            binding.addcart.visibility = View.GONE
+                        }
+                    } else {
                         binding.showItemCardView.visibility = View.GONE
                         binding.addcart.visibility = View.GONE
                     }
-                } else {
-                    binding.showItemCardView.visibility = View.GONE
-                    binding.addcart.visibility = View.GONE
-                }
 
                 // Fetch shopName and update shopnameTextView
                 for (cartItemSnapshot in snapshot.children) {

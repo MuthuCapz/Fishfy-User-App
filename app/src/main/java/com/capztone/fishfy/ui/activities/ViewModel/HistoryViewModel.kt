@@ -9,7 +9,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.database.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.tasks.await
+
 import kotlinx.coroutines.withContext
 
 class HistoryViewModel : ViewModel() {
@@ -51,7 +51,7 @@ class HistoryViewModel : ViewModel() {
                     mapOf(
                         "cancellationMessage" to "Order Cancelled"
                     )
-                ).await()
+                )
                 true
             } catch (e: Exception) {
                 // Handle exception

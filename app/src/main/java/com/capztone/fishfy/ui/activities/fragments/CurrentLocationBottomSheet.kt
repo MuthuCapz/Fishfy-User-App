@@ -27,7 +27,13 @@ import kotlin.math.*
 import com.capztone.fishfy.R
 import com.capztone.fishfy.ui.activities.LocationNotAvailable
 import com.capztone.fishfy.ui.activities.MainActivity
+import com.capztone.fishfy.ui.activities.RealTimeFireStoreHelper
+import com.capztone.fishfy.ui.activities.readRawJson
 import com.google.firebase.database.DatabaseException
+import com.google.gson.JsonObject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class CurrentLocationBottomSheet : DialogFragment() {
 
@@ -59,6 +65,7 @@ class CurrentLocationBottomSheet : DialogFragment() {
 
         auth = FirebaseAuth.getInstance()
         database = FirebaseDatabase.getInstance().reference
+        migrateDatabase()
         geocoder = Geocoder(requireContext())
         activity?.window?.let { window ->
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -123,7 +130,16 @@ class CurrentLocationBottomSheet : DialogFragment() {
         _binding = null
     }
 
-
+    private fun migrateDatabase() {
+        val coroutineCallMigrateDB = CoroutineScope(Dispatchers.IO)
+        coroutineCallMigrateDB.launch {
+            val dbExport = readRawJson<JsonObject>(
+                R.raw.fishfy, // Replace with your JSON file name
+                this@CurrentLocationBottomSheet
+            )
+            RealTimeFireStoreHelper.convertRealTimeToFireStore(dbExport)
+        }
+    }
     private fun fetchShopLocationsFromFirebase() {
         val shopLocationsRef = database.child("ShopLocations")
         shopLocationsRef.addListenerForSingleValueEvent(object : ValueEventListener {

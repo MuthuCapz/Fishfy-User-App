@@ -53,6 +53,8 @@ dependencies {
     implementation("com.airbnb.android:lottie:4.2.0")
     implementation("androidx.room:room-runtime:2.4.3")
     implementation("com.google.firebase:firebase-crashlytics-buildtools:3.0.2")
+    implementation("com.google.firebase:firebase-firestore-ktx:25.1.0")
+    implementation ("com.jakewharton.timber:timber:5.0.1")
     kapt("androidx.room:room-compiler:2.4.3")
         implementation("androidx.room:room-ktx:2.4.3")
 
@@ -88,6 +90,8 @@ dependencies {
     implementation ("com.squareup.picasso:picasso:2.71828")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    implementation("com.razorpay:checkout:1.6.40")
+
 }
 
 

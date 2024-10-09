@@ -16,14 +16,13 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.capztone.fishfy.R
 import com.capztone.fishfy.databinding.FragmentCartBinding
-import com.capztone.fishfy.ui.activities.MainActivity
 import com.capztone.fishfy.ui.activities.PayoutActivity
 import com.capztone.fishfy.ui.activities.Utils.ToastHelper
 import com.capztone.fishfy.ui.activities.adapters.CartAdapter
@@ -39,10 +38,10 @@ import kotlin.math.roundToInt
 
 class CartFragment : Fragment(), CartProceedClickListener, CartAdapter.ProgressBarListener {
     private lateinit var binding: FragmentCartBinding
+    private lateinit var viewModel: CartViewModel
     private lateinit var cartAdapter: CartAdapter
     private lateinit var auth: FirebaseAuth
     private lateinit var database: FirebaseDatabase
-    private lateinit var cartViewModel: CartViewModel
     private val handler = Handler(Looper.getMainLooper()) // Initialize handler
 
 
@@ -52,30 +51,24 @@ class CartFragment : Fragment(), CartProceedClickListener, CartAdapter.ProgressB
     ): View? {
         binding = FragmentCartBinding.inflate(inflater, container, false)
 
-
         return binding.root
     }
 
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        val factory = CartViewModelFactory(requireContext().applicationContext)
-        cartViewModel = ViewModelProvider(this, factory).get(CartViewModel::class.java)
-
+        viewModel = ViewModelProvider(this).get(CartViewModel::class.java)
         auth = FirebaseAuth.getInstance()
         database = FirebaseDatabase.getInstance()
-        retrieveAndDisplayData()
         setupCartListener()
         retrieveCartItems()
-
         calculateDeliveryChargeAndProceed()
-        // Navigate to the HomeFragment when "Shop Now" button is clicked
+
         binding.shopNowButton.setOnClickListener {
             findNavController().navigate(R.id.action_cartFragment_to_homefragment)
         }
         // Show loading indicator
         binding.progress.visibility = View.VISIBLE
+        binding.textView6.visibility = View.GONE
         binding.summaryTotal.visibility = View.GONE
         binding.progress.setProgressVector(resources.getDrawable(R.drawable.spinload))
         binding.progress.setTextViewVisibility(true)
@@ -88,9 +81,11 @@ class CartFragment : Fragment(), CartProceedClickListener, CartAdapter.ProgressB
         Handler(Looper.getMainLooper()).postDelayed({
             binding.progress.visibility = View.GONE
             binding.summaryTotal.visibility = View.VISIBLE
+            binding.textView6.visibility=View.VISIBLE
             // Call your method to retrieve cart items or perform other operations
             retrieveCartItems()
         }, 1500)
+
 
         activity?.window?.let { window ->
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -103,7 +98,7 @@ class CartFragment : Fragment(), CartProceedClickListener, CartAdapter.ProgressB
         }
 
 
-        cartViewModel.retrieveCartItems { _, _, _, _, _, paths, _ ->
+        viewModel.retrieveCartItems { _, _, _, _, _, paths, _ ->
             val shopName = paths.firstOrNull() // Assuming the first item determines the shop name
             if (shopName != null) {
                 val hasDifferentShop = paths.any { it != shopName }
@@ -126,35 +121,21 @@ class CartFragment : Fragment(), CartProceedClickListener, CartAdapter.ProgressB
 
             }
         }
-    }
 
-    private fun retrieveAndDisplayData() {
-        val charges = getChargesFromSharedPreferences()
-        updateUI(
-            charges["baseFare"] as Int,
-            charges["distanceCharge"] as Int,
-            charges["serviceCharge"] as Int,
-            charges["totalBeforeGst"] as Int,
-            charges["grandTotal"] as Int,
-            charges["orderValue"] as Int,
-            charges["gstOnOrderValue"] as Double
-        )
+        binding.btnRetry.setOnClickListener {
+            if (isNetworkAvailable(requireContext())) {
+
+                findNavController().popBackStack() // Example action, modify as needed
+            } else {
+                // Show toast if network is still not available
+                Toast.makeText(requireContext(), "Please check your network", Toast.LENGTH_SHORT).show()
+            }
+        }
+
     }
 
     override fun onCartProceedClicked() {
-        // Check network connection
-        if (!isNetworkAvailable()) {
-            context?.let {
-                ToastHelper.showCustomToast(
-                    it,
-                    "Please check your internet connection"
-                )
-            }
-            return
-        }
-
-        // Proceed with cart operations
-        cartViewModel.retrieveCartItems { _, _, _, _, _, paths, _ ->
+        viewModel.retrieveCartItems { _, _, _, _, _, paths, _ ->
             val shopName = paths.firstOrNull() // Assuming the first item determines the shop name
             if (shopName != null) {
                 val hasDifferentShop = paths.any { it != shopName }
@@ -163,7 +144,7 @@ class CartFragment : Fragment(), CartProceedClickListener, CartAdapter.ProgressB
                     showDialog()
                 } else {
                     // Check if the cart is empty
-                    cartViewModel.isCartEmpty { isEmpty ->
+                    viewModel.isCartEmpty { isEmpty ->
                         if (isEmpty) {
                             context?.let {
                                 ToastHelper.showCustomToast(
@@ -172,7 +153,7 @@ class CartFragment : Fragment(), CartProceedClickListener, CartAdapter.ProgressB
                                 )
                             }
                         } else {
-                            cartViewModel.getOrderItemsDetail(cartAdapter) { foodName, foodPrice, foodDescription, foodIngredient, foodImage, foodQuantities ->
+                            viewModel.getOrderItemsDetail(cartAdapter) { foodName, foodPrice, foodDescription, foodIngredient, foodImage, foodQuantities ->
                                 orderNow(
                                     foodName,
                                     foodPrice,
@@ -189,21 +170,12 @@ class CartFragment : Fragment(), CartProceedClickListener, CartAdapter.ProgressB
         }
     }
 
-    private fun isNetworkAvailable(): Boolean {
-        val connectivityManager = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
-        if (connectivityManager != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                val network = connectivityManager.activeNetwork
-                val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
-                return networkCapabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
-            } else {
-                @Suppress("DEPRECATION")
-                val networkInfo = connectivityManager.activeNetworkInfo
-                return networkInfo != null && networkInfo.isConnected
-            }
-        }
-        return false
+    override fun onResume() {
+        super.onResume()
+        // Retrieve cart items when the fragment is resumed
+        retrieveCartItems()
     }
+
     private fun setupCartListener() {
         val currentUser = auth.currentUser
         currentUser?.let { user ->
@@ -285,34 +257,16 @@ class CartFragment : Fragment(), CartProceedClickListener, CartAdapter.ProgressB
                         this.latitude = latitude
                         this.longitude = longitude
                     }
-
-                    // Check if the fragment is attached before saving to SharedPreferences
-                    if (isAdded) {
-                        saveLocationToSharedPreferences(userLocation)
-                    }
-
                     callback(userLocation)
                 } else {
                     // Handle case when latitude or longitude is null
-                    val userLocation = getLocationFromSharedPreferences()
-                    userLocation?.let { callback(it) }
                 }
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
                 // Handle onCancelled
-                val userLocation = getLocationFromSharedPreferences()
-                userLocation?.let { callback(it) }
             }
         })
-    }
-    private fun saveLocationToSharedPreferences(location: Location) {
-        val context = getContext() ?: return // Safeguard against IllegalStateException
-        val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-        val editor = sharedPreferences.edit()
-        editor.putString("latitude", location.latitude.toString())
-        editor.putString("longitude", location.longitude.toString())
-        editor.apply()
     }
 
     private fun fetchOrderValue(userId: String, callback: (Int) -> Unit) {
@@ -340,19 +294,11 @@ class CartFragment : Fragment(), CartProceedClickListener, CartAdapter.ProgressB
 
                     orderValue += foodPrice * quantity
                 }
-
-                // Check if the fragment is attached before saving to SharedPreferences
-                if (isAdded) {
-                    saveOrderValueToSharedPreferences(orderValue)
-                }
-
                 callback(orderValue)
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
                 // Handle onCancelled
-                val orderValue = getOrderValueFromSharedPreferences()
-                callback(orderValue)
             }
         })
     }
@@ -372,42 +318,22 @@ class CartFragment : Fragment(), CartProceedClickListener, CartAdapter.ProgressB
                     calculateDeliveryCharge(userLocation, shopLocation, orderValue)
                 } else {
                     // Handle case when latitude or longitude is null
-                    val charges = getChargesFromSharedPreferences()
-                    updateUI(
-                        charges["baseFare"] as Int,
-                        charges["distanceCharge"] as Int,
-                        charges["serviceCharge"] as Int,
-                        charges["totalBeforeGst"] as Int,
-                        charges["grandTotal"] as Int,
-                        charges["orderValue"] as Int,
-                        charges["gstOnOrderValue"] as Double
-                    )
                 }
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
                 // Handle onCancelled
-                val charges = getChargesFromSharedPreferences()
-                updateUI(
-                    charges["baseFare"] as Int,
-                    charges["distanceCharge"] as Int,
-                    charges["serviceCharge"] as Int,
-                    charges["totalBeforeGst"] as Int,
-                    charges["grandTotal"] as Int,
-                    charges["orderValue"] as Int,
-                    charges["gstOnOrderValue"] as Double
-                )
             }
         })
     }
-
     private fun calculateDeliveryCharge(userLocation: Location, shopLocation: Location, orderValue: Int) {
         val adminUserId = "spXRl1jY4yTlhDKZJzLicp8E9kc2"
         val adminRef = FirebaseDatabase.getInstance().getReference("Admins").child(adminUserId)
 
         adminRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                if (!isAdded) return  // Check if fragment is still added to avoid IllegalStateException
+                // Example: Log all fetched values
+                Log.d(TAG, "Fetched admin data: $dataSnapshot")
 
                 // Retrieve administrative settings from Firebase
                 val baseFare = dataSnapshot.child("Base Fare").getValue(String::class.java)?.toInt() ?: 20
@@ -433,47 +359,37 @@ class CartFragment : Fragment(), CartProceedClickListener, CartAdapter.ProgressB
                 // Calculate grand total including order value and distance charge
                 val grandTotal = totalBeforeGst + orderValue + distanceCharge
 
-                saveTotalAmount(grandTotal)
-
-                // Save charges to SharedPreferences if the fragment is still attached
-                saveChargesToSharedPreferences(baseFare, distanceCharge, serviceCharge, totalBeforeGst, grandTotal, orderValue, gstOnOrderValue)
+                // Example: Log calculated values
+                Log.d(TAG, "Base Fare: $baseFare, Distance Charge: $distanceCharge, Service Charge: $serviceCharge")
+                Log.d(TAG, "Total Before GST: $totalBeforeGst, Grand Total: $grandTotal, Order Value: $orderValue")
 
                 // Update total amount in Firebase for the current user
+                saveTotalAmount(grandTotal)
 
                 // Update UI on the main thread
-                updateUI(baseFare, distanceCharge, serviceCharge, totalBeforeGst, grandTotal, orderValue, gstOnOrderValue)
+                updateUI(baseFare, distanceCharge, serviceCharge, totalBeforeGst, grandTotal, orderValue,gstOnOrderValue)
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
+                // Handle database read error
                 Log.e(TAG, "Failed to read value from Firebase: ${databaseError.message}")
-
-                // Retrieve charges from SharedPreferences if network is off
-                val charges = getChargesFromSharedPreferences()
-                updateUI(
-                    charges["baseFare"] as Int,
-                    charges["distanceCharge"] as Int,
-                    charges["serviceCharge"] as Int,
-                    charges["totalBeforeGst"] as Int,
-                    charges["grandTotal"] as Int,
-                    charges["orderValue"] as Int,
-                    charges["gstOnOrderValue"] as Double
-                )
             }
         })
     }
 
     private fun updateUI(
         baseFare: Int, distanceCharge: Int, serviceCharge: Int, totalBeforeGst: Int, grandTotal: Int, orderValue: Int,
-        gstOnOrderValue: Double
+        gstOnorderValue: Double
     ) {
         val currencySymbol = "₹"
 
         // Update UI elements with formatted currency values
+
         binding.distancechargesAmount.post {
             binding.distancechargesAmount.text = String.format("%s %.2f", currencySymbol, distanceCharge.toDouble())
         }
         binding.savings.post {
-            binding.savings.text = String.format("%s %.2f", currencySymbol, gstOnOrderValue.toDouble())
+            binding.savings.text = String.format("%s %.2f", currencySymbol, gstOnorderValue.toDouble())
         }
         binding.servicefeesAmount.post {
             binding.servicefeesAmount.text = String.format("%s %.2f", currencySymbol, serviceCharge.toDouble())
@@ -487,69 +403,7 @@ class CartFragment : Fragment(), CartProceedClickListener, CartAdapter.ProgressB
         binding.ordervaluechargesAmount.post {
             binding.ordervaluechargesAmount.text = String.format("%s %.2f", currencySymbol, orderValue.toDouble())
         }
-        saveTotalAmount(grandTotal)
     }
-
-
-
-    private fun getLocationFromSharedPreferences(): Location? {
-        val sharedPreferences = requireContext().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-        val latitude = sharedPreferences.getFloat("latitude", Float.MIN_VALUE)
-        val longitude = sharedPreferences.getFloat("longitude", Float.MIN_VALUE)
-
-        return if (latitude != Float.MIN_VALUE && longitude != Float.MIN_VALUE) {
-            Location("").apply {
-                this.latitude = latitude.toDouble()
-                this.longitude = longitude.toDouble()
-            }
-        } else {
-            null
-        }
-    }
-
-    private fun saveOrderValueToSharedPreferences(orderValue: Int) {
-        val sharedPreferences = requireContext().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-        val editor = sharedPreferences.edit()
-        editor.putInt("orderValue", orderValue)
-        editor.apply()
-    }
-
-    private fun getOrderValueFromSharedPreferences(): Int {
-        val sharedPreferences = requireContext().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-        return sharedPreferences.getInt("orderValue", 0)
-    }
-
-    private fun saveChargesToSharedPreferences(
-        baseFare: Int, distanceCharge: Int, serviceCharge: Int,
-        totalBeforeGst: Int, grandTotal: Int, orderValue: Int, gstOnOrderValue: Double
-    ) {
-        val context = getContext() ?: return // Safeguard against IllegalStateException
-        val sharedPreferences = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-        val editor = sharedPreferences.edit()
-        editor.putInt("baseFare", baseFare)
-        editor.putInt("distanceCharge", distanceCharge)
-        editor.putInt("serviceCharge", serviceCharge)
-        editor.putInt("totalBeforeGst", totalBeforeGst)
-        editor.putInt("grandTotal", grandTotal)
-        editor.putInt("orderValue", orderValue)
-        editor.putFloat("gstOnOrderValue", gstOnOrderValue.toFloat())
-        editor.apply()
-    }
-
-
-    private fun getChargesFromSharedPreferences(): Map<String, Any> {
-        val sharedPreferences = requireContext().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-        return mapOf(
-            "baseFare" to sharedPreferences.getInt("baseFare", 0),
-            "distanceCharge" to sharedPreferences.getInt("distanceCharge", 0),
-            "serviceCharge" to sharedPreferences.getInt("serviceCharge", 0),
-            "totalBeforeGst" to sharedPreferences.getInt("totalBeforeGst", 0),
-            "grandTotal" to sharedPreferences.getInt("grandTotal", 0),
-            "orderValue" to sharedPreferences.getInt("orderValue", 0),
-            "gstOnOrderValue" to sharedPreferences.getFloat("gstOnOrderValue", 0.0f).toDouble()
-        )
-    }
-
     private fun saveTotalAmount(grandTotal: Int) {
         val currentUser = auth.currentUser
         currentUser?.let { user ->
@@ -561,6 +415,7 @@ class CartFragment : Fragment(), CartProceedClickListener, CartAdapter.ProgressB
 
 
     }
+
     override fun showProgressBar() {
         activity?.runOnUiThread {
             binding.progress.visibility = View.VISIBLE
@@ -689,24 +544,78 @@ class CartFragment : Fragment(), CartProceedClickListener, CartAdapter.ProgressB
             startActivity(intent)
         }
     }
-
+    private fun isNetworkAvailable(context: Context): Boolean {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val network = connectivityManager.activeNetwork ?: return false
+            val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
+            return when {
+                activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+                activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+                else -> false
+            }
+        } else {
+            val networkInfo = connectivityManager.activeNetworkInfo
+            return networkInfo != null && networkInfo.isConnected
+        }
+    }
     private fun retrieveCartItems() {
-        cartViewModel.retrieveCartItems { foodNames, foodPrices, foodDescriptions, foodIngredients, foodImageUri, paths, quantity ->
+
+        val context = context ?: return  // Safely access context or return if null
+
+        // First check network availability before proceeding to handle cart items
+        if (!isNetworkAvailable(context)) {
+            // No internet connection, show the network message regardless of cart items
+            binding.cartContentLayout.visibility = View.GONE
+            binding.network.visibility = View.VISIBLE
+            binding.emptyCartMessage.visibility = View.GONE
+            binding.shopNowButton.visibility = View.GONE
+            binding.scrollViewCart.visibility = View.GONE
+            binding.cartProceedButton.visibility = View.GONE
+            return  // Exit the function since no internet is available
+        }
+
+        viewModel.retrieveCartItems { foodNames, foodPrices, foodDescriptions, foodIngredients, foodImageUri, paths, quantity ->
+            val context = context ?: return@retrieveCartItems  // Safely access context or return if null
             setAdapter(foodNames, foodPrices, foodDescriptions, foodIngredients, foodImageUri, quantity)
-            if (foodNames.isEmpty()) {
-                binding.cartContentLayout.visibility = View.GONE
-                binding.emptyCartMessage.visibility = View.VISIBLE
-                binding.shopNowButton.visibility=View.VISIBLE
-                binding.scrollViewCart.visibility=View.GONE
-                binding.cartProceedButton.visibility = View.GONE
+
+            if (isNetworkAvailable(context)) {
+                if (foodNames.isNotEmpty()) {
+                    binding.cartContentLayout.visibility = View.VISIBLE
+                    binding.network.visibility = View.GONE
+                    binding.emptyCartMessage.visibility = View.GONE
+                    binding.shopNowButton.visibility = View.GONE
+                    binding.scrollViewCart.visibility = View.VISIBLE
+                    binding.cartProceedButton.visibility = View.VISIBLE
+                } else {
+                    binding.cartContentLayout.visibility = View.GONE
+                    binding.network.visibility = View.GONE
+                    binding.emptyCartMessage.visibility = View.VISIBLE
+                    binding.shopNowButton.visibility = View.VISIBLE
+                    binding.scrollViewCart.visibility = View.GONE
+                    binding.cartProceedButton.visibility = View.GONE
+                }
             } else {
-                binding.cartContentLayout.visibility = View.VISIBLE
-                binding.emptyCartMessage.visibility = View.GONE
-                binding.shopNowButton.visibility=View.GONE
-                binding.cartProceedButton.visibility = View.VISIBLE
+                if (foodNames.isNotEmpty()) {
+                    binding.cartContentLayout.visibility = View.VISIBLE
+                    binding.network.visibility = View.VISIBLE
+                    binding.emptyCartMessage.visibility = View.GONE
+                    binding.shopNowButton.visibility = View.GONE
+                    binding.scrollViewCart.visibility = View.GONE
+                    binding.cartProceedButton.visibility = View.GONE
+                } else {
+                    binding.cartContentLayout.visibility = View.GONE
+                    binding.network.visibility = View.GONE
+                    binding.emptyCartMessage.visibility = View.VISIBLE
+                    binding.shopNowButton.visibility = View.VISIBLE
+                    binding.scrollViewCart.visibility = View.GONE
+                    binding.cartProceedButton.visibility = View.GONE
+                }
             }
         }
     }
+
+
     private fun setAdapter(
         foodNames: MutableList<String>,
         foodPrices: MutableList<String>,
@@ -738,15 +647,4 @@ interface CartProceedClickListener {
     fun showProgressBar()
     fun hideProgressBar()
     fun showDialog()
-}
-
-
-class CartViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(CartViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return CartViewModel(context) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
-    }
 }
