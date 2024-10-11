@@ -1,17 +1,17 @@
 package com.capztone.fishfy.ui.activities
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
 import com.capztone.fishfy.databinding.ActivityPayoutBinding
-import com.capztone.fishfy.ui.activities.fragments.CongratsBottomSheetFragment
 import com.capztone.fishfy.ui.activities.models.OrderDetails
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import android.view.View
 import com.capztone.fishfy.R
 import android.util.Log
-import android.widget.RadioButton
+
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -29,6 +29,7 @@ import com.capztone.fishfy.ui.activities.fragments.PayoutAddressFragment
 import com.razorpay.Checkout
 import com.razorpay.PaymentResultListener
 import org.json.JSONObject
+import kotlin.random.Random
 
 
 class PayoutActivity : AppCompatActivity(), PaymentResultListener {
@@ -38,10 +39,8 @@ class PayoutActivity : AppCompatActivity(), PaymentResultListener {
     private lateinit var address: String
 
     private lateinit var totalAmount: String
-    private lateinit var paymentMethod: String
-    private lateinit var gpayRadioButton: RadioButton
-    private lateinit var phonePeRadioButton: RadioButton
-    private lateinit var paytmRadioButton: RadioButton
+
+
 
 
     private lateinit var auth: FirebaseAuth
@@ -59,11 +58,9 @@ class PayoutActivity : AppCompatActivity(), PaymentResultListener {
     private var selectedSlot: String? = null
     private var selectedOptionText: String = ""
 
-    private var status: String? = null
 
-    private val PHONEPE_REQUEST_CODE = 101
-    private val PAYTM_REQUEST_CODE = 102
-    private val GOOGLE_PAY_REQUEST_CODE = 103
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,10 +80,8 @@ class PayoutActivity : AppCompatActivity(), PaymentResultListener {
         // Set default slot
         selectedSlot = "10:00 am - 12:00 pm" // default slot value
         binding.Slot.text = selectedSlot
-        gpayRadioButton = binding.gpay
-        phonePeRadioButton = binding.phonepe
-        paytmRadioButton = binding.paytm
-        setupRadioButtons()
+
+
         auth = FirebaseAuth.getInstance()
         databaseReference = FirebaseDatabase.getInstance().reference
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -136,7 +131,7 @@ class PayoutActivity : AppCompatActivity(), PaymentResultListener {
             } else if (selectedSlot.isNullOrBlank()) {
                 Toast.makeText(this, "Please select a time slot", Toast.LENGTH_SHORT).show()
             } else {
-                placeTheOrder()
+                startPayment()
 
             }
         }
@@ -329,43 +324,14 @@ class PayoutActivity : AppCompatActivity(), PaymentResultListener {
         }
     }
 
-    private fun placeTheOrder() {
-        startPayment()
-    }
 
-    private fun setupRadioButtons() {
-        gpayRadioButton.setOnClickListener {
-            selectRadioButton(gpayRadioButton)
-            deselectRadioButton(phonePeRadioButton)
-            deselectRadioButton(paytmRadioButton)
-        }
-
-        phonePeRadioButton.setOnClickListener {
-            deselectRadioButton(gpayRadioButton)
-            selectRadioButton(phonePeRadioButton)
-            deselectRadioButton(paytmRadioButton)
-        }
-
-        paytmRadioButton.setOnClickListener {
-            deselectRadioButton(gpayRadioButton)
-            deselectRadioButton(phonePeRadioButton)
-            selectRadioButton(paytmRadioButton)
-        }
-    }
-
-    private fun selectRadioButton(radioButton: RadioButton) {
-        radioButton.isChecked = true
-        radioButton.setTextColor(ContextCompat.getColor(this, R.color.navy))
-    }
-
-    private fun deselectRadioButton(radioButton: RadioButton) {
-        radioButton.isChecked = false
-        radioButton.setTextColor(ContextCompat.getColor(this, R.color.black))
-    }
 
     private fun startPayment() {
+        // Save order details before starting the payment process
+        // Status is pending until payment is completed
+
         val checkout = Checkout()
-        checkout.setKeyID("Enter Your Key")
+        checkout.setKeyID("rzp_live_7rk7sJYf7JnVOk")
         val amountTotalString = binding.amountTotal.text.toString().replace("₹", "").trim()
         val adjustedTotalAmount = amountTotalString.toDoubleOrNull() ?: 0.0
         val amountInPaise = (adjustedTotalAmount * 100).toInt()
@@ -375,39 +341,41 @@ class PayoutActivity : AppCompatActivity(), PaymentResultListener {
             put("currency", "INR")
             put("amount", amountInPaise)
         }
-        // Try to open the Razorpay checkout interface
+
         try {
             checkout.open(this, options)
         } catch (e: Exception) {
             e.printStackTrace()
-            Toast.makeText(this, "Error in payment: ${e.localizedMessage}", Toast.LENGTH_SHORT)
-                .show()
+            Toast.makeText(this, "Error in payment: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
         }
     }
 
-    override fun onPaymentSuccess(paymentId: String) {
-        Toast.makeText(this, "Payment Successful: $paymentId", Toast.LENGTH_SHORT).show()
-        navigateToCongratsFragment(adjustedTotalAmount)
-    }
-
-    override fun onPaymentError(code: Int, response: String?) {
-        Toast.makeText(this, "Payment Failed: $code $response", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun navigateToCongratsFragment(adjustedTotalAmount: Int) {
+    // Save order details with an initial status (pending, success, or failed)
+    private fun saveOrderDetails(status: String) {
         userId = auth.currentUser?.uid ?: ""
         val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
         val currentTimeMillis = System.currentTimeMillis()
         val formattedTime = timeFormat.format(currentTimeMillis)
         val time = formattedTime
-        val itemPushKey = databaseReference.child("OrderDetails").push().key
+
+        // Parse the total amount
+        val amountTotalString = binding.amountTotal.text.toString().replace("₹", "").trim()
+        val adjustedTotalAmount = amountTotalString.toDoubleOrNull() ?: 0.0
+
+        // Generate an 8-digit random number as itemPushKey
+        val itemPushKey = Random.nextInt(10000000, 99999999).toString()
+
+        // Get the order date in the desired format
         val orderDate = SimpleDateFormat("d MMMM yyyy", Locale.getDefault()).format(Date())
-        val ShopNames = mutableListOf<String>()
+
+        // Collect shop names from the pathContainer
+        val shopNames = mutableListOf<String>()
         for (i in 0 until binding.pathContainer.childCount) {
             val textView = binding.pathContainer.getChildAt(i) as TextView
-            ShopNames.add(textView.text.toString())
+            shopNames.add(textView.text.toString())
         }
         val orderDetails = OrderDetails(
+
             userId,
             foodItemName,
             foodItemPrice,
@@ -415,29 +383,54 @@ class PayoutActivity : AppCompatActivity(), PaymentResultListener {
             foodItemQuantities,
             address,
             time,
-            paymentMethod,
-            adjustedTotalAmount,
+            adjustedTotalAmount.toInt(),
             itemPushKey,
             orderDate,
-            true,
-            true,
-            ShopNames,
+            status == "success", // Order confirmed if payment is successful
+            shopNames,
             selectedSlot,
-            foodItemDescription
-        )
+            foodItemDescription,
+
+            )
+
         val orderReference = databaseReference.child("OrderDetails").child(itemPushKey!!)
         orderReference.setValue(orderDetails)
             .addOnSuccessListener {
-                val bottomSheetDialog = CongratsBottomSheetFragment()
-                bottomSheetDialog.show(supportFragmentManager, "Test")
+                Log.d(TAG, "Order details saved with status: $status")
                 removeItemFromCart()
                 removeItemFromCart1()
                 addOrderToHistory(orderDetails)
             }
             .addOnFailureListener {
-                Toast.makeText(this, "Failed to Order 😒", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Failed to save order details", Toast.LENGTH_SHORT).show()
+
             }
     }
+    override fun onPaymentSuccess(paymentId: String) {
+        Toast.makeText(this, "Payment Successful", Toast.LENGTH_SHORT).show()
+        saveOrderDetails("success") // Update the status to success after payment
+        // Navigate to MainActivity after saving order details
+        val intent = Intent(this, MainActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+        startActivity(intent)
+        finish() // Optionally finish the current activity
+
+    }
+
+    override fun onPaymentError(code: Int, response: String?) {
+        Toast.makeText(this, "Payment Failed or Canceled", Toast.LENGTH_SHORT).show()
+        saveOrderDetails("success") // Update the status to success after payment
+        // Navigate to MainActivity after saving order details
+        val intent = Intent(this, MainActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+        startActivity(intent)
+        finish() // Optionally finish the current activity
+
+
+
+    }
+
+
 
     private fun removeItemFromCart() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid

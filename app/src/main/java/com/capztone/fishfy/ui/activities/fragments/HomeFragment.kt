@@ -447,29 +447,51 @@ class HomeFragment : Fragment(), ExploreShopAdapter.OnItemClickListener {
     private fun fetchBuyHistory() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
         val userBuyHistoryRef = FirebaseDatabase.getInstance().reference.child("user").child(userId).child("BuyHistory")
+        val userLocationRef = FirebaseDatabase.getInstance().reference.child("Locations").child(userId)
 
-        userBuyHistoryRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val orders = mutableListOf<PreviousItem>()
-                for (childSnapshot in snapshot.children) {
-                    val foodNamesList = childSnapshot.child("foodNames").getValue(object : GenericTypeIndicator<ArrayList<String>>() {})
-                    val foodPricesList = childSnapshot.child("foodPrices").getValue(object : GenericTypeIndicator<ArrayList<String>>() {})
-                    val foodImagesList = childSnapshot.child("foodImage").getValue(object : GenericTypeIndicator<ArrayList<String>>() {})
-                    val foodDescriptionList = childSnapshot.child("fooddescription").getValue(object : GenericTypeIndicator<ArrayList<String>>() {})
+        // Fetch the shopname from the "Locations" node
+        userLocationRef.child("shopname").addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(locationSnapshot: DataSnapshot) {
+                val locationShopNamesString = locationSnapshot.getValue(String::class.java) ?: ""
 
-                    if (foodNamesList != null && foodPricesList != null && foodImagesList != null &&  foodDescriptionList != null) {
-                        val foodName = if (foodNamesList.isNotEmpty()) foodNamesList[0] else ""
-                        val foodPrice = if (foodPricesList.isNotEmpty()) foodPricesList[0] else ""
-                        val foodImage = if (foodImagesList.isNotEmpty()) foodImagesList[0] else ""
-                        val foodDescription = if (foodDescriptionList.isNotEmpty())  foodDescriptionList[0] else ""
+                // Split the shopname string into a list of individual shop names
+                val locationShopNames = locationShopNamesString.split(",").map { it.trim() }
 
-                        val order = PreviousItem(foodName = foodName, foodPrice = foodPrice, foodImage = foodImage, foodDescription = foodDescription)
-                        orders.add(order)
+                // Now fetch the BuyHistory
+                userBuyHistoryRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        val orders = mutableListOf<PreviousItem>()
+                        for (childSnapshot in snapshot.children) {
+                            // Fetch shopNames list from BuyHistory
+                            val buyHistoryShopNames = childSnapshot.child("shopNames").getValue(object : GenericTypeIndicator<ArrayList<String>>() {})
+
+                            // Check if any shopName in BuyHistory matches any shopName in the Locations list
+                            if (buyHistoryShopNames != null && locationShopNames.any { it in buyHistoryShopNames }) {
+                                // Now proceed to retrieve food details if there's a match
+                                val foodNamesList = childSnapshot.child("foodNames").getValue(object : GenericTypeIndicator<ArrayList<String>>() {})
+                                val foodPricesList = childSnapshot.child("foodPrices").getValue(object : GenericTypeIndicator<ArrayList<String>>() {})
+                                val foodImagesList = childSnapshot.child("foodImage").getValue(object : GenericTypeIndicator<ArrayList<String>>() {})
+                                val foodDescriptionList = childSnapshot.child("fooddescription").getValue(object : GenericTypeIndicator<ArrayList<String>>() {})
+
+                                if (foodNamesList != null && foodPricesList != null && foodImagesList != null && foodDescriptionList != null) {
+                                    val foodName = if (foodNamesList.isNotEmpty()) foodNamesList[0] else ""
+                                    val foodPrice = if (foodPricesList.isNotEmpty()) foodPricesList[0] else ""
+                                    val foodImage = if (foodImagesList.isNotEmpty()) foodImagesList[0] else ""
+                                    val foodDescription = if (foodDescriptionList.isNotEmpty()) foodDescriptionList[0] else ""
+
+                                    val order = PreviousItem(foodName = foodName, foodPrice = foodPrice, foodImage = foodImage, foodDescription = foodDescription)
+                                    orders.add(order)
+                                }
+                            }
+                        }
+                        adapter1.updateData(orders)
+                        updateBuyAgainVisibility(orders)
                     }
-                }
-                adapter1.updateData(orders)
-                updateBuyAgainVisibility(orders)
 
+                    override fun onCancelled(error: DatabaseError) {
+                        // Handle database error
+                    }
+                })
             }
 
             override fun onCancelled(error: DatabaseError) {

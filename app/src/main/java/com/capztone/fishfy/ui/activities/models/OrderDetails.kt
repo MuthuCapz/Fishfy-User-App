@@ -13,10 +13,10 @@ class OrderDetails() : Parcelable {
     var address: String? = null
 
     var orderAccepted: Boolean = true
-    var paymentReceived: Boolean = true
+
     var itemPushKey: String? = null
     var currentTime: String? = null
-    var paymentMethod: String? = null
+
     var adjustedTotalAmount: String? = null
     var orderDate: String? = null
     var ShopNames: MutableList<String>? = null
@@ -27,10 +27,10 @@ class OrderDetails() : Parcelable {
         userUid = parcel.readString()
          address = parcel.readString()
          orderAccepted = parcel.readByte() != 0.toByte()
-        paymentReceived = parcel.readByte() != 0.toByte()
+
         itemPushKey = parcel.readString()
         currentTime = parcel.readString()
-        paymentMethod = parcel.readString()
+
         adjustedTotalAmount = parcel.readString()
         orderDate = parcel.readString()
         ShopNames = parcel.createStringArrayList()
@@ -46,12 +46,12 @@ class OrderDetails() : Parcelable {
         foodItemQuantities: MutableList<Int>?,
         address: String?,
         time: String?,
-        paymentMethod: String?,
+
         adjustedTotalAmount: Int,
         itemPushKey: String?,
         orderDate: String?,
         orderAccepted: Boolean,
-        paymentReceived: Boolean,
+
         ShopNames: MutableList<String>?,
         selectedSlot: String?,
         foodItemDescription: MutableList<String>?
@@ -64,12 +64,12 @@ class OrderDetails() : Parcelable {
         this.foodQuantities = foodItemQuantities
         this.address = address
          this.currentTime = time
-        this.paymentMethod = paymentMethod
+
         this.adjustedTotalAmount = adjustedTotalAmount.toString()
         this.itemPushKey = itemPushKey
         this.orderDate = orderDate
         this.orderAccepted = orderAccepted
-        this.paymentReceived = paymentReceived
+
         this.ShopNames = ShopNames
         this.selectedSlot = selectedSlot
         this.fooddescription =  foodItemDescription
@@ -80,10 +80,10 @@ class OrderDetails() : Parcelable {
         parcel.writeString(userUid)
          parcel.writeString(address)
          parcel.writeByte(if (orderAccepted) 1 else 0)
-        parcel.writeByte(if (paymentReceived) 1 else 0)
+
         parcel.writeString(itemPushKey)
         parcel.writeString(currentTime)
-        parcel.writeString(paymentMethod)
+
         parcel.writeString(adjustedTotalAmount)
         parcel.writeString(orderDate)
         parcel.writeStringList(ShopNames)
