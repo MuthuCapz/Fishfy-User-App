@@ -34,7 +34,7 @@ class OrderStatusViewModel : ViewModel() {
 
     private fun observeOrderStatusChanges() {
         viewModelScope.launch(Dispatchers.IO) {
-            database.child("status").child(itemPushKey)
+            database.child("OrderDetails").child(itemPushKey).child("Status")
                 .addValueEventListener(object : ValueEventListener {
                     @RequiresApi(Build.VERSION_CODES.O)
                     override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -51,7 +51,7 @@ class OrderStatusViewModel : ViewModel() {
 
     private fun observeEstimatedTimeChanges() {
         viewModelScope.launch(Dispatchers.IO) {
-            database.child("Estimated Time").child(itemPushKey)
+            database.child("OrderDetails").child(itemPushKey).child("Estimated Time")
                 .addValueEventListener(object : ValueEventListener {
                     override fun onDataChange(dataSnapshot: DataSnapshot) {
                         val estimatedTime =
@@ -67,7 +67,7 @@ class OrderStatusViewModel : ViewModel() {
     }
     private fun observeUsernameChanges() {
         viewModelScope.launch(Dispatchers.IO) {
-            database.child("status").child(itemPushKey).child("username")
+            database.child("OrderDetails").child(itemPushKey).child("Status").child("username")
                 .addValueEventListener(object : ValueEventListener {
                     override fun onDataChange(dataSnapshot: DataSnapshot) {
                         val username = dataSnapshot.getValue(String::class.java)
@@ -85,7 +85,7 @@ class OrderStatusViewModel : ViewModel() {
 
     private fun observeTimestampChanges() {
         viewModelScope.launch(Dispatchers.IO) {
-            database.child("status").child(itemPushKey).child("timestamp")
+            database.child("OrderDetails").child(itemPushKey).child("Status").child("timestamp")
                 .addValueEventListener(object : ValueEventListener {
                     override fun onDataChange(dataSnapshot: DataSnapshot) {
                         val timestamp = dataSnapshot.getValue(String::class.java)

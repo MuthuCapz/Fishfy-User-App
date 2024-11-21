@@ -1,15 +1,15 @@
 package com.capztone.fishfy.ui.activities.fragments
+
 import android.content.Intent
 import android.graphics.Color
 import android.os.Build
-import androidx.fragment.app.Fragment
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.capztone.fishfy.R
@@ -20,42 +20,33 @@ import com.capztone.fishfy.ui.activities.models.MenuItem
 import com.capztone.fishfy.ui.activities.adapters.FreshFishAdapter
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
-
-class FreshFishFragment: Fragment() {
+class FreshFishFragment : Fragment() {
     private lateinit var binding: FragmentFreshFishBinding
-    private lateinit var adapter: FreshFishAdapter// Declare adapter property
-
+    private lateinit var adapter: FreshFishAdapter
     private val viewModel: FreshFishViewModel by viewModels()
+
+    // Create a variable to hold the category name
+    private var categoryName: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         binding = FragmentFreshFishBinding.inflate(inflater, container, false)
-        activity?.window?.let { window ->
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-                window.statusBarColor = Color.TRANSPARENT
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                window.statusBarColor = Color. TRANSPARENT
-            }
-        }
+
+        // Setup status bar
+
+        // Retrieve category name from arguments and set it to the TextView
+        categoryName = arguments?.getString("categoryName")
+        binding.heading.text = categoryName
+
         // Show loading indicator
         binding.progress.visibility = View.VISIBLE
+        setupLoadingIndicator()
 
-        binding.progress.setProgressVector(resources.getDrawable(R.drawable.spinload))
-        binding.progress.setTextViewVisibility(true)
-        binding.progress.setTextStyle(true)
-        binding.progress.setTextColor(Color.YELLOW)
-        binding.progress.setTextSize(12F)
-        binding.progress.setTextMsg("Please Wait")
-        binding.progress.setEnlarge(5)
-        // Start a delay to hide the loading indicator after 1200 milliseconds (1.2 seconds)
+        // Start a delay to hide the loading indicator
         Handler(Looper.getMainLooper()).postDelayed({
             binding.progress.visibility = View.GONE
-                // Call your method to retrieve cart items or perform other operations
-
         }, 1000)
 
         setupObservers()
@@ -64,24 +55,27 @@ class FreshFishFragment: Fragment() {
             val intent = Intent(activity, MainActivity::class.java)
             startActivity(intent)
         }
-        viewModel.retrieveMenuItems()
-        retrieveAndDisplayUserInfo()
+
+        // Retrieve menu items with the category name
+        viewModel.retrieveMenuItems(categoryName)
+
         return binding.root
     }
-    private fun retrieveAndDisplayUserInfo() {
-        val user = FirebaseAuth.getInstance().currentUser
-        user?.let {
-            val userId = it.uid
-            val database = FirebaseDatabase.getInstance().getReference("user").child(userId)
 
-            database.child("category").get().addOnSuccessListener { dataSnapshot ->
-                val category = dataSnapshot.getValue(String::class.java)
-                binding.textView15.text = "$category"
-            }.addOnFailureListener {
-                // Handle any errors
-                binding.textView15.text = "Failed to load user info"
-            }
-        }
+    // ... (rest of your methods remain unchanged)
+
+
+
+
+
+    private fun setupLoadingIndicator() {
+        binding.progress.setProgressVector(resources.getDrawable(R.drawable.spinload))
+        binding.progress.setTextViewVisibility(true)
+        binding.progress.setTextStyle(true)
+        binding.progress.setTextColor(Color.YELLOW)
+        binding.progress.setTextSize(12F)
+        binding.progress.setTextMsg("Please Wait")
+        binding.progress.setEnlarge(5)
     }
 
 
@@ -95,9 +89,7 @@ class FreshFishFragment: Fragment() {
 
     private fun showAllMenu(menuItems: List<MenuItem>) {
         adapter = FreshFishAdapter(menuItems.toMutableList(), requireContext())
-        binding.freshfishrecycler.layoutManager =  LinearLayoutManager(requireContext())
-        binding.freshfishrecycler.adapter = adapter // Set the adapter here
+        binding.freshfishrecycler.layoutManager = LinearLayoutManager(requireContext())
+        binding.freshfishrecycler.adapter = adapter
     }
-
-
 }

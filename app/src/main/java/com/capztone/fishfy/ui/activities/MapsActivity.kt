@@ -18,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
+import com.capztone.admin.utils.FirebaseAuthUtil
 import com.capztone.fishfy.R
 import com.capztone.fishfy.databinding.ActivityMapsBinding
 import com.capztone.fishfy.ui.activities.fragments.CurrentLocationBottomSheet
@@ -57,16 +58,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mapFragment.getMapAsync(this)
 
         // Initialize Firebase Auth
-        auth = FirebaseAuth.getInstance()
-        window?.let { window ->
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-                window.statusBarColor = Color.WHITE
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                window.statusBarColor = Color.WHITE
-            }
-        }
+auth = FirebaseAuthUtil.auth
 
         // Initialize Firebase Database
         database = FirebaseDatabase.getInstance().reference

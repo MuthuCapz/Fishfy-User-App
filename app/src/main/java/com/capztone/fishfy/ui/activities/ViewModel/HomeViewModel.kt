@@ -16,7 +16,7 @@ import kotlinx.coroutines.tasks.await
 
 class HomeViewModel : ViewModel() {
     private val database: FirebaseDatabase = FirebaseDatabase.getInstance()
-    private val databaseReference: DatabaseReference = database.getReference("locations")
+    private val databaseReference: DatabaseReference = database.getReference("Addresses")
 
     private val _address = MutableLiveData<String?>()
     val address: LiveData<String?>

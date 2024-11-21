@@ -122,7 +122,19 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/cartImageView1"
                 app:layout_constraintTop_toBottomOf="@+id/cartFoodNameTextView1" />
-
+            <TextView
+                android:id="@+id/unitQuantity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="65dp"
+                android:fontFamily="@font/nunito"
+                android:layout_marginBottom="5dp"
+                android:textSize="13sp"
+                android:text=""
+                android:textColor="@color/navy"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/cartImageView1"
+                app:layout_constraintTop_toBottomOf="@+id/cartFoodNameTextView1" />
             <TextView
                 android:id="@+id/quantityTextView"
                 android:layout_width="wrap_content"

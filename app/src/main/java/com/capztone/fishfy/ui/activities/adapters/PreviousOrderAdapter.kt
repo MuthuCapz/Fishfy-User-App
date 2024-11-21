@@ -10,11 +10,17 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.capztone.fishfy.R
 import com.capztone.fishfy.databinding.PreviousOrderBinding
+import com.capztone.fishfy.ui.activities.models.DiscountItems
 import com.capztone.fishfy.ui.activities.models.PreviousItem
 
+// Use a sealed class to handle both PreviousItem and DiscountItem
+sealed class OrderItem {
+    data class Previous(val item: PreviousItem) : OrderItem()
+    data class Discount(val item: DiscountItems) : OrderItem()
+}
 
 class PreviousOrderAdapter(
-    private val buyHistory: MutableList<PreviousItem>,
+    private val buyHistory: MutableList<OrderItem>,
     private val context: Context
 ) : RecyclerView.Adapter<PreviousOrderAdapter.ViewHolder>() {
 
@@ -32,18 +38,21 @@ class PreviousOrderAdapter(
         return buyHistory.size
     }
 
-    fun updateData(newData: List<PreviousItem>) {
+    fun updateData(newData: MutableList<OrderItem>) {
         buyHistory.clear()
         buyHistory.addAll(filterUniqueItems(newData))
         notifyDataSetChanged()
     }
 
-    private fun filterUniqueItems(data: List<PreviousItem>): List<PreviousItem> {
-        val uniqueItems = mutableListOf<PreviousItem>()
+    private fun filterUniqueItems(data: List<OrderItem>): List<OrderItem> {
+        val uniqueItems = mutableListOf<OrderItem>()
         val seenNames = mutableSetOf<String>()
 
         for (item in data) {
-            val foodName = item.foodName?.substringBefore("/")
+            val foodName = when (item) {
+                is OrderItem.Previous -> item.item.foodName?.substringBefore("/")
+                is OrderItem.Discount -> item.item.foodNames?.substringBefore("/")
+            }
             if (foodName != null && foodName !in seenNames) {
                 seenNames.add(foodName)
                 uniqueItems.add(item)
@@ -59,30 +68,65 @@ class PreviousOrderAdapter(
             binding.root.setOnClickListener {
                 val position = adapterPosition
                 if (position != RecyclerView.NO_POSITION) {
-                    openDetailsActivity(it,position)
+                    openDetailsActivity(it, position)
                 }
             }
         }
 
-        fun bind(item: PreviousItem) {
+        fun bind(item: OrderItem) {
             with(binding) {
-                loadFoodImage(item.foodImage)
-
-                // Extracting text before the slash
-                val foodName = item.foodName?.substringBefore("/")
-                previousFoodName1.text = foodName
-                previousPrice1.text = "₹${item.foodPrice}"
+                when (item) {
+                    is OrderItem.Previous -> {
+                        loadFoodImage(item.item.foodImage)
+                        previousFoodName1.text = item.item.foodName?.substringBefore("/") // Extract before slash
+                        // Extract integer part of foodPrice and display it
+                        val price = item.item.foodPrice?.toDoubleOrNull()?.toInt()
+                        previousPrice1.text = "₹${price ?: 0}" // Handle null or invalid price
+                        shopname.text = item.item.shopNames.toString()
+                    }
+                    is OrderItem.Discount -> {
+                        loadFoodImage(item.item.foodImages)
+                        previousFoodName1.text = item.item.foodNames?.substringBefore("/") // Extract before slash
+                        // Extract integer part of foodPrices and display it
+                        val price = item.item.foodPrices?.toDoubleOrNull()?.toInt()
+                        previousPrice1.text = "₹${price ?: 0}" // Handle null or invalid price
+                        shopname.text = "Discounted Item" // Custom label for discounts, adjust as needed
+                    }
+                }
             }
         }
 
         private fun openDetailsActivity(view: View, position: Int) {
-            val menuItem = buyHistory[position]
-            val bundle = Bundle().apply {
-                putString("MenuItemName", menuItem.foodName)
-                putString("MenuItemPrice", menuItem.foodPrice)
-                putString("MenuItemDescription", menuItem.foodDescription)
-                putString("MenuItemImage", menuItem.foodImage)
+            val orderItem = buyHistory.getOrNull(position)
+            val bundle = Bundle()
 
+            when (orderItem) {
+                is OrderItem.Previous -> {
+                    // Add PreviousItem details to the bundle
+                    bundle.apply {
+                        putString("MenuItemName", orderItem.item.foodName)
+                        putString("MenuItemPrice", orderItem.item.foodPrice)
+                        putString("MenuItemDescription", orderItem.item.foodDescription)
+                        putString("MenuItemImage", orderItem.item.foodImage)
+                        putString("Shop Id",orderItem.item.shopNames)
+                        putString("key",orderItem.item.key)
+                        putString("MenuQuantity",orderItem.item.skuUnitQuantities)
+
+
+                    }
+                }
+                is OrderItem.Discount -> {
+                    // Add DiscountItem details to the bundle
+                    bundle.apply {
+                        putString("DiscountItemName", orderItem.item.foodNames)
+                        putString("DiscountItemPrice", orderItem.item.foodPrices)
+                        putString("DiscountItemDescription", orderItem.item.foodDescriptions)
+                        putString("DiscountItemImage", orderItem.item.foodImages)
+
+                    }
+                }
+
+                else -> {}
             }
 
             // Navigate to the details fragment using NavController

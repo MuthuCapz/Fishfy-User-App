@@ -35,7 +35,7 @@ class PayoutAddressAdapter(
     val addresses = mutableListOf<Address>()
     private val userId = FirebaseAuth.getInstance().currentUser?.uid
     private val database: DatabaseReference? =
-        userId?.let { FirebaseDatabase.getInstance().getReference("Locations").child(it) }
+        userId?.let { FirebaseDatabase.getInstance().getReference("Addresses").child(it) }
 
 
     private var selectedPosition: Int
@@ -117,7 +117,7 @@ class PayoutAddressAdapter(
     private fun checked() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
         val databaseRef =
-            FirebaseDatabase.getInstance().getReference("Locations").child(userId).child("type")
+            FirebaseDatabase.getInstance().getReference("Addresses").child(userId).child("type")
 
         databaseRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -234,7 +234,7 @@ class PayoutAddressAdapter(
 
                     // Fetch the shop name of the previously selected address (from Firebase or local storage)
                     val previousAddressShopNameRef =
-                        database?.child(addresses[selectedPosition].addressType)?.child("shopname")
+                        database?.child(addresses[selectedPosition].addressType)?.child("Shop Id")
                     previousAddressShopNameRef?.addListenerForSingleValueEvent(object :
                         ValueEventListener {
                         override fun onDataChange(previousSnapshot: DataSnapshot) {
@@ -441,131 +441,10 @@ class PayoutAddressAdapter(
         }
 
 
-        private fun showDeleteConfirmationDialog(addressType: String) {
-            val context = binding.root.context
-            val dialogBinding =
-                DialogDeleteConfirmationBinding.inflate(LayoutInflater.from(context))
-
-            val dialog = AlertDialog.Builder(context)
-                .setView(dialogBinding.root)
-                .create()
-            dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-
-            // Set title and message
-            dialogBinding.tvDialogTitle.text = "Delete Confirmation"
-            dialogBinding.tvDialogMessage.text = "Are you sure you want to delete this address?"
-
-            // Button actions
-            dialogBinding.btnDialogNo.setOnClickListener {
-                dialog.dismiss() // Dismiss the dialog if "No" is clicked
-            }
-
-            dialogBinding.btnDialogYes.setOnClickListener {
-                deleteAddressFromFirebase(addressType) // Call function to delete address if "Yes" is clicked
-                dialog.dismiss()
-            }
-
-            dialog.show()
-        }
-
-        private fun saveSelectedAddressToFirebase(selectedAddress: String, addressType: String) {
-            userId?.let { user ->
-                val addressTypeRef =
-                    FirebaseDatabase.getInstance().getReference("Locations").child(user)
-                        .child(addressType)
-
-                // Retrieve existing address type details
-                addressTypeRef.addListenerForSingleValueEvent(object : ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        if (snapshot.exists()) {
-                            // Retrieve address details
-                            val locality =
-                                snapshot.child("locality").getValue(String::class.java) ?: ""
-                            val shopName =
-                                snapshot.child("shopname").getValue(String::class.java) ?: ""
-                            val latitude =
-                                snapshot.child("latitude").getValue(Double::class.java) ?: 0.0
-                            val longitude =
-                                snapshot.child("longitude").getValue(Double::class.java) ?: 0.0
-
-
-                            // Create a map to store the shopname, locality, latitude, and longitude
-                            val addressData = mapOf(
-                                "shopname" to shopName,
-                                "locality" to locality,
-                                "latitude" to latitude,
-                                "longitude" to longitude,
-                                "type" to addressType
-
-                            )
-
-                            // Retrieve existing data under "Locations/userId"
-                            val userLocationsRef =
-                                FirebaseDatabase.getInstance().getReference("Locations").child(user)
-
-                            userLocationsRef.addListenerForSingleValueEvent(object :
-                                ValueEventListener {
-                                override fun onDataChange(existingSnapshot: DataSnapshot) {
-                                    // Preserve existing data
-                                    val existingData =
-                                        existingSnapshot.value as? Map<String, Any> ?: mapOf()
-                                    val updatedData = existingData.toMutableMap()
-
-                                    // Add or update new address data
-                                    updatedData.putAll(addressData)
-
-                                    // Store updated data in "Locations/userId"
-                                    userLocationsRef.setValue(updatedData)
-                                        .addOnCompleteListener { task ->
-                                            if (task.isSuccessful) {
-                                                Toast.makeText(
-                                                    context,
-                                                    "Selected address saved successfully",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                            } else {
-                                                Toast.makeText(
-                                                    context,
-                                                    "Failed to save selected address",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                            }
-                                        }
-                                }
-
-                                override fun onCancelled(error: DatabaseError) {
-                                    Toast.makeText(
-                                        context,
-                                        "Error retrieving existing data: ${error.message}",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            })
-                        } else {
-                            // Address type does not exist, show a toast message
-                            Toast.makeText(
-                                context,
-                                "Address type does not exist",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    }
-
-                    override fun onCancelled(error: DatabaseError) {
-                        Toast.makeText(
-                            context,
-                            "Error checking address type: ${error.message}",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                })
-            }
-        }
-
         private fun saveSelectedAddressToFirebase1(selectedAddress: Int, addressType: String) {
             userId?.let { user ->
                 val addressTypeRef =
-                    FirebaseDatabase.getInstance().getReference("Locations").child(user)
+                    FirebaseDatabase.getInstance().getReference("Addresses").child(user)
                         .child(addressType)
 
                 // Retrieve existing address type details
@@ -595,7 +474,7 @@ class PayoutAddressAdapter(
 
                             // Retrieve existing data under "Locations/userId"
                             val userLocationsRef =
-                                FirebaseDatabase.getInstance().getReference("Locations").child(user)
+                                FirebaseDatabase.getInstance().getReference("Addresses").child(user)
 
                             userLocationsRef.addListenerForSingleValueEvent(object :
                                 ValueEventListener {

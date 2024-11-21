@@ -9,7 +9,9 @@ data class Order(
     var adjustedTotalAmount: String = "",
     var foodQuantities: List<Int> = emptyList(),
     var orderDate: String = "",
-    val currentTime: String = ""
+    val currentTime: String = "",
+    var selectedSlot: String = "",
+    var address: String = "",
 )
 
 

@@ -8,7 +8,6 @@ import com.capztone.fishfy.databinding.ActivityPayoutBinding
 import com.capztone.fishfy.ui.activities.models.OrderDetails
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
-import android.view.View
 import com.capztone.fishfy.R
 import android.util.Log
 
@@ -20,16 +19,14 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import androidx.core.content.ContextCompat
-import android.graphics.Color
-import android.os.Build
 import android.widget.ImageButton
 import android.widget.LinearLayout
+import com.capztone.admin.utils.FirebaseAuthUtil
 import com.capztone.fishfy.databinding.CustomDialogLayoutBinding
 import com.capztone.fishfy.ui.activities.fragments.PayoutAddressFragment
 import com.razorpay.Checkout
 import com.razorpay.PaymentResultListener
 import org.json.JSONObject
-import kotlin.random.Random
 
 
 class PayoutActivity : AppCompatActivity(), PaymentResultListener {
@@ -41,8 +38,6 @@ class PayoutActivity : AppCompatActivity(), PaymentResultListener {
     private lateinit var totalAmount: String
 
 
-
-
     private lateinit var auth: FirebaseAuth
     private lateinit var databaseReference: DatabaseReference
     private lateinit var userId: String
@@ -50,7 +45,7 @@ class PayoutActivity : AppCompatActivity(), PaymentResultListener {
     private var adjustedTotalAmount: Int = 0
 
     private lateinit var foodItemName: ArrayList<String>
-    private lateinit var foodItemPrice: ArrayList<String>
+    private lateinit var foodItemPrice: ArrayList<Double>
     private lateinit var foodItemDescription: ArrayList<String>
     private lateinit var foodItemIngredient: ArrayList<String>
     private lateinit var foodItemImage: ArrayList<String>
@@ -60,29 +55,27 @@ class PayoutActivity : AppCompatActivity(), PaymentResultListener {
 
 
 
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityPayoutBinding.inflate(layoutInflater)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            window.decorView.systemUiVisibility =
-                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-            window.statusBarColor = Color.TRANSPARENT
-        }
+
         setContentView(binding.root)
 
         // Initialize Razorpay Checkout
         Checkout.preload(applicationContext)
 
-        // Set default slot
-        selectedSlot = "10:00 am - 12:00 pm" // default slot value
+
+        selectedSlot = selectedOptionText
+
+
+
+
         binding.Slot.text = selectedSlot
 
 
-        auth = FirebaseAuth.getInstance()
+auth = FirebaseAuthUtil.auth
         databaseReference = FirebaseDatabase.getInstance().reference
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         setUserData()
@@ -105,7 +98,7 @@ class PayoutActivity : AppCompatActivity(), PaymentResultListener {
 
         // Get user details form Firebase
         foodItemName = intent.getStringArrayListExtra("foodItemName") as ArrayList<String>
-        foodItemPrice = intent.getStringArrayListExtra("foodItemPrice") as ArrayList<String>
+        foodItemPrice = intent.getStringArrayListExtra("foodItemPrice") as ArrayList<Double>
         foodItemDescription =
             intent.getStringArrayListExtra("foodItemDescription") as ArrayList<String>
         foodItemIngredient =
@@ -113,11 +106,8 @@ class PayoutActivity : AppCompatActivity(), PaymentResultListener {
         foodItemImage = intent.getStringArrayListExtra("foodItemImage") as ArrayList<String>
         foodItemQuantities = intent.getIntegerArrayListExtra("foodItemQuantities") as ArrayList<Int>
 
-        totalAmount = calculateTotalAmount().toString() + "₹"
-        binding.payoutTotalAmount.isEnabled = false
-        binding.payoutTotalAmount.setText(totalAmount)
 
-        var adjustedTotalAmount = totalAmount.dropLast(1).toInt()
+
         retrieveFinalTotalFromFirebase()
 
         binding.placeMyOrderButton.setOnClickListener {
@@ -131,7 +121,8 @@ class PayoutActivity : AppCompatActivity(), PaymentResultListener {
             } else if (selectedSlot.isNullOrBlank()) {
                 Toast.makeText(this, "Please select a time slot", Toast.LENGTH_SHORT).show()
             } else {
-                startPayment()
+
+                fetchApiKeyAndStartPayment()
 
             }
         }
@@ -238,9 +229,9 @@ class PayoutActivity : AppCompatActivity(), PaymentResultListener {
         val user = auth.currentUser
         if (user != null) {
             val userId = user.uid
-            val userReference = databaseReference.child("Total Amount").child(userId)
+            val userReference = databaseReference.child("user").child(userId)
 
-            userReference.child("finalTotal")
+            userReference.child("OrderTotalAmount")
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
                         val finalTotal = snapshot.getValue(Double::class.java)
@@ -264,6 +255,9 @@ class PayoutActivity : AppCompatActivity(), PaymentResultListener {
         }
     }
 
+    // Cache for slot timings
+    private var cachedSlotTimings: List<String>? = null
+
     private fun showPopupMenu1() {
         // Inflate the custom dialog layout using ViewBinding
         val dialogBinding = CustomDialogLayoutBinding.inflate(layoutInflater)
@@ -280,41 +274,94 @@ class PayoutActivity : AppCompatActivity(), PaymentResultListener {
             val textView = layout?.getChildAt(1) as? TextView
             val imageButton = layout?.getChildAt(0) as? ImageButton
             val color = if (isSelected) R.color.navy else R.color.black
-            textView?.setTextColor(ContextCompat.getColor(this, color))
+            textView?.setTextColor(ContextCompat.getColor(this@PayoutActivity, color))
             imageButton?.setColorFilter(
-                ContextCompat.getColor(this, color),
+                ContextCompat.getColor(this@PayoutActivity, color),
                 android.graphics.PorterDuff.Mode.SRC_IN
             )
         }
 
-        // Set up click listeners for each option using ViewBinding
-        val options = listOf(dialogBinding.one, dialogBinding.two, dialogBinding.three)
+        // Get the current user ID
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
 
-        // Select the option based on the previously selected text
-        for (option in options) {
-            val optionText = (option.getChildAt(1) as TextView).text.toString()
-            if (optionText == selectedOptionText) {
-                selectedLayout = option
-                setSelectionColor(option, true)
-            }
+        // Make sure userId is not null before proceeding
+        if (userId != null) {
+            // Reference to the current user's cart items to retrieve the "path" value
+            val userCartRef =
+                FirebaseDatabase.getInstance().getReference("user").child(userId).child("cartItems")
 
-            option.setOnClickListener {
-                // Reset previous selection
-                selectedLayout?.let { setSelectionColor(it, false) }
+            userCartRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(cartSnapshot: DataSnapshot) {
+                    if (cartSnapshot.exists()) {
+                        // Retrieve the first cart item (if there are multiple, you can adjust this logic)
+                        val cartItemSnapshot = cartSnapshot.children.firstOrNull()
+                        val shopPath = cartItemSnapshot?.child("path")?.getValue(String::class.java)
 
-                // Update current selection
-                selectedLayout = option
-                selectedOptionText = (option.getChildAt(1) as TextView).text.toString()
+                        if (shopPath != null) {
+                            // Now use this "path" to fetch the slot timings from "Delivery Details/path/Slot Timings"
+                            val slotTimingsRef = FirebaseDatabase.getInstance()
+                                .getReference("Delivery Details").child(shopPath)
+                                .child("Slot Timings")
 
-                // Set selection color
-                setSelectionColor(option, true)
-            }
+                            // Check if cachedSlotTimings is available
+                            if (cachedSlotTimings != null) {
+                                // Use the cached slot timings
+                                populateSlotOptions(dialogBinding, cachedSlotTimings!!)
+                            } else {
+                                // Fetch slot timings from Firebase
+                                slotTimingsRef.addListenerForSingleValueEvent(object :
+                                    ValueEventListener {
+                                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                                        val slotTimings = mutableListOf<String>()
+
+                                        // Loop through the Firebase data to get slot timings
+                                        for (snapshot in dataSnapshot.children) {
+                                            val slotTiming = snapshot.getValue(String::class.java)
+                                            slotTiming?.let { slotTimings.add(it) }
+                                        }
+
+                                        // Cache the slot timings
+                                        cachedSlotTimings = slotTimings
+
+                                        // Now dynamically create options based on slot timings
+                                        populateSlotOptions(dialogBinding, slotTimings)
+                                    }
+
+                                    override fun onCancelled(databaseError: DatabaseError) {
+                                        // Handle error
+                                        Log.e(
+                                            TAG,
+                                            "Failed to fetch slot timings: ${databaseError.message}"
+                                        )
+                                    }
+                                })
+                            }
+                        } else {
+                            Log.e(TAG, "Shop path not found in cart item")
+                        }
+                    } else {
+                        Log.e(TAG, "No cart items found for user: $userId")
+                    }
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    Log.e(TAG, "Failed to read user's cart items: ${databaseError.message}")
+                }
+            })
+        } else {
+            Log.e(TAG, "User is not logged in.")
         }
+
+
+        // Function to populate slot options dynamically
+
 
         // Set up the OK button click listener using ViewBinding
         dialogBinding.btnOk.setOnClickListener {
+            // Update the selected slot value
+            selectedSlot = selectedOptionText // Update selectedSlot with the user-selected value
             findViewById<TextView>(R.id.Slot).text =
-                selectedOptionText // Update the Slot TextView with selected text
+                selectedSlot // Update the Slot TextView with selected slot
             dialog.dismiss()
         }
 
@@ -324,14 +371,65 @@ class PayoutActivity : AppCompatActivity(), PaymentResultListener {
         }
     }
 
+    // Helper function to populate the slot options in the dialog
+    private fun populateSlotOptions(dialogBinding: CustomDialogLayoutBinding, slotTimings: List<String>) {
+        val options = listOf(dialogBinding.one, dialogBinding.two, dialogBinding.three)
+        var selectedLayout: LinearLayout? = null
+        for ((index, option) in options.withIndex()) {
+            if (index < slotTimings.size) {
+                val textView = option.getChildAt(1) as TextView
+                textView.text = slotTimings[index]
+            }
+        }
+        // Function to change the color of text and image
+        fun setSelectionColor(layout: LinearLayout?, isSelected: Boolean) {
+            val textView = layout?.getChildAt(1) as? TextView
+            val imageButton = layout?.getChildAt(0) as? ImageButton
+            val color = if (isSelected) R.color.navy else R.color.black
+            textView?.setTextColor(ContextCompat.getColor(this, color))
+            imageButton?.setColorFilter(
+                ContextCompat.getColor(this, color),
+                android.graphics.PorterDuff.Mode.SRC_IN
+            )
+        }
+        // Set click listeners for each option
+        for (option in options) {
+            option.setOnClickListener {
+                selectedLayout?.let { setSelectionColor(it, false) }
+
+                selectedLayout = option
+                selectedOptionText = (option.getChildAt(1) as TextView).text.toString()
+
+                setSelectionColor(option, true)
+            }
+        }
+    }
 
 
-    private fun startPayment() {
-        // Save order details before starting the payment process
-        // Status is pending until payment is completed
 
+    private fun fetchApiKeyAndStartPayment() {
+        val database = FirebaseDatabase.getInstance().getReference("config/razorpay/apiKey")
+
+        database.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val apiKey = snapshot.getValue(String::class.java)
+                if (apiKey != null) {
+                    startPayment(apiKey)
+                } else {
+                    Toast.makeText(this@PayoutActivity, "API Key not found", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Toast.makeText(this@PayoutActivity, "Error fetching API Key: ${error.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    private fun startPayment(apiKey: String) {
         val checkout = Checkout()
-        checkout.setKeyID("rzp_live_7rk7sJYf7JnVOk")
+        checkout.setKeyID(apiKey)
+
         val amountTotalString = binding.amountTotal.text.toString().replace("₹", "").trim()
         val adjustedTotalAmount = amountTotalString.toDoubleOrNull() ?: 0.0
         val amountInPaise = (adjustedTotalAmount * 100).toInt()
@@ -349,63 +447,142 @@ class PayoutActivity : AppCompatActivity(), PaymentResultListener {
             Toast.makeText(this, "Error in payment: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
         }
     }
-
-    // Save order details with an initial status (pending, success, or failed)
     private fun saveOrderDetails(status: String) {
-        userId = auth.currentUser?.uid ?: ""
-        val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
-        val currentTimeMillis = System.currentTimeMillis()
-        val formattedTime = timeFormat.format(currentTimeMillis)
-        val time = formattedTime
+        val usersRef = databaseReference.child("users").child(auth.currentUser?.uid ?: "")
+        usersRef.child("userid").get().addOnSuccessListener { userIdSnapshot ->
+            userId = userIdSnapshot.getValue(String::class.java) ?: ""
 
-        // Parse the total amount
-        val amountTotalString = binding.amountTotal.text.toString().replace("₹", "").trim()
-        val adjustedTotalAmount = amountTotalString.toDoubleOrNull() ?: 0.0
+            if (userId.isNotEmpty()) {
+                val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
+                val currentTimeMillis = System.currentTimeMillis()
+                val formattedTime = timeFormat.format(currentTimeMillis)
 
-        // Generate an 8-digit random number as itemPushKey
-        val itemPushKey = Random.nextInt(10000000, 99999999).toString()
+                val amountTotalString = binding.amountTotal.text.toString().replace("₹", "").trim()
+                val adjustedTotalAmount = amountTotalString.toDoubleOrNull() ?: 0.0
+                val currentDate = SimpleDateFormat("dd-MM-yyyy hh:mm a", Locale.getDefault()).format(Date())
 
-        // Get the order date in the desired format
-        val orderDate = SimpleDateFormat("d MMMM yyyy", Locale.getDefault()).format(Date())
+                val shopNames = mutableListOf<String>()
+                for (i in 0 until binding.pathContainer.childCount) {
+                    val textView = binding.pathContainer.getChildAt(i) as TextView
+                    shopNames.add(textView.text.toString())
+                }
 
-        // Collect shop names from the pathContainer
-        val shopNames = mutableListOf<String>()
-        for (i in 0 until binding.pathContainer.childCount) {
-            val textView = binding.pathContainer.getChildAt(i) as TextView
-            shopNames.add(textView.text.toString())
+                val skuSet = mutableSetOf<String>()
+                val skuUnitQuantities = hashMapOf<String, String>() // Map to store UnitQuantity as String
+
+                val shopsRef = databaseReference.child("Shops")
+
+                // Iterate through each shop name
+                shopNames.forEach { shopName ->
+                    val shopRef = shopsRef.child(shopName)
+                    shopRef.get().addOnSuccessListener { shopSnapshot ->
+                        shopSnapshot.children.forEach { categorySnapshot ->
+                            categorySnapshot.children.forEach { skuSnapshot ->
+                                val skuFoodDescription = skuSnapshot.child("foodDescription").getValue(String::class.java)
+                                val skuFoodDescriptions = skuSnapshot.child("foodDescriptions").getValue(String::class.java)
+
+                                if ((skuFoodDescription != null && foodItemDescription.contains(skuFoodDescription)) ||
+                                    (skuFoodDescriptions != null && foodItemDescription.contains(skuFoodDescriptions))) {
+
+                                    val skuId = skuSnapshot.key
+                                    if (skuId != null && skuId.startsWith("SKU-")) {
+                                        skuSet.add(skuId)
+                                    }
+                                }
+                            }
+                        }
+
+                        val allUsersRef = databaseReference.child("user")
+                        allUsersRef.get().addOnSuccessListener { allUsersSnapshot ->
+                            allUsersSnapshot.children.forEach { userSnapshot ->
+                                val cartItemsSnapshot = userSnapshot.child("cartItems")
+                                skuSet.forEach { skuId ->
+                                    val unitQuantity = cartItemsSnapshot.child(skuId).child("UnitQuantity").getValue(String::class.java)
+                                    if (!unitQuantity.isNullOrEmpty()) {
+                                        // Extract numeric value and unit
+                                        val numericValue = unitQuantity.replace("[^\\d.]".toRegex(), "").toDoubleOrNull()
+                                        val unit = unitQuantity.replace("[\\d.\\s]".toRegex(), "").lowercase()
+
+                                        if (numericValue != null) {
+                                            val formattedValue = when (unit) {
+                                                "g" -> if (numericValue >= 1000) {
+                                                    "%.1fkg".format(numericValue / 1000) // Convert grams to kilograms if >= 1000g
+                                                } else {
+                                                    "${numericValue.toInt()}g" // Keep value in grams if < 1000g
+                                                }
+                                                else -> null // Unknown unit, skip this entry
+                                            }
+
+                                            // Store the formatted value in skuUnitQuantities map if valid
+                                            if (formattedValue != null) {
+                                                skuUnitQuantities[skuId] = formattedValue
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+
+
+
+                        // Proceed with saving order details
+                            if (shopNames.last() == shopName) {
+                                val orderTrackingRef = databaseReference.child("OrderTracking").child("lastOrderNumber")
+                                orderTrackingRef.get().addOnSuccessListener { snapshot ->
+                                    val lastOrderNumber = snapshot.getValue(Int::class.java) ?: 100000
+                                    val newOrderNumber = lastOrderNumber + 1
+                                    val itemPushKey = "ORD$newOrderNumber"
+
+                                    orderTrackingRef.setValue(newOrderNumber)
+
+                                    val orderDetails = OrderDetails(
+                                        userId,
+                                        foodItemName,
+                                        foodItemPrice,
+                                        foodItemImage,
+                                        foodItemQuantities,
+                                        address,
+                                        adjustedTotalAmount.toInt(),
+                                        itemPushKey,
+                                        currentDate,
+                                        status == "success",
+                                        shopNames,
+                                        selectedSlot,
+                                        foodItemDescription,
+                                        skuSet.toList(),
+                                        skuUnitQuantities.values.toList() // Store only quantities as Strings
+                                    )
+
+                                    val orderReference = databaseReference.child("OrderDetails").child(itemPushKey)
+                                    orderReference.setValue(orderDetails)
+                                        .addOnSuccessListener {
+                                            Log.d(TAG, "Order details saved with status: $status")
+                                            removeItemFromCart()
+                                            removeItemFromCart1()
+                                            addOrderToHistory(orderDetails)
+                                        }
+                                        .addOnFailureListener {
+                                            Toast.makeText(this, "Failed to save order details", Toast.LENGTH_SHORT).show()
+                                        }
+                                }.addOnFailureListener {
+                                    Toast.makeText(this, "Failed to retrieve last order number", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }.addOnFailureListener {
+                            Toast.makeText(this, "Failed to retrieve users for UnitQuantity", Toast.LENGTH_SHORT).show()
+                        }
+                    }.addOnFailureListener {
+                        Toast.makeText(this, "Failed to retrieve data for shop: $shopName", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } else {
+                Toast.makeText(this, "User ID not found in 'users' path", Toast.LENGTH_SHORT).show()
+            }
+        }.addOnFailureListener {
+            Toast.makeText(this, "Failed to retrieve user ID", Toast.LENGTH_SHORT).show()
         }
-        val orderDetails = OrderDetails(
-
-            userId,
-            foodItemName,
-            foodItemPrice,
-            foodItemImage,
-            foodItemQuantities,
-            address,
-            time,
-            adjustedTotalAmount.toInt(),
-            itemPushKey,
-            orderDate,
-            status == "success", // Order confirmed if payment is successful
-            shopNames,
-            selectedSlot,
-            foodItemDescription,
-
-            )
-
-        val orderReference = databaseReference.child("OrderDetails").child(itemPushKey!!)
-        orderReference.setValue(orderDetails)
-            .addOnSuccessListener {
-                Log.d(TAG, "Order details saved with status: $status")
-                removeItemFromCart()
-                removeItemFromCart1()
-                addOrderToHistory(orderDetails)
-            }
-            .addOnFailureListener {
-                Toast.makeText(this, "Failed to save order details", Toast.LENGTH_SHORT).show()
-
-            }
     }
+
     override fun onPaymentSuccess(paymentId: String) {
         Toast.makeText(this, "Payment Successful", Toast.LENGTH_SHORT).show()
         saveOrderDetails("success") // Update the status to success after payment
@@ -419,7 +596,7 @@ class PayoutActivity : AppCompatActivity(), PaymentResultListener {
 
     override fun onPaymentError(code: Int, response: String?) {
         Toast.makeText(this, "Payment Failed or Canceled", Toast.LENGTH_SHORT).show()
-        saveOrderDetails("success") // Update the status to success after payment
+        saveOrderDetails("failed") // Update the status to success after payment
         // Navigate to MainActivity after saving order details
         val intent = Intent(this, MainActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
@@ -427,9 +604,7 @@ class PayoutActivity : AppCompatActivity(), PaymentResultListener {
         finish() // Optionally finish the current activity
 
 
-
     }
-
 
 
     private fun removeItemFromCart() {
@@ -463,26 +638,36 @@ class PayoutActivity : AppCompatActivity(), PaymentResultListener {
     }
 
     private fun addOrderToHistory(orderDetails: OrderDetails) {
-        databaseReference.child("user").child(userId).child("BuyHistory")
-            .child(orderDetails.itemPushKey!!)
-            .setValue(orderDetails).addOnSuccessListener {
-            }
+        val user = auth.currentUser
+        if (user != null) {
+            val userId = user.uid
+            // Get current date and time
+            val currentDate = SimpleDateFormat("dd-MM-yyyy hh:mm a", Locale.getDefault()).format(Date())
+
+
+            // Store the order details in Firebase
+            val orderRef = databaseReference.child("user").child(userId).child("BuyHistory")
+                .child(orderDetails.itemPushKey!!)
+
+            // Set the order details
+            orderRef.setValue(orderDetails)
+                .addOnSuccessListener {
+                    // After successfully storing the order details, store the OrderTime separately
+                    orderRef.child("OrderedTime").setValue(currentDate)
+                        .addOnSuccessListener {
+                            Log.d(TAG, "Order added to history with OrderTime")
+                        }
+                        .addOnFailureListener { e ->
+                            Log.w(TAG, "Failed to store OrderTime", e)
+                        }
+                }
+                .addOnFailureListener { e ->
+                    Log.w(TAG, "Failed to add order to history", e)
+                }
+        }
     }
 
-    private fun calculateTotalAmount(): Int {
-        var totalAmount = 0
-        for (i in 0 until foodItemPrice.size) {
-            val price = foodItemPrice[i]
-            val priceIntValue = if (price.last() == '₹') {
-                price.dropLast(1).toInt()
-            } else {
-                price.toInt()
-            }
-            val quantity = foodItemQuantities[i]
-            totalAmount += priceIntValue * quantity
-        }
-        return totalAmount
-    }
+
 
     private fun setUserData() {
         val user = auth.currentUser

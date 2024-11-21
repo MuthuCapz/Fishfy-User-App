@@ -5,6 +5,7 @@ package com.capztone.fishfy.ui.activities.adapters
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -55,15 +56,27 @@ class SearchAdapter(
                 putString("MenuItemDescription", menuItem.foodDescription)
                 putString("MenuItemImage", menuItem.foodImage)
                 putString("MenuQuantity", menuItem.productQuantity)
+                putString("key", menuItem.key)
+
+
+
+                // Extracting the Shop ID from the path
+                val pathSegments = menuItem.path!!.split("/")
+                val shopId = if (pathSegments.size > 1 && pathSegments[0] == "Shops") {
+                    pathSegments[1] // This will give you "SHOP1001"
+                } else {
+                    "Unknown Shop" // Default value if parsing fails
+                }
+                putString("Shop Id", shopId) // Pass the shop ID here
             }
 
             // Navigate to the details fragment using NavController
             view.findNavController().navigate(R.id.action_searchFragment_to_detailsFragment, bundle)
         }
 
+
         fun bind(menuItem: MenuItem) {
             binding.apply {
-                // Join food names with commas
                 val foodName =
                     menuItem.foodName?.toString()?.replace("[", "")?.replace("]", "") ?: ""
                 val slashIndex = foodName.indexOf("/")
@@ -74,30 +87,53 @@ class SearchAdapter(
                     menuFoodName.text = foodName
                     menuFoodName1.text = ""
                 }
-                val priceWithPrefix = "₹${menuItem.foodPrice}" // Prefixing the price with "₹"
+
+                val priceWithPrefix = "₹${menuItem.foodPrice}"
                 menuPrice.text = priceWithPrefix
-                val url = Uri.parse(menuItem.foodImage)
-                Glide.with(context).load(url).into(menuImage)
+
+                val path = menuItem.path
+                if (!path.isNullOrEmpty()) {
+                    Log.d("SearchAdapter", "Path: $path")
+                    val pathSegments = path.split("/")
+
+                    val shopName = if (pathSegments.size > 1 && pathSegments[0] == "Shops") {
+                        pathSegments[1]
+                    } else {
+                        "Unknown Shop"
+                    }
+                    shopname.text = shopName
+                } else {
+                    Log.d("SearchAdapter", "Path is null or empty")
+                    shopname.text = "Unknown Shop"
+                }
+
+                // Load the image if the URL is valid
+                if (!menuItem.foodImage.isNullOrEmpty()) {
+                    val url = Uri.parse(menuItem.foodImage)
+                    Glide.with(context).load(url).into(menuImage)
+                } else {
+                    // Set a placeholder image if `foodImage` is null or empty
+                    menuImage.setImageResource(R.drawable.fish1) // Replace with your placeholder image resource
+                }
             }
         }
     }
+        fun filter(query: String) {
+            filteredMenuItems = if (query.isEmpty()) {
+                menuItems
+            } else {
+                menuItems.filter { menuItem ->
+                    // Check if the English name contains the query
+                    menuItem.foodName?.getOrNull(0)?.contains(query, ignoreCase = true) ?: false
+                }
+            }
+            notifyDataSetChanged()
 
-    fun filter(query: String) {
-        filteredMenuItems = if (query.isEmpty()) {
-            menuItems
-        } else {
-            menuItems.filter { menuItem ->
-                // Check if the English name contains the query
-                menuItem.foodName?.getOrNull(0)?.contains(query, ignoreCase = true) ?: false
+            // Show/hide the noResultsTextView based on the filtered list size
+            if (filteredMenuItems.isEmpty()) {
+                noResultsTextView.visibility = View.VISIBLE
+            } else {
+                noResultsTextView.visibility = View.GONE
             }
         }
-        notifyDataSetChanged()
-
-        // Show/hide the noResultsTextView based on the filtered list size
-        if (filteredMenuItems.isEmpty()) {
-            noResultsTextView.visibility = View.VISIBLE
-        } else {
-            noResultsTextView.visibility = View.GONE
-        }
     }
-}

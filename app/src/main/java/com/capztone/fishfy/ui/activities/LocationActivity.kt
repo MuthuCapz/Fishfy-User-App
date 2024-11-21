@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import com.capztone.admin.utils.FirebaseAuthUtil
 import com.capztone.fishfy.databinding.ActivityLocationBinding
 import com.capztone.fishfy.ui.activities.Utils.ToastHelper
 import com.capztone.fishfy.ui.activities.adapters.AddressAdapter
@@ -37,18 +38,11 @@ class LocationActivity : AppCompatActivity() {
         mainBinding = ActivityLocationBinding.inflate(layoutInflater)
         setContentView(mainBinding.root)
 
-        auth = FirebaseAuth.getInstance()
+        auth = FirebaseAuthUtil.auth
         database = FirebaseDatabase.getInstance().reference
         sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-        window?.let { window ->
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-                window.statusBarColor = Color.WHITE
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                window.statusBarColor = Color.WHITE
-            }
-        }
+
+
         mainBinding.Locationbutton.setOnClickListener {
             val intent = Intent(this, MapsActivity::class.java)
             startActivityForResult(intent, REQUEST_CODE_MAP)
@@ -64,8 +58,8 @@ class LocationActivity : AppCompatActivity() {
         fetchShopLocationsFromFirebase()
     }
     private fun fetchAdminDistanceThreshold() {
-        val adminId = "spXRl1jY4yTlhDKZJzLicp8E9kc2"
-        val adminRef = database.child("Admins").child(adminId).child("User Distance")
+
+        val adminRef = database.child("Delivery Details").child("User Distance")
 
         adminRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -125,7 +119,7 @@ class LocationActivity : AppCompatActivity() {
     private fun fetchUserLocationFromFirebase() {
         val userId = auth.currentUser?.uid ?: return
 
-        userLocationRef = database.child("Locations").child(userId)
+        userLocationRef = database.child("Addresses").child(userId)
         userLocationListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val latitude = dataSnapshot.child("latitude").getValue(Double::class.java)
@@ -166,8 +160,8 @@ class LocationActivity : AppCompatActivity() {
 
     private fun storeNearbyShopsInFirebase(shops: String) {
         val userId = auth.currentUser?.uid ?: return
-        val userLocationRef = database.child("Locations").child(userId)
-        userLocationRef.child("shopname").setValue(shops)
+        val userLocationRef = database.child("Addresses").child(userId)
+        userLocationRef.child("Shop Id").setValue(shops)
             .addOnSuccessListener {
 
             }

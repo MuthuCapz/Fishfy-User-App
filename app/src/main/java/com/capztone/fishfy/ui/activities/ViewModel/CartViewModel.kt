@@ -36,7 +36,7 @@ class CartViewModel : ViewModel() {
                             foodNames.add(it.foodName.toString())
                             foodPrices.add("₹" + it.foodPrice.toString())
                             foodDescriptions.add(it.foodDescription.toString())
-                            foodIngredients.add(it.foodIngredients.toString())
+                            foodIngredients.add(it.CartItemAddTime.toString())
                             foodImageUri.add(it.foodImage.toString())
                             paths.add(it.path.toString()) // Add path to the list
                             it.foodQuantity?.let { it1 -> quantity.add(it1) }
@@ -107,7 +107,7 @@ class CartViewModel : ViewModel() {
                             foodName.add(it.foodName.toString())
                             foodPrice.add(it.foodPrice.toString())
                             foodDescription.add(it.foodDescription.toString())
-                            foodIngredient.add(it.foodIngredients.toString())
+                            foodIngredient.add(it.CartItemAddTime.toString())
                             foodImage.add(it.foodImage.toString())
                         }
                     }

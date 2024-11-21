@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.capztone.admin.utils.FirebaseAuthUtil
 import com.capztone.fishfy.R
 import com.capztone.fishfy.databinding.ActivityLoginBinding
 import com.capztone.fishfy.ui.activities.VerifyNumberActivity.Companion.phoneNumberKey
@@ -18,6 +19,9 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class LoginActivity : AppCompatActivity() {
 
@@ -31,13 +35,10 @@ class LoginActivity : AppCompatActivity() {
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        auth = FirebaseAuth.getInstance()
+        auth = FirebaseAuthUtil.auth
         configureGoogleSignIn()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-            window.statusBarColor = android.graphics.Color.TRANSPARENT
-        }
+
 
         database = FirebaseDatabase.getInstance().reference
 
@@ -175,24 +176,60 @@ class LoginActivity : AppCompatActivity() {
             }
         })
     }
-
     private fun storeUserData(user: FirebaseUser) {
-        val userRef = database.child("users").child(user.uid)
-        val userMap = mapOf(
-            "uid" to user.uid,
-            "email" to user.email,
-            "username" to user.displayName
-        )
-        userRef.setValue(userMap).addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                Log.d(TAG, "User data stored successfully")
+        val userRef = database.child("users")
+        val counterRef = database.child("UserIDCounter") // Counter to keep track of the last used user ID
+
+        // Get current date and time
+        val currentDate = SimpleDateFormat("dd-MM-yyyy hh:mm a", Locale.getDefault()).format(Date())
+
+        // Retrieve the current counter value
+        counterRef.get().addOnCompleteListener { counterTask ->
+            if (counterTask.isSuccessful) {
+                val currentCounter = counterTask.result.getValue(Int::class.java) ?: 1000 // Default to 1000 if null
+
+                // Generate a custom user ID (e.g., USER1001, USER1002, etc.)
+                val customUserId = "USER${currentCounter + 1}"
+
+                // Check if the user signed in with Google or mobile
+                val profileImageUrl = if (user.photoUrl != null) {
+                    user.photoUrl.toString() // Google profile URL
+                } else {
+                    R.drawable.bg_profile
+                }
+
+                // Create user data map
+                val userMap = mapOf(
+                    "userid" to customUserId,
+                    "email" to user.email,
+                    "username" to user.displayName,
+                    "profileImage" to profileImageUrl, // Save "default" or Google profile URL
+                    "LoginDate" to currentDate // Store current date and time
+                )
+
+                // Store the user data under the custom user ID
+                userRef.child(user.uid).setValue(userMap).addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        Log.d(TAG, "User data stored successfully with login time")
+
+                        // Update the counter in the database
+                        counterRef.setValue(currentCounter + 1).addOnCompleteListener { updateTask ->
+                            if (updateTask.isSuccessful) {
+                                Log.d(TAG, "User ID counter updated successfully")
+                            } else {
+                                Log.w(TAG, "Failed to update user ID counter")
+                            }
+                        }
+                    } else {
+                        Log.w(TAG, "Failed to store user data")
+                        Toast.makeText(baseContext, "Failed to store user data", Toast.LENGTH_SHORT).show()
+                    }
+                }
             } else {
-                Log.w(TAG, "Failed to store user data")
-                Toast.makeText(baseContext, "Failed to store user data", Toast.LENGTH_SHORT).show()
+                Log.w(TAG, "Failed to retrieve user ID counter")
             }
         }
     }
-
     private fun navigateToNotThereActivity() {
         val intent = Intent(this, NotThereActivity::class.java)
         startActivity(intent)

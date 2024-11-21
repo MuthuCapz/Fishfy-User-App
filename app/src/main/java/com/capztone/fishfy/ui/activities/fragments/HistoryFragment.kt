@@ -43,15 +43,7 @@ class HistoryFragment : Fragment() {
   viewModel = ViewModelProvider(this).get(HistoryViewModel::class.java)
   adapter = RecentBuyAdapter(requireContext(), viewModel)
 
-  activity?.window?.let { window ->
-   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-    window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-    window.statusBarColor = Color.WHITE
-   } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-    window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-    window.statusBarColor = Color.WHITE
-   }
-  }
+
 
   binding.recentRecyclerView.layoutManager = LinearLayoutManager(requireContext())
   binding.recentRecyclerView.adapter = adapter

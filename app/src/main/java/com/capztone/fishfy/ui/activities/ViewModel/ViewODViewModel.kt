@@ -59,7 +59,7 @@ class ViewODViewModel : ViewModel() {
     }
     fun fetchOrderStatus(orderId: String, callback: (String?) -> Unit) {
         // Assuming you have a reference to Firebase and the status is stored under a specific path
-        val statusRef = firebaseRef.child("status").child(orderId).child("message")
+        val statusRef = firebaseRef.child("OrderDetails").child(orderId).child("Confirmation")
         statusRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val status = snapshot.getValue(String::class.java)

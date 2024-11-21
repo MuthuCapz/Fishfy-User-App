@@ -19,21 +19,37 @@ class HistoryViewModel : ViewModel() {
 
     private val database: DatabaseReference = FirebaseDatabase.getInstance().reference.child("OrderDetails")
     private val auth: FirebaseAuth = Firebase.auth
+    private val databases: DatabaseReference = FirebaseDatabase.getInstance().reference
+
 
     fun fetchOrders() {
-        val userId = auth.currentUser?.uid
-        if (userId != null) {
-            database.orderByChild("userUid").equalTo(userId)
+        val currentUserId = auth.currentUser?.uid
+        if (currentUserId != null) {
+            // Fetch the userUid from the 'users' path
+            databases.child("users").child(currentUserId).child("userid")
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
-                        val orderList = mutableListOf<Order>()
-                        for (orderSnapshot in snapshot.children) {
-                            val order = orderSnapshot.getValue(Order::class.java)
-                            order?.let { orderList.add(it) }
+                        val userUid = snapshot.getValue(String::class.java)
+                        if (userUid != null) {
+                            // Query orders based on the retrieved userUid
+                            database.orderByChild("userUid").equalTo(userUid)
+                                .addListenerForSingleValueEvent(object : ValueEventListener {
+                                    override fun onDataChange(snapshot: DataSnapshot) {
+                                        val orderList = mutableListOf<Order>()
+                                        for (orderSnapshot in snapshot.children) {
+                                            val order = orderSnapshot.getValue(Order::class.java)
+                                            order?.let { orderList.add(it) }
+                                        }
+                                        // Reverse the order of the list
+                                        orderList.reverse()
+                                        _orders.value = orderList
+                                    }
+
+                                    override fun onCancelled(error: DatabaseError) {
+                                        // Handle error
+                                    }
+                                })
                         }
-                        // Reverse the order of the list
-                        orderList.reverse()
-                        _orders.value = orderList
                     }
 
                     override fun onCancelled(error: DatabaseError) {
@@ -42,6 +58,7 @@ class HistoryViewModel : ViewModel() {
                 })
         }
     }
+
 
     suspend fun cancelOrder(orderId: String): Boolean {
         return withContext(Dispatchers.IO) {

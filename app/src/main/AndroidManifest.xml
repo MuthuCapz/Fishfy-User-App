@@ -15,6 +15,7 @@
         android:icon="@drawable/fishfyicon"
         android:label="Fishfy"
 
+        android:name=".ui.activities.MyApp"
         android:supportsRtl="true"
         android:theme="@style/Base.Theme.Sea"
         tools:targetApi="34">

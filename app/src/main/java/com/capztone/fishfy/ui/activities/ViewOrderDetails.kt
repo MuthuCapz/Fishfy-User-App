@@ -3,11 +3,13 @@ package com.capztone.fishfy.ui.activities
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -19,6 +21,7 @@ import com.capztone.fishfy.databinding.ActivityViewOrderDetailsBinding
 import com.capztone.fishfy.ui.activities.models.Order
 import com.capztone.fishfy.ui.activities.Utils.ToastHelper
 import com.capztone.fishfy.ui.activities.ViewModel.ViewODViewModel
+import com.google.firebase.database.FirebaseDatabase
 
 class ViewOrderDetails : AppCompatActivity() {
 
@@ -34,17 +37,13 @@ class ViewOrderDetails : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityViewOrderDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-            window.statusBarColor = android.graphics.Color.TRANSPARENT
-        }
 
-        viewModel = ViewModelProvider(this).get(ViewODViewModel::class.java)
+            viewModel = ViewModelProvider(this).get(ViewODViewModel::class.java)
 
-        binding.detailGoToBackImageButton.setOnClickListener {
-            finish()
-        }
 
+binding.detailGoToBackImageButton.setOnClickListener {
+    finish()
+}
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         orderId = intent.getStringExtra("order_id") ?: ""
@@ -60,6 +59,7 @@ class ViewOrderDetails : AppCompatActivity() {
         cancelHandler = Handler()
         sharedPreferences = getSharedPreferences("OrderCancellation", Context.MODE_PRIVATE) // Initialize SharedPreferences
 
+
         observeViewModel()
     }
 
@@ -69,7 +69,21 @@ class ViewOrderDetails : AppCompatActivity() {
                 displayOrderDetails(order)
             }
         }
-        // Check order status from Firebase and enable/disable radio button accordingly
+
+        // Check order cancellation status from Firebase
+        val database = FirebaseDatabase.getInstance()
+        val orderRef = database.getReference("OrderDetails").child(orderId)
+
+        orderRef.child("cancellationMessage").get().addOnSuccessListener { snapshot ->
+            val cancellationMessage = snapshot.getValue(String::class.java)
+            if (cancellationMessage != null && cancellationMessage == "Order Cancelled") {
+                // If order is cancelled, disable the order view
+                binding.radio.isEnabled = false
+                disableOrderView()
+            }
+        }
+
+        // Fetch order status and perform appropriate actions
         viewModel.fetchOrderStatus(orderId) { status ->
             when (status) {
                 "Order confirmed" -> {
@@ -97,21 +111,8 @@ class ViewOrderDetails : AppCompatActivity() {
             }
         }
 
-        viewModel.orderImages.observe(this) { imageUrls ->
-            imageUrls.forEachIndexed { index, imageUrl ->
-                // Load image into respective ImageView based on index
-                when (index) {
-                    0 -> loadImageIntoImageView(imageUrl, binding.foodImage)
-                    1 -> loadImageIntoImageView(imageUrl, binding.foodImage1)
-                    2 -> loadImageIntoImageView(imageUrl, binding.foodImage2)
-                    3 -> loadImageIntoImageView(imageUrl, binding.foodImage3)
-                    4 -> loadImageIntoImageView(imageUrl, binding.foodImage4)
-                    // Add more cases if you have more ImageViews
-                }
-            }
-        }
 
-        viewModel.orderCancellationStatus.observe(this) { cancelled ->
+    viewModel.orderCancellationStatus.observe(this) { cancelled ->
             if (cancelled) {
                 ToastHelper.showCustomToast(this, "Order cancelled")
                 // Disable the view
@@ -128,17 +129,20 @@ class ViewOrderDetails : AppCompatActivity() {
     }
 
     private fun showOrderTakenDialog() {
-        val alertDialogBuilder = AlertDialog.Builder(this, R.style.CustomDialogTheme)
-        alertDialogBuilder.setMessage("You can't cancel your order because the driver has already taken it.")
+        val dialogView = layoutInflater.inflate(R.layout.dialog_order_taken, null)
+        val alertDialogBuilder = AlertDialog.Builder(this, R.style.CustomDialogThem)
+            .setView(dialogView)
             .setCancelable(false)
-            .setPositiveButton("OK") { dialog, _ ->
-                binding.radio.isChecked = false
-                dialog.dismiss()
-            }
+
         val alertDialog = alertDialogBuilder.create()
         alertDialog.show()
-    }
 
+        val btnOk = dialogView.findViewById<Button>(R.id.btn_ok)
+        btnOk.setOnClickListener {
+            binding.radio.isChecked = false
+            alertDialog.dismiss()
+        }
+    }
     private fun loadImageIntoImageView(imageUrl: String, imageView: ImageView) {
         Glide.with(this@ViewOrderDetails)
             .load(imageUrl)
@@ -160,12 +164,14 @@ class ViewOrderDetails : AppCompatActivity() {
 
     private fun displayOrderDetails(order: Order) {
         binding.apply {
-            oid.text = "Order ID: ${order.itemPushKey}"
-            cid.text = "User ID: ${order.userUid}"
-            foodName.text = "Food Name: ${extractFoodNames(order.foodNames)}"
-            foodPrice.text = "Food Price: ${order.adjustedTotalAmount}"
-            quantity.text = "Quantity: ${order.foodQuantities}"
-            time.text = "${order.currentTime}"
+            oid.text = "${order.itemPushKey}"
+            cid.text = "${order.userUid}"
+            foodName.text = "${extractFoodNames(order.foodNames)}"
+            foodPrice.text = "${order.adjustedTotalAmount}"
+            quantity.text = "${order.foodQuantities}"
+            time.text = "${order.orderDate}"
+            slot.text = "${order.selectedSlot}"
+            address.text = "${order.address}"
 
             binding.orderstatus.setOnClickListener {
                 val intent = Intent(this@ViewOrderDetails, OrderStatusActivity::class.java)
@@ -178,29 +184,37 @@ class ViewOrderDetails : AppCompatActivity() {
         }
     }
     private fun showCancelOrderDialog() {
-        // Check the current order status
         viewModel.fetchOrderStatus(orderId) { status ->
             when (status) {
-                "Order confirmed", "Order picked", "Order delivered" -> {
+                "Order Confirmed" -> {
                     showOrderTakenDialog()
                 }
                 else -> {
-                    // Check if the order is already cancelled
                     if (sharedPreferences.getBoolean("order_cancelled_$orderId", false)) {
                         ToastHelper.showCustomToast(this, "Your order is already cancelled")
                     } else {
-                        // Show the cancel order dialog if the order status allows cancellation
-                        AlertDialog.Builder(this)
-                            .setMessage("Are you sure you want to cancel your order?")
+                        // Inflate the custom layout
+                        val dialogView = layoutInflater.inflate(R.layout.dialog_cancel_order, null)
+                        val alertDialogBuilder = AlertDialog.Builder(this, R.style.CustomDialogThem)
+                            .setView(dialogView)
                             .setCancelable(false)
-                            .setPositiveButton("Yes") { _, _ ->
-                                viewModel.cancelOrder(orderId)
-                            }
-                            .setNegativeButton("No") { dialog, _ ->
-                                dialog.dismiss()
-                                binding.radio.isChecked = false
-                            }
-                            .show()
+
+                        val alertDialog = alertDialogBuilder.create()
+                        alertDialog.show()
+                        alertDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+                        // Set up the buttons in the custom layout
+                        val btnYes = dialogView.findViewById<Button>(R.id.btn_yes)
+                        val btnNo = dialogView.findViewById<Button>(R.id.btn_no)
+
+                        btnYes.setOnClickListener {
+                            viewModel.cancelOrder(orderId)
+                            alertDialog.dismiss()
+                        }
+
+                        btnNo.setOnClickListener {
+                            alertDialog.dismiss()
+                            binding.radio.isChecked = false
+                        }
                     }
                 }
             }
@@ -223,7 +237,7 @@ class ViewOrderDetails : AppCompatActivity() {
         binding.viewOrder.alpha = 0.5f
         // Display cancellation message on the disabled view
         val cancelledImageView = ImageView(this)
-        cancelledImageView.setImageResource(R.drawable.cancelimg)
+        binding.cancelimg.visibility = View.VISIBLE
         cancelledImageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
         binding.orderstatus.isEnabled = false
         binding.radio.isEnabled = false

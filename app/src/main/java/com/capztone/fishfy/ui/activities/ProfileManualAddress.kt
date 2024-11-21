@@ -19,6 +19,7 @@ import android.os.Build
 import android.widget.TextView
 import androidx.appcompat.widget.AppCompatButton
 import androidx.navigation.findNavController
+import com.capztone.admin.utils.FirebaseAuthUtil
 import com.capztone.fishfy.databinding.ActivityProfileManualAddressBinding
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -27,6 +28,9 @@ import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
@@ -46,16 +50,8 @@ class ProfileManualAddress : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityProfileManualAddressBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        window?.let { window ->
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-                window.statusBarColor = Color.WHITE
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                window.statusBarColor = Color.WHITE
-            }
-        }
-        auth = FirebaseAuth.getInstance()
+
+         auth = FirebaseAuthUtil.auth
         database = FirebaseDatabase.getInstance().reference
         geocoder = Geocoder(this)
         fetchShopLocationsFromFirebase()
@@ -133,7 +129,7 @@ class ProfileManualAddress : AppCompatActivity() {
                 // Retrieve the distance threshold from Firebase
                 val userId = FirebaseAuth.getInstance().currentUser?.uid
                 if (userId != null) {
-                    val databaseReference = FirebaseDatabase.getInstance().getReference("Admins/spXRl1jY4yTlhDKZJzLicp8E9kc2/User Distance")
+                    val databaseReference = FirebaseDatabase.getInstance().getReference("Delivery Details/User Distance")
                     databaseReference.addListenerForSingleValueEvent(object : ValueEventListener {
                         override fun onDataChange(dataSnapshot: DataSnapshot) {
                             val distanceThresholdString = dataSnapshot.getValue(String::class.java)
@@ -189,7 +185,7 @@ class ProfileManualAddress : AppCompatActivity() {
     }
 
     private fun deleteShopNameFromFirebase(userId: String) {
-        val userLocationRef = database.child("Locations").child(userId).child("shopname")
+        val userLocationRef = database.child("Addresses").child(userId).child("Shop Id")
         userLocationRef.removeValue()
             .addOnSuccessListener {
             }
@@ -199,8 +195,8 @@ class ProfileManualAddress : AppCompatActivity() {
 
     private fun storeNearbyShopsInFirebase(shops: String) {
         val userId = auth.currentUser?.uid ?: return
-        val userLocationRef = database.child("Locations").child(userId)
-        userLocationRef.child("shopname").setValue(shops)
+        val userLocationRef = database.child("Addresses").child(userId)
+        userLocationRef.child("Shop Id").setValue(shops)
             .addOnSuccessListener {
 
             }
@@ -346,10 +342,10 @@ class ProfileManualAddress : AppCompatActivity() {
 
     private fun saveAddressToFirebase() {
         val userId = auth.currentUser?.uid ?: return
-        val uidid = "spXRl1jY4yTlhDKZJzLicp8E9kc2"
+
 
         // Retrieve the "User Distance" value from Firebase
-        val adminDistanceRef = database.child("Admins").child(uidid).child("User Distance")
+        val adminDistanceRef = database.child("Delivery Details").child("User Distance")
         adminDistanceRef.get().addOnSuccessListener { dataSnapshot ->
             val userDistance = try {
                 dataSnapshot.getValue(Double::class.java)
@@ -443,10 +439,10 @@ class ProfileManualAddress : AppCompatActivity() {
                         )
 
                         if (nearbyShops.isNotEmpty()) {
-                            locationData["shopname"] = shopsWithinThreshold
+                            locationData["Shop Id"] = shopsWithinThreshold
                         } else {
                             deleteShopNameFromFirebase(userId)
-                            database.child("Locations").child(userId).child("shopname")
+                            database.child("Addresses").child(userId).child("Shop Id")
                                 .removeValue()
                                 .addOnCompleteListener { shopNameRemoveTask ->
                                     if (shopNameRemoveTask.isSuccessful) {
@@ -459,7 +455,7 @@ class ProfileManualAddress : AppCompatActivity() {
 
 
                         // Store the locality directly inside Locations -> userId
-                        database.child("Locations").child(userId).child("locality")
+                        database.child("Addresses").child(userId).child("locality")
                             .setValue(locality)
                             .addOnCompleteListener { localitySaveTask ->
                                 if (!localitySaveTask.isSuccessful) {
@@ -482,7 +478,7 @@ class ProfileManualAddress : AppCompatActivity() {
                                 }
                             }
                         // Store username and mobile number under Locations -> userId -> User Details
-                        val userDetailsRef = database.child("Locations").child(userId).child("User Details")
+                        val userDetailsRef = database.child("Addresses").child(userId).child("User Details")
                         userDetailsRef.child("user name").setValue(name)
                         userDetailsRef.child("mobile number").setValue(mobileNumber)
                             .addOnCompleteListener { userSaveTask ->
@@ -499,7 +495,7 @@ class ProfileManualAddress : AppCompatActivity() {
 
 
                         // Store latitude and longitude under Locations -> userId
-                        val locationRef = database.child("Locations").child(userId)
+                        val locationRef = database.child("Addresses").child(userId)
                         locationRef.child("latitude").setValue(latitude)
                             .addOnCompleteListener { latitudeSaveTask ->
                                 if (!latitudeSaveTask.isSuccessful) {
@@ -533,9 +529,27 @@ class ProfileManualAddress : AppCompatActivity() {
                                     ).show()
                                 }
                             }
+                        val currentDate = SimpleDateFormat("dd-MM-yyyy hh:mm a", Locale.getDefault()).format(Date())
+
+                        locationRef.child("LocationAddedTime").setValue(currentDate)
+                            .addOnCompleteListener { timeSaveTask ->
+                                if (timeSaveTask.isSuccessful) {
+                                    Toast.makeText(
+                                        this@ProfileManualAddress,
+                                        "",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                } else {
+                                    Toast.makeText(
+                                        this@ProfileManualAddress,
+                                        "Failed to save LocationAddedTime: ${timeSaveTask.exception?.message}",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
 
                         // Store shopname under Locations -> userId -> shopname
-                        database.child("Locations").child(userId).child("shopname")
+                        database.child("Addresses").child(userId).child("Shop Id")
                             .setValue(shopsWithinThreshold)
                             .addOnCompleteListener { shopnameSaveTask ->
                                 if (!shopnameSaveTask.isSuccessful) {

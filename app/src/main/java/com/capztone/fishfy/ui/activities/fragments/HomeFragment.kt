@@ -4,7 +4,9 @@ package com.capztone.fishfy.ui.activities.fragments
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.SharedPreferences
 import android.graphics.Color
+import android.location.Address
 import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Bundle
@@ -54,10 +56,17 @@ import android.os.Handler
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.navigation.NavController
+import com.capztone.admin.utils.FirebaseAuthUtil
 import com.capztone.fishfy.ui.activities.LocationNotAvailable
 import com.capztone.fishfy.ui.activities.Utils.NetworkReceiver
+import com.capztone.fishfy.ui.activities.adapters.OrderItem
 import com.google.firebase.crashlytics.buildtools.reloc.com.google.common.reflect.TypeToken
 import com.google.gson.Gson
+import java.io.IOException
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 
 class HomeFragment : Fragment(), ExploreShopAdapter.OnItemClickListener {
@@ -89,11 +98,16 @@ class HomeFragment : Fragment(), ExploreShopAdapter.OnItemClickListener {
     private lateinit var categoryAdapter: CategoryAdapter
     private lateinit var homeDiscountAdapter: HomeDiscountAdapter // Initialize HomeDiscountAdapter
     private lateinit var navController: NavController
+    private val adminDestinations = mutableListOf<Pair<Double, Double>>()
+    private val shopNames = mutableListOf<String>()
+
 
 
 
     private val buyHistory: MutableList<PreviousItem> = mutableListOf()
     private lateinit var homeViewModel: HomeViewModel
+    private val sharedPreferences by lazy { requireActivity().getSharedPreferences("AppPreferences", Context.MODE_PRIVATE) }
+
 
 
     override fun onCreateView(
@@ -103,12 +117,21 @@ class HomeFragment : Fragment(), ExploreShopAdapter.OnItemClickListener {
         binding = FragmentHomeBinding.inflate(inflater, container, false)
         viewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
 
-        adapter1 = PreviousOrderAdapter(buyHistory,requireContext()) // Initialize adapter1 here
+        // Assuming buyHistory is of type MutableList<PreviousItem>
+        // Assuming buyHistory is of type MutableList<PreviousItem>
+        val orderItems = buyHistory.map { previousItem ->
+            OrderItem.Previous(previousItem) as OrderItem // Cast each PreviousItem to OrderItem
+        }.toMutableList() // Convert the list to MutableList<OrderItem>
+
+// Now pass the correct list to the adapter
+        adapter1 = PreviousOrderAdapter(orderItems, requireContext())
+
+        // Initialize adapter1 here
         navController = findNavController()
         observeViewModel()
 
         database = FirebaseDatabase.getInstance()
-        databaseReference = database.getReference("Locations")
+        databaseReference = database.getReference("Addresses")
         databaseRef = FirebaseDatabase.getInstance().reference
         currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
         // Add this part to check network connectivity
@@ -116,7 +139,10 @@ class HomeFragment : Fragment(), ExploreShopAdapter.OnItemClickListener {
         networkReceiver = NetworkReceiver { isConnected ->
             handleNetworkStatus(isConnected) // This should be a Boolean
         }
-
+        categories = mutableListOf()
+        categoryAdapter = CategoryAdapter(requireContext(), categories) { category ->
+            storeCategoryAndOpenFragment(category)
+        }
         val filter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
         requireContext().registerReceiver(networkReceiver, filter)
 
@@ -148,21 +174,12 @@ class HomeFragment : Fragment(), ExploreShopAdapter.OnItemClickListener {
         }, 1500)
 
 
-        activity?.window?.let { window ->
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-                window.statusBarColor = Color.TRANSPARENT
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                window.statusBarColor = Color.TRANSPARENT
-            }
-        }
+
 
         databases = FirebaseDatabase.getInstance()
         userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
-        auth = FirebaseAuth.getInstance()
-
+auth = FirebaseAuthUtil.auth
 
         viewModel.menuItems.observe(viewLifecycleOwner) { items ->
             adapter.updateData(items)
@@ -198,7 +215,7 @@ class HomeFragment : Fragment(), ExploreShopAdapter.OnItemClickListener {
         updateTitlesVisibility(menuItems,cartItems,categories)
 
         fetchCategories()
-
+        fetchShopLocationsFromFirebase()
         fetchShopNameAndUpdateAdapter()
 
         fetchUserShopName()
@@ -256,12 +273,9 @@ class HomeFragment : Fragment(), ExploreShopAdapter.OnItemClickListener {
         categories: MutableList<Category>
     ) {
         if (menuItems.isEmpty()  &&  cartItems.isEmpty() &&  categories.isEmpty()) {
-            binding.textVieww3.visibility = View.INVISIBLE
-            binding.textVieww.visibility = View.INVISIBLE
             binding.textVieww1.visibility = View.INVISIBLE
             binding.textVieww2.visibility = View.INVISIBLE
             binding.textVieww4.visibility = View.INVISIBLE
-            binding.viewall.visibility = View.INVISIBLE
         } else {
             binding.textVieww3.visibility = View.VISIBLE
             binding.textVieww.visibility = View.VISIBLE
@@ -271,6 +285,151 @@ class HomeFragment : Fragment(), ExploreShopAdapter.OnItemClickListener {
             binding.viewall.visibility = View.VISIBLE
         }
     }
+    private fun fetchShopLocationsFromFirebase() {
+        val shopLocationsRef = databaseRef.child("ShopLocations")
+        shopLocationsRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                for (shopSnapshot in dataSnapshot.children) {
+                    val shopName = shopSnapshot.key ?: continue
+                    val lat =
+                        shopSnapshot.child("latitude").getValue(Double::class.java) ?: continue
+                    val lng =
+                        shopSnapshot.child("longitude").getValue(Double::class.java) ?: continue
+                    adminDestinations.add(Pair(lat, lng))
+                    shopNames.add(shopName)
+                }
+
+                // Calculate distances once shop locations are fetched
+                calculateDistances()
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Toast.makeText(
+                    requireContext(),
+                    "Failed to load shop locations",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        })
+    }
+    private fun calculateDistances() {
+        // Get the user ID
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
+        // Fetch user's latitude and longitude from the "Addresses" path in Firebase
+        val userLocationRef = databaseRef.child("Addresses").child(userId)
+        userLocationRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val userLat = dataSnapshot.child("latitude").getValue(Double::class.java) ?: return
+                val userLng = dataSnapshot.child("longitude").getValue(Double::class.java) ?: return
+
+                // Retrieve the distance threshold from Firebase
+                val databaseReference = FirebaseDatabase.getInstance().getReference("Delivery Details/User Distance")
+                databaseReference.addValueEventListener(object : ValueEventListener {
+                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                        val distanceThresholdString = dataSnapshot.getValue(String::class.java)
+                        val distanceThreshold = distanceThresholdString?.toDoubleOrNull() ?: 10.0
+
+                        // Calculate distances between user location and shop locations
+                        val nearbyShops = mutableSetOf<String>() // Use a Set to avoid duplicates
+
+                        for (i in adminDestinations.indices) {
+                            val shopLat = adminDestinations[i].first
+                            val shopLng = adminDestinations[i].second
+
+                            val distance = calculateDistance(userLat, userLng, shopLat, shopLng)
+
+                            // Add shop name if within the threshold
+                            if (distance < distanceThreshold) {
+                                nearbyShops.add(shopNames[i].trim()) // Trim shop name to avoid issues
+                            }
+                        }
+
+                        if (nearbyShops.isNotEmpty()) {
+                            val shopsWithinThreshold = nearbyShops.joinToString(", ")
+                            binding.tvLogitude.text = shopsWithinThreshold
+                            storeNearbyShopsInFirebase(shopsWithinThreshold)
+                        } else {
+                            // Delete the shop name if no shops are within the threshold
+                            deleteShopNameFromFirebase(userId)
+                        }
+                    }
+
+                    override fun onCancelled(databaseError: DatabaseError) {
+                        Toast.makeText(
+                            requireContext(),
+                            "Error fetching distance threshold: ${databaseError.message}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                })
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Toast.makeText(
+                    requireContext(),
+                    "Error fetching user location: ${databaseError.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        })
+    }
+
+    private fun deleteShopNameFromFirebase(userId: String) {
+        val userLocationRef = databaseRef.child("Addresses").child(userId).child("Shop Id")
+        userLocationRef.removeValue()
+            .addOnSuccessListener {
+            }
+            .addOnFailureListener {
+            }
+    }
+
+    private fun storeNearbyShopsInFirebase(newShopId: String) {
+        val userId = auth.currentUser?.uid ?: return
+        val userLocationRef = databaseRef.child("Addresses").child(userId).child("Shop Id")
+
+        // Retrieve the existing Shop Ids
+        userLocationRef.get().addOnSuccessListener { dataSnapshot ->
+            val existingShopIds = dataSnapshot.value as? String
+
+            // Create a set of existing Shop Ids (case-insensitive check, original casing preserved)
+            val shopIdSet = existingShopIds?.split(",")?.map { it.trim() }?.toMutableSet() ?: mutableSetOf()
+            val shopIdSetLowerCase = shopIdSet.map { it.lowercase() }.toMutableSet()
+
+            // Check if the new Shop Id (case-insensitive) is already in the set
+            val newShopIdTrimmed = newShopId.trim()
+            if (!shopIdSetLowerCase.contains(newShopIdTrimmed.lowercase())) {
+                // Add the new Shop Id in its original casing
+                shopIdSet.add(newShopIdTrimmed)
+
+                // Convert the set back to a comma-separated string
+                val updatedShopIds = shopIdSet.joinToString(",")
+
+                // Store the updated Shop Ids in Firebase
+                userLocationRef.setValue(newShopIdTrimmed)
+                    .addOnSuccessListener {
+                    }
+                    .addOnFailureListener {
+                        Toast.makeText(requireContext(), "Failed to store nearby shops", Toast.LENGTH_SHORT).show()
+                    }
+            } else {
+            }
+        }.addOnFailureListener {
+            Toast.makeText(requireContext(), "Failed to check existing Shop IDs", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
+    private fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+        val R = 6371.0 // Radius of the Earth in kilometers
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLon = Math.toRadians(lon2 - lon1)
+        val a = sin(dLat / 2) * sin(dLat / 2) +
+                cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) *
+                sin(dLon / 2) * sin(dLon / 2)
+        val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+        return R * c // Distance in kilometers
+    }
 
 
     private fun fetchShopNameAndUpdateAdapter() {
@@ -279,7 +438,7 @@ class HomeFragment : Fragment(), ExploreShopAdapter.OnItemClickListener {
             databaseReference.child(it).addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     if (snapshot.exists()) {
-                        val shopNames = snapshot.child("shopname").getValue(String::class.java)
+                        val shopNames = snapshot.child("Shop Id").getValue(String::class.java)
                         shopNames?.let { names ->
                             if (names.isNotBlank()) {
                                 val shopNameList = names.split(",") // Split shop names by comma
@@ -327,7 +486,7 @@ class HomeFragment : Fragment(), ExploreShopAdapter.OnItemClickListener {
                     val userLanguage = languageSnapshot.getValue(String::class.java)?.toLowerCase() ?: "english"
                     val discountReferences = listOf("discount")
                     discountReferences.forEach { discount ->
-                        database.getReference(shopName).child(discount)
+                        database.getReference("Shops").child(shopName).child(discount)
                             .addListenerForSingleValueEvent(object : ValueEventListener {
                                 override fun onDataChange(snapshot: DataSnapshot) {
                                     if (snapshot.exists()) {
@@ -364,142 +523,260 @@ class HomeFragment : Fragment(), ExploreShopAdapter.OnItemClickListener {
                 }
             })
     }
-
-
     private fun fetchCategories() {
-        // Check if categories are available in local storage
-        val cachedCategories = getCategoriesFromPrefs()
-        if (cachedCategories != null && cachedCategories.isNotEmpty()) {
+        // Check if categories are stored locally
+        val sharedPreferences = requireContext().getSharedPreferences("CategoriesPrefs", Context.MODE_PRIVATE)
+        val storedCategoriesJson = sharedPreferences.getString("categories", null)
+
+        if (storedCategoriesJson != null) {
+            // Convert the stored JSON string back to a list of categories
+            val type = object : TypeToken<List<Category>>() {}.type
+            val storedCategories: List<Category> = Gson().fromJson(storedCategoriesJson, type)
+
+            // Populate the categories list and update UI
             categories.clear()
-            categories.addAll(cachedCategories)
+            categories.addAll(storedCategories)
             categoryAdapter.notifyDataSetChanged()
-            updateTitlesVisibility(menuItems, cartItems, categories)
-            return
+            updateTitlesVisibility()
+
+            Log.d("fetchCategories", "Loaded categories from local storage.")
         }
 
-        // Fetch from Firebase if local data is not available
-        val categoriesRef = database.getReference("Categories")
-        categoriesRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                categories.clear()
-                for (categorySnapshot in snapshot.children) {
-                    val name = categorySnapshot.key ?: ""
-                    val imageUrl = categorySnapshot.child("image").getValue(String::class.java) ?: ""
-                    categories.add(Category(name, imageUrl))
-                    Log.d("fetchCategories", "Category added: $name with image URL: $imageUrl")
-                }
-                // Save fetched categories to local storage
-                saveCategoriesToPrefs(categories)
+        // Get the current user ID dynamically
+        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: return
 
-                // Notify adapter of data change on the main thread
-                requireActivity().runOnUiThread {
-                    categoryAdapter.notifyDataSetChanged()
-                    updateTitlesVisibility(menuItems, cartItems, categories)
+        // Fetch the Shop Id from "Addresses" based on the current user ID
+        val locationsRef = database.getReference("Addresses").child(currentUserId).child("Shop Id")
+        locationsRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val shopIdString = snapshot.getValue(String::class.java) ?: return
+
+                // Split the Shop Id string by commas and trim each ID
+                val shopIdList = shopIdString.split(",").map { it.trim() }
+
+                if (shopIdList.isNotEmpty()) {
+                    Log.d("fetchCategories", "All Shop IDs: $shopIdList")
+
+                    // Fetch categories for all Shop IDs
+                    fetchCategoriesForAllShops(shopIdList, sharedPreferences)
+                } else {
+                    Log.e("fetchCategories", "No Shop IDs found.")
                 }
             }
 
             override fun onCancelled(error: DatabaseError) {
-                // Handle error
+                Log.e("fetchCategories", "Failed to fetch Shop Id: ${error.message}")
             }
         })
     }
-    private fun saveCategoriesToPrefs(categories: List<Category>) {
-        val gson = Gson()
-        val json = gson.toJson(categories)
-        val sharedPreferences = requireContext().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-        sharedPreferences.edit().putString("categories", json).apply()
-    }
 
-    private fun getCategoriesFromPrefs(): List<Category>? {
-        val sharedPreferences = requireContext().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-        val gson = Gson()
-        val json = sharedPreferences.getString("categories", null)
-        val type = object : TypeToken<List<Category>>() {}.type
-        return gson.fromJson(json, type)
-    }
+    private fun fetchCategoriesForAllShops(shopIdList: List<String>, sharedPreferences: SharedPreferences) {
+        categories.clear()
+        val fetchedCategories = mutableListOf<Category>()
+        val addedCategoryNames = mutableSetOf<String>() // Set to track added category names
 
+        // Iterate through each Shop ID and fetch categories
+        shopIdList.forEach { shopId ->
+            val categoriesRef = database.getReference("Categories").child(shopId)
 
-    private fun storeCategoryAndOpenFragment(category: Category) {
-        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
-        if (currentUserId != null) {
-            val userCategoryRef = databaseRef.child("user").child(currentUserId).child("category")
-            userCategoryRef.setValue(category.name)
-                .addOnSuccessListener {
-                    Log.d("HomeFragment", "Category stored successfully: ${category.name}")
-                    openFreshFishFragment(category)
+            categoriesRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    for (categorySnapshot in snapshot.children) {
+                        // Fetch the category name and image URL
+                        val categoryName = categorySnapshot.key ?: ""
+                        val imageUrl = categorySnapshot.child("image").getValue(String::class.java) ?: ""
+
+                        // Skip the category if the name is "discount"
+                        if (categoryName.equals("discount", ignoreCase = true)) {
+                            continue
+                        }
+
+                        // Check if the category name has already been added
+                        if (categoryName.isNotEmpty() && imageUrl.isNotEmpty() && !addedCategoryNames.contains(categoryName)) {
+                            val category = Category(categoryName, imageUrl)
+                            fetchedCategories.add(category)
+                            addedCategoryNames.add(categoryName) // Mark the category name as added
+                            Log.d("fetchCategories", "Category added: $categoryName with image URL: $imageUrl")
+                        }
+                    }
+
+                    // Save fetched categories to local storage after the last Shop ID is processed
+                    if (shopId == shopIdList.last()) {
+                        saveCategoriesToLocalStorage(fetchedCategories, sharedPreferences)
+
+                        // Update UI with fetched categories
+                        categories.addAll(fetchedCategories)
+                        requireActivity().runOnUiThread {
+                            categoryAdapter.notifyDataSetChanged()
+                            updateTitlesVisibility()
+                        }
+                    }
                 }
-                .addOnFailureListener { e ->
-                    Log.e("HomeFragment", "Error storing category", e)
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("fetchCategories", "Failed to fetch categories for Shop ID $shopId: ${error.message}")
                 }
+            })
         }
     }
 
-    private fun openFreshFishFragment(category: Category) {
+
+    private fun saveCategoriesToLocalStorage(categories: List<Category>, sharedPreferences: SharedPreferences) {
+        // Convert categories to JSON
+        val categoriesJson = Gson().toJson(categories)
+
+        // Store the categories JSON string in SharedPreferences
+        sharedPreferences.edit().putString("categories", categoriesJson).apply()
+        Log.d("saveCategories", "Categories saved to local storage.")
+    }
+
+    private fun updateTitlesVisibility() {
+        // Update visibility of titles or any UI elements based on the fetched categories
+        Log.d("updateTitlesVisibility", "Updating UI with ${categories.size} categories.")
+    }
+
+    private fun storeCategoryAndOpenFragment(category: Category) {
+        // Prepare the Bundle with the category name
+        val bundle = Bundle().apply {
+            putString("categoryName", category.name)
+        }
+
+        // Navigate to FreshFishFragment with the bundle
+        openFreshFishFragment(bundle)
+    }
+
+
+    private fun openFreshFishFragment(bundle: Bundle) {
         try {
-            Log.d("HomeFragment", "Opening FreshFishFragment for category: ${category.name}")
-            findNavController().navigate(R.id.action_homeFragment_to_FreshFishFragment)
+            Log.d("HomeFragment", "Opening FreshFishFragment with category: ${bundle.getString("categoryName")}")
+            findNavController().navigate(R.id.action_homeFragment_to_FreshFishFragment, bundle)
         } catch (e: Exception) {
             Log.e("HomeFragment", "Error opening FreshFishFragment", e)
         }
     }
 
-
     private fun fetchBuyHistory() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
         val userBuyHistoryRef = FirebaseDatabase.getInstance().reference.child("user").child(userId).child("BuyHistory")
-        val userLocationRef = FirebaseDatabase.getInstance().reference.child("Locations").child(userId)
+        val userLocationRef = FirebaseDatabase.getInstance().reference.child("Addresses").child(userId)
 
-        // Fetch the shopname from the "Locations" node
-        userLocationRef.child("shopname").addListenerForSingleValueEvent(object : ValueEventListener {
+        // Fetch the shop name from the "Locations" node
+        userLocationRef.child("Shop Id").addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(locationSnapshot: DataSnapshot) {
-                val locationShopNamesString = locationSnapshot.getValue(String::class.java) ?: ""
+                val locationShopName = locationSnapshot.getValue(String::class.java) ?: ""
+                // Split shop names by comma, trimming spaces
+                val shopNames = locationShopName.split(",").map { it.trim() }
 
-                // Split the shopname string into a list of individual shop names
-                val locationShopNames = locationShopNamesString.split(",").map { it.trim() }
-
-                // Now fetch the BuyHistory
-                userBuyHistoryRef.addListenerForSingleValueEvent(object : ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        val orders = mutableListOf<PreviousItem>()
-                        for (childSnapshot in snapshot.children) {
-                            // Fetch shopNames list from BuyHistory
-                            val buyHistoryShopNames = childSnapshot.child("shopNames").getValue(object : GenericTypeIndicator<ArrayList<String>>() {})
-
-                            // Check if any shopName in BuyHistory matches any shopName in the Locations list
-                            if (buyHistoryShopNames != null && locationShopNames.any { it in buyHistoryShopNames }) {
-                                // Now proceed to retrieve food details if there's a match
-                                val foodNamesList = childSnapshot.child("foodNames").getValue(object : GenericTypeIndicator<ArrayList<String>>() {})
-                                val foodPricesList = childSnapshot.child("foodPrices").getValue(object : GenericTypeIndicator<ArrayList<String>>() {})
-                                val foodImagesList = childSnapshot.child("foodImage").getValue(object : GenericTypeIndicator<ArrayList<String>>() {})
-                                val foodDescriptionList = childSnapshot.child("fooddescription").getValue(object : GenericTypeIndicator<ArrayList<String>>() {})
-
-                                if (foodNamesList != null && foodPricesList != null && foodImagesList != null && foodDescriptionList != null) {
-                                    val foodName = if (foodNamesList.isNotEmpty()) foodNamesList[0] else ""
-                                    val foodPrice = if (foodPricesList.isNotEmpty()) foodPricesList[0] else ""
-                                    val foodImage = if (foodImagesList.isNotEmpty()) foodImagesList[0] else ""
-                                    val foodDescription = if (foodDescriptionList.isNotEmpty()) foodDescriptionList[0] else ""
-
-                                    val order = PreviousItem(foodName = foodName, foodPrice = foodPrice, foodImage = foodImage, foodDescription = foodDescription)
-                                    orders.add(order)
-                                }
-                            }
-                        }
-                        adapter1.updateData(orders)
-                        updateBuyAgainVisibility(orders)
-                    }
-
-                    override fun onCancelled(error: DatabaseError) {
-                        // Handle database error
-                    }
-                })
+                // Fetch discounts for all shop names
+                fetchDiscountsForShops(shopNames, userBuyHistoryRef)
             }
 
             override fun onCancelled(error: DatabaseError) {
-                // Handle database error
+                Log.e("Locations", "Error fetching location shop name: ${error.message}")
             }
         })
     }
-    private fun updateBuyAgainVisibility(orders: List<PreviousItem>) {
+
+    private fun fetchDiscountsForShops(shopNames: List<String>, userBuyHistoryRef: DatabaseReference) {
+        val foodDescriptionsMap = mutableMapOf<String, MutableList<String>>() // To hold food descriptions for each shop
+
+        // Fetch discounts for each shop
+        for (shopName in shopNames) {
+            val discountRef = FirebaseDatabase.getInstance().reference.child("Shops").child(shopName).child("discount")
+            discountRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(discountSnapshot: DataSnapshot) {
+                    val foodDescriptions = mutableListOf<String>()
+
+                    // Collect all food descriptions for the shop
+                    for (discountChild in discountSnapshot.children) {
+                        val foodDescription = discountChild.child("foodDescriptions").getValue(String::class.java)
+                        if (foodDescription != null) {
+                            foodDescriptions.add(foodDescription)
+                        }
+                    }
+                    foodDescriptionsMap[shopName] = foodDescriptions
+
+                    // Check if all discounts have been fetched before proceeding
+                    if (foodDescriptionsMap.size == shopNames.size) {
+                        fetchBuyHistoryItems(userBuyHistoryRef, foodDescriptionsMap)
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("Discount", "Error fetching discount data for $shopName: ${error.message}")
+                }
+            })
+        }
+    }
+
+    private fun fetchBuyHistoryItems(userBuyHistoryRef: DatabaseReference, foodDescriptionsMap: Map<String, List<String>>) {
+        userBuyHistoryRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val orders = mutableListOf<OrderItem>()
+
+                for (childSnapshot in snapshot.children) {
+                    // Fetch food description from BuyHistory
+                    val buyHistoryFoodDescriptions = childSnapshot.child("fooddescription").getValue(object : GenericTypeIndicator<List<String>>() {}) ?: emptyList()
+
+                    // Check if food description in BuyHistory matches any in the discounts
+                    val isMatchFound = buyHistoryFoodDescriptions.any { foodDescription ->
+                        foodDescriptionsMap.values.flatten().contains(foodDescription)
+                    }
+
+                    if (!isMatchFound) {
+                        // Fetch the shop names from BuyHistory as an ArrayList
+                        val buyHistoryShopNames = childSnapshot.child("shopNames").getValue(object : GenericTypeIndicator<List<String>>() {}) ?: emptyList()
+
+                        // Check if the shop name matches any of the location's shop names
+                        for (buyHistoryShopName in buyHistoryShopNames) {
+                            if (foodDescriptionsMap.containsKey(buyHistoryShopName)) {
+                                // Proceed to retrieve other details
+                                val foodNamesList = childSnapshot.child("foodNames").getValue(object : GenericTypeIndicator<List<String>>() {}) ?: emptyList()
+                                val foodPricesList = childSnapshot.child("foodPrices").getValue(object : GenericTypeIndicator<List<String>>() {}) ?: emptyList()
+                                val foodImagesList = childSnapshot.child("foodImage").getValue(object : GenericTypeIndicator<List<String>>() {}) ?: emptyList()
+                                val skuList = childSnapshot.child("skuList").getValue(object : GenericTypeIndicator<List<String>>() {}) ?: emptyList()
+                                val skuQuantity = childSnapshot.child("skuUnitQuantities").getValue(object : GenericTypeIndicator<List<String>>() {}) ?: emptyList()
+
+                                // Ensure the sizes of all lists are consistent before accessing
+                                if (foodNamesList.isNotEmpty() && foodPricesList.isNotEmpty() && foodImagesList.isNotEmpty() && skuList.isNotEmpty() && skuQuantity.isNotEmpty()) {
+                                    // Ensure all lists are of the same length
+                                    val listSize = minOf(foodNamesList.size, foodPricesList.size, foodImagesList.size,skuList.size,skuQuantity.size)
+
+                                    // Only proceed if all lists have at least one element
+                                    if (listSize > 0) {
+                                        // Create PreviousItem with the retrieved details
+                                        val order = PreviousItem(
+                                            foodName = foodNamesList[0],
+                                            foodPrice = foodPricesList[0],
+                                            foodImage = foodImagesList[0],
+                                            key= skuList[0],
+                                            skuUnitQuantities = skuQuantity[0],
+
+                                            foodDescription = buyHistoryFoodDescriptions[0],
+                                            shopNames = buyHistoryShopName // Use the matched shop name
+                                        )
+
+                                        // Wrap PreviousItem in OrderItem.Previous before adding to orders
+                                        orders.add(OrderItem.Previous(order))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Update the adapter and UI visibility
+                adapter1.updateData(orders)
+                updateBuyAgainVisibility(orders)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("BuyHistory", "Error fetching buy history: ${error.message}")
+            }
+        })
+    }
+
+    private fun updateBuyAgainVisibility(orders: MutableList<OrderItem>) {
         if (orders.isEmpty()) {
             binding.buyy.visibility = View.INVISIBLE
 
@@ -547,14 +824,14 @@ class HomeFragment : Fragment(), ExploreShopAdapter.OnItemClickListener {
         val currentUser = auth.currentUser
         if (currentUser != null) {
             val currentUserId = currentUser.uid
-            val locationPath = "Locations/$currentUserId"
+            val locationPath = "Addresses/$currentUserId"
             Log.d("FirebaseDebug", "Fetching data from path: $locationPath")
             databaseRef.child(locationPath)
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(dataSnapshot: DataSnapshot) {
                         val shopNames = mutableListOf<String>()
                         Log.d("FirebaseDebug", "Data snapshot: ${dataSnapshot.value}")
-                        val shopName = dataSnapshot.child("shopname").getValue(String::class.java)
+                        val shopName = dataSnapshot.child("Shop Id").getValue(String::class.java)
                         Log.d("FirebaseDebug", "Found shop name: $shopName")
                         if (shopName != null) {
                             // Split the shop names by comma and trim any extra spaces
@@ -573,27 +850,13 @@ class HomeFragment : Fragment(), ExploreShopAdapter.OnItemClickListener {
         }
     }
 
-
     override fun onItemClick(shopName: String) {
-        val currentUser = FirebaseAuth.getInstance().currentUser
-        val currentUserId = currentUser?.uid
+        val bundle = Bundle()
+        bundle.putString("shopId", shopName) // Passing the shopId to the fragment
 
-        if (currentUserId != null) {
-            val databaseRef =
-                FirebaseDatabase.getInstance().getReference("Exploreshop/$currentUserId/ShopName")
-            databaseRef.setValue(shopName)
-                .addOnSuccessListener {
-                    Log.d("FirebaseDebug", "Shop name $shopName stored successfully")
-                    findNavController().navigate(R.id.action_homeFragment_to_shoponefragment)
-                    // Navigate to next fragment or perform any other action if needed
-                }
-                .addOnFailureListener { e ->
-                    Log.e("FirebaseError", "Error storing shop name: $e")
-                }
-        } else {
-            Log.e("FirebaseError", "Current user ID is null")
-        }
+        findNavController().navigate(R.id.action_homeFragment_to_shoponefragment, bundle)
     }
+
 
     override fun onResume() {
         super.onResume()
@@ -618,7 +881,7 @@ class HomeFragment : Fragment(), ExploreShopAdapter.OnItemClickListener {
             databaseReference.child(it).addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     if (snapshot.exists()) {
-                        val shopNames = snapshot.child("shopname").getValue(String::class.java)
+                        val shopNames = snapshot.child("Shop Id").getValue(String::class.java)
                         if (shopNames.isNullOrEmpty()) {
                             // Shop name is not available, navigate to LocationNotAvailable activity
                             val intent = Intent(requireContext(), LocationNotAvailable::class.java)
@@ -652,15 +915,21 @@ class HomeFragment : Fragment(), ExploreShopAdapter.OnItemClickListener {
             databaseReference.child(it).addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     if (snapshot.exists()) {
-                        val shopNames = snapshot.child("shopname").getValue(String::class.java)
+                        val shopNames = snapshot.child("Shop Id").getValue(String::class.java)
+                        Log.d("FetchShopNames", "Shop Id: $shopNames") // Log the raw Shop Id
                         shopNames?.let { names ->
-                            val shopNameList = names.split(",") // Split shop names by comma
+                            val shopNameList = names.split(",").map { it.trim() }
+                            Log.d("FetchShopNames", "Shop Names List: $shopNameList") // Log the processed list
                             val allMenuItems = mutableListOf<MenuItem>()
                             var processedShops = 0
 
+                            if (shopNameList.isEmpty()) {
+                                Log.d("FetchShopNames", "No shop names to process.")
+                                return
+                            }
+
                             shopNameList.forEach { shopName ->
-                                fetchMenuItem(shopName.trim()) { fetchedMenuItems ->
-                                    // Add only items from the "menu" path to the overall list
+                                fetchMenuItem(shopName) { fetchedMenuItems ->
                                     allMenuItems.addAll(fetchedMenuItems)
                                     processedShops++
 
@@ -672,15 +941,18 @@ class HomeFragment : Fragment(), ExploreShopAdapter.OnItemClickListener {
                                 }
                             }
                         }
+                    } else {
+                        Log.d("FetchShopNames", "Snapshot does not exist or Shop Id is missing.")
                     }
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    // Handle error
+                    Log.e("FetchShopNames", "Error fetching Shop Id.", error.toException())
                 }
             })
         }
     }
+
 
     private fun setupRecyclerView2(menuItems: List<MenuItem>) {
         dealadapter = DealItemAdapter(menuItems, cartItems, requireContext())
@@ -689,8 +961,6 @@ class HomeFragment : Fragment(), ExploreShopAdapter.OnItemClickListener {
             adapter = dealadapter
         }
     }
-
-
 
     // Fetch menu items for NearItemAdapter
     private fun fetchMenuItems(shopName: String) {
@@ -701,13 +971,19 @@ class HomeFragment : Fragment(), ExploreShopAdapter.OnItemClickListener {
                 override fun onDataChange(languageSnapshot: DataSnapshot) {
                     val userLanguage = languageSnapshot.getValue(String::class.java)?.toLowerCase() ?: "english"
 
-                    val menuReferences = listOf("menu", "menu1", "menu2")
-                    menuReferences.forEach { menu ->
-                        database.getReference(shopName).child(menu)
-                            .addListenerForSingleValueEvent(object : ValueEventListener {
-                                override fun onDataChange(snapshot: DataSnapshot) {
-                                    if (snapshot.exists()) {
-                                        for (itemSnapshot in snapshot.children) {
+                    // Fetch all children under Shops.child(shopName)
+                    database.getReference("Shops").child(shopName)
+                        .addListenerForSingleValueEvent(object : ValueEventListener {
+                            override fun onDataChange(snapshot: DataSnapshot) {
+                                if (snapshot.exists()) {
+                                    // Exclude the specific paths
+                                    val excludedPaths = setOf("Discount-items", "discount", "Products", "Shop name","Inventory")
+
+                                    for (menuSnapshot in snapshot.children) {
+                                        if (menuSnapshot.key in excludedPaths) continue // Skip excluded paths
+
+                                        // For each valid child (menu)
+                                        for (itemSnapshot in menuSnapshot.children) {
                                             val menuItem = itemSnapshot.getValue(MenuItem::class.java)
                                             menuItem?.let {
                                                 it.path = shopName
@@ -717,34 +993,29 @@ class HomeFragment : Fragment(), ExploreShopAdapter.OnItemClickListener {
                                                     "tamil" -> foodNamesList.getOrNull(1) ?: ""
                                                     "malayalam" -> foodNamesList.getOrNull(2) ?: ""
                                                     "telugu" -> foodNamesList.getOrNull(3) ?: ""
-                                                    else -> ""
+                                                    else -> englishName // Default to English
                                                 }
 
-                                                val combinedName = if (languageSpecificName.isNotEmpty() && languageSpecificName != englishName) {
-                                                    "$englishName / $languageSpecificName"
-                                                } else {
-                                                    englishName
-                                                }
-
+                                                val combinedName = "$englishName / $languageSpecificName"
                                                 it.foodName = arrayListOf(combinedName)
                                                 menuItems.add(it)
                                             }
                                         }
+                                    }
 
-                                        viewModel.setMenuItem(menuItems)
-                                        loadFavoriteItems()
+                                    viewModel.setMenuItem(menuItems)
+                                    loadFavoriteItems()
 
-                                        binding.viewall.setOnClickListener {
-                                            viewModel.setMenuItems(menuItems)
-                                        }
+                                    binding.viewall.setOnClickListener {
+                                        viewModel.setMenuItems(menuItems)
                                     }
                                 }
+                            }
 
-                                override fun onCancelled(error: DatabaseError) {
-                                    // Handle error
-                                }
-                            })
-                    }
+                            override fun onCancelled(error: DatabaseError) {
+                                // Handle error
+                            }
+                        })
                 }
 
                 override fun onCancelled(error: DatabaseError) {
@@ -752,7 +1023,7 @@ class HomeFragment : Fragment(), ExploreShopAdapter.OnItemClickListener {
                 }
             })
     }
-    // Fetch menu items for DealItemAdapter
+
     private fun fetchMenuItem(shopName: String, onMenuItemsFetched: (List<MenuItem>) -> Unit) {
         val userId = auth.currentUser?.uid ?: return
         val menuItems = mutableListOf<MenuItem>()
@@ -761,47 +1032,52 @@ class HomeFragment : Fragment(), ExploreShopAdapter.OnItemClickListener {
                 override fun onDataChange(languageSnapshot: DataSnapshot) {
                     val userLanguage = languageSnapshot.getValue(String::class.java)?.toLowerCase() ?: "english"
 
-                    // Only retrieve the "menu" path for the given shopName
-                    val menuReference = database.getReference(shopName).child("menu")
+                    // Directly fetch FreshFish under Shops.child(shopName)
+                    database.getReference("Shops").child(shopName).child("Fresh Fish")
+                        .addListenerForSingleValueEvent(object : ValueEventListener {
+                            override fun onDataChange(snapshot: DataSnapshot) {
+                                if (snapshot.exists()) {
+                                    for (itemSnapshot in snapshot.children) {
+                                        val menuItem = itemSnapshot.getValue(MenuItem::class.java)
+                                        menuItem?.let {
+                                            it.path = shopName
+                                            val foodNamesList = it.foodName ?: arrayListOf()
+                                            val englishName = foodNamesList.getOrNull(0) ?: ""
+                                            val languageSpecificName = when (userLanguage) {
+                                                "tamil" -> foodNamesList.getOrNull(1) ?: ""
+                                                "malayalam" -> foodNamesList.getOrNull(2) ?: ""
+                                                "telugu" -> foodNamesList.getOrNull(3) ?: ""
+                                                else -> englishName // Default to English
+                                            }
 
-                    menuReference.addListenerForSingleValueEvent(object : ValueEventListener {
-                        override fun onDataChange(snapshot: DataSnapshot) {
-                            if (snapshot.exists()) {
-                                for (itemSnapshot in snapshot.children) {
-                                    val menuItem = itemSnapshot.getValue(MenuItem::class.java)
-                                    menuItem?.let {
-                                        it.path = shopName
-                                        val foodNamesList = it.foodName ?: arrayListOf()
-                                        val englishName = foodNamesList.getOrNull(0) ?: ""
-                                        val languageSpecificName = when (userLanguage) {
-                                            "tamil" -> foodNamesList.getOrNull(1) ?: ""
-                                            "malayalam" -> foodNamesList.getOrNull(2) ?: ""
-                                            "telugu" -> foodNamesList.getOrNull(3) ?: ""
-                                            else -> englishName // Default to English
+                                            val combinedName = if (userLanguage == "english") {
+                                                englishName
+                                            } else {
+                                                "$englishName / $languageSpecificName"
+                                            }
+
+                                            it.foodName = arrayListOf(combinedName)
+                                            menuItems.add(it)
                                         }
-
-                                        val combinedName = if (userLanguage == "english") {
-                                            englishName
-                                        } else {
-                                            "$englishName / $languageSpecificName"
-                                        }
-
-                                        it.foodName = arrayListOf(combinedName)
-                                        menuItems.add(it)
                                     }
-                                }
-                                onMenuItemsFetched(menuItems)
-                            }
-                        }
 
-                        override fun onCancelled(error: DatabaseError) {
-                            // Handle error
-                        }
-                    })
+                                    // Return the fetched menu items
+                                    onMenuItemsFetched(menuItems)
+                                } else {
+                                    Log.d("FetchMenuItem", "FreshFish does not exist under $shopName.")
+                                    onMenuItemsFetched(emptyList())
+                                }
+                            }
+
+                            override fun onCancelled(error: DatabaseError) {
+                                Log.e("FetchMenuItem", "Error fetching FreshFish for shop: $shopName", error.toException())
+                                onMenuItemsFetched(emptyList())
+                            }
+                        })
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    // Handle error
+                    Log.e("FetchMenuItem", "Error fetching language for user: $userId", error.toException())
                 }
             })
     }

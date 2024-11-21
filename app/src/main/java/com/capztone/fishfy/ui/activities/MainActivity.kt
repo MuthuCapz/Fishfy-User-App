@@ -22,6 +22,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.airbnb.lottie.LottieAnimationView
 import com.airbnb.lottie.LottieCompositionFactory
+import com.capztone.admin.utils.FirebaseAuthUtil
 import com.capztone.fishfy.R
 import com.capztone.fishfy.databinding.ActivityMainBinding
 import com.capztone.fishfy.ui.activities.ViewModel.MainViewModel
@@ -52,13 +53,8 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-            window.statusBarColor = android.graphics.Color.TRANSPARENT
-        }
 
-        auth = FirebaseAuth.getInstance()
-
+        auth = FirebaseAuthUtil.auth
 
         // Initialize Firebase Database reference
         database = FirebaseDatabase.getInstance().reference
@@ -128,7 +124,6 @@ class MainActivity : AppCompatActivity() {
             when (destination.id) {
                 R.id.shopOneFragment,
                 R.id.contactusActivity,
-                R.id.accountFragment,
                 R.id.productSearchFragment,
                 R.id.freshFishFragment,
 
@@ -140,9 +135,14 @@ class MainActivity : AppCompatActivity() {
                     binding.showItemCardView.visibility = if (shouldShowCardView) View.VISIBLE else View.GONE
                 }
                 R.id.historyFragment,
-                R.id.accountFragment,
+                R.id.profileFragment,
                 R.id.cartFragment -> {
                     bottomNav.visibility = View.VISIBLE
+                    binding.showItemCardView.visibility = View.GONE
+                    binding.addcart.visibility=View.GONE
+                }
+                R.id.accountFragment -> {
+                    bottomNav.visibility = View.GONE
                     binding.showItemCardView.visibility = View.GONE
                     binding.addcart.visibility=View.GONE
                 }
@@ -212,29 +212,26 @@ class MainActivity : AppCompatActivity() {
 
                 // Determine visibility based on cart items count
                 if (count > 0) {
-
-                        if (!isCartFragmentVisible()) {
-                            binding.showItemCardView.visibility = View.VISIBLE
-                            binding.addcart.visibility = View.VISIBLE
-
-
-                        } else {
-                            binding.showItemCardView.visibility = View.GONE
-                            binding.addcart.visibility = View.GONE
-                        }
+                    if (!isCartFragmentVisible()) {
+                        binding.showItemCardView.visibility = View.VISIBLE
+                        binding.addcart.visibility = View.VISIBLE
                     } else {
                         binding.showItemCardView.visibility = View.GONE
                         binding.addcart.visibility = View.GONE
                     }
+                } else {
+                    binding.showItemCardView.visibility = View.GONE
+                    binding.addcart.visibility = View.GONE
+                }
 
-                // Fetch shopName and update shopnameTextView
+                // Fetch shopName for each cart item
                 for (cartItemSnapshot in snapshot.children) {
                     val productId = cartItemSnapshot.key ?: continue
                     database.child("user").child(userId).child("cartItems").child(productId).child("path").addListenerForSingleValueEvent(object : ValueEventListener {
-                        override fun onDataChange(shopNameSnapshot: DataSnapshot) {
-                            if (shopNameSnapshot.exists()) {
-                                val shopName = shopNameSnapshot.value.toString()
-                                shopnameTextView.text = "$shopName |"
+                        override fun onDataChange(pathSnapshot: DataSnapshot) {
+                            if (pathSnapshot.exists()) {
+                                val pathValue = pathSnapshot.value.toString()
+                                fetchShopName(pathValue)
                             } else {
                                 shopnameTextView.text = "Shop name not found"
                             }
@@ -252,6 +249,31 @@ class MainActivity : AppCompatActivity() {
             }
         })
     }
+
+    private fun fetchShopName(pathValue: String) {
+        database.child("ShopNames").child(pathValue).child("shopName").addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(shopNameSnapshot: DataSnapshot) {
+                if (shopNameSnapshot.exists()) {
+                    val shopName = shopNameSnapshot.value.toString()
+                    shopnameTextView.text = "$shopName "
+                } else {
+                    shopnameTextView.text = "Shop name not found"
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                shopnameTextView.text = "Error: ${error.message}"
+            }
+        })
+    }
+
+
+    override fun onResume() {
+        super.onResume()
+        fetchCartItemsCount()
+    }
+
+
 
     private fun isNetworkAvailable(): Boolean {
         val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager

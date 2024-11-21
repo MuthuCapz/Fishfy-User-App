@@ -1,6 +1,6 @@
 package com.capztone.fishfy.ui.activities.adapters
 
-import android.content.ContentValues
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.net.Uri
 import android.util.Log
@@ -14,8 +14,6 @@ import androidx.appcompat.widget.AppCompatButton
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.capztone.fishfy.databinding.CartItemBinding
-import com.capztone.fishfy.ui.activities.MainActivity
-import com.capztone.fishfy.ui.activities.Utils.ToastHelper
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 
@@ -135,9 +133,41 @@ class CartAdapter(
                     // Handle item click
                 }
 
-                // Set the quantity from local data
                 binding.actualAuantity.text = cartItemQuantities[position].toString()
+                getUniqueKeyAtPosition(position) { uniqueKey ->
+                    cartItemsReference.child(uniqueKey).addListenerForSingleValueEvent(object : ValueEventListener {
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            val unitQuantity = snapshot.child("UnitQuantity").getValue(String::class.java) ?: "1"
+
+                            // Check if the UnitQuantity is in grams and convert it to kg if needed
+                            val unitText = if (unitQuantity.endsWith("g")) {
+                                val grams = unitQuantity.removeSuffix("g").toDoubleOrNull() ?: 0.0
+                                if (grams >= 1000) {
+                                    // Convert grams to kilograms with decimal values
+                                    "/ ${grams / 1000} kg"
+                                } else {
+                                    // Keep it in grams
+                                    "/ $grams g"
+                                }
+                            } else {
+                                // Display the UnitQuantity as is if it doesn't end with "g"
+                                unitQuantity
+                            }
+
+                            // Set the converted unit text
+                            binding.unitQuantity.text = unitText
+                        }
+
+
+
+
+                        override fun onCancelled(error: DatabaseError) {
+                            // Handle error
+                        }
+                    })
+                }
             }
+
         }
 
         private fun getQuantityFromFirebase(position: Int, onComplete: (Int) -> Unit) {
@@ -158,7 +188,6 @@ class CartAdapter(
                 })
             }
         }
-
         private fun increaseQuantity(position: Int) {
             if (position < 0 || position >= cartItemQuantities.size) return
 
@@ -170,7 +199,7 @@ class CartAdapter(
                 // Update the quantity in the local list
                 cartItemQuantities[position] = updatedQuantity
                 // Update the quantity in Firebase
-                updateQuantityInFirebase(position, updatedQuantity)
+
                 updateHomeCartQuantity(cartItems[position], updatedQuantity)
                 progressBarListener.hideProgressBar()
 
@@ -190,7 +219,7 @@ class CartAdapter(
                     // Update the quantity in the local list
                     cartItemQuantities[position] = updatedQuantity
                     // Update the quantity in Firebase
-                    updateQuantityInFirebase(position, updatedQuantity)
+
                     updateHomeCartQuantity(cartItems[position], updatedQuantity)
                 } else {
                     showDeleteConfirmationDialog(position)
@@ -199,37 +228,67 @@ class CartAdapter(
             }
         }
 
-        private fun updateQuantityInFirebase(position: Int, quantity: Int) {
-            val currentUser = FirebaseAuth.getInstance().currentUser
 
-            currentUser?.let { user ->
-                getUniqueKeyAtPosition(position) { uniqueKey ->
-                    // Get the reference to the specific item push key under "cartItems"
-                    val itemReference = cartItemsReference.child(uniqueKey)
-                    // Update the quantity for that specific item
-                    itemReference.child("foodQuantity").setValue(quantity)
-                }
-            }
-        }
 
         private fun updateHomeCartQuantity(foodName: String, quantity: Int) {
             val userId = auth.currentUser?.uid ?: return
-            val homeCartRef =
-                FirebaseDatabase.getInstance().reference.child("Home").child(userId).child("cartItems")
+            val homeCartRef = FirebaseDatabase.getInstance().reference.child("user").child(userId).child("cartItems")
 
             homeCartRef.orderByChild("foodName").equalTo(foodName)
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(dataSnapshot: DataSnapshot) {
                         for (cartSnapshot in dataSnapshot.children) {
+                            // Retrieve the UnitQuantity from Firebase
+                            val unitQuantity = cartSnapshot.child("UnitQuantity").getValue(String::class.java) ?: "0g"
+
+                            // Retrieve foodPrice from Firebase
+
+                            val foodPriceString = binding.carItemPriceTextView.text.toString().removePrefix("₹")
+                            val foodPrice = foodPriceString.toDoubleOrNull() ?: 0.0
+                            val foodQuantity = cartSnapshot.child("foodQuantity").getValue(Int::class.java) ?: 1
+
+
+                            // Extract numeric value and unit from UnitQuantity
+                            val numericValue = unitQuantity.filter { it.isDigit() }.toDoubleOrNull() ?: 0.0
+                            val unit = unitQuantity.filter { it.isLetter() }.lowercase()
+
+                            // Convert UnitQuantity to grams for consistent calculations
+                            val unitQuantityInGrams = when (unit) {
+                                "kg" -> numericValue * 1000
+                                "g" -> numericValue
+                                else -> numericValue // Default to grams if no valid unit is found
+                            }
+
+                            // Compute new UnitQuantity in grams
+                            val newUnitQuantityInGrams = unitQuantityInGrams * quantity / (cartSnapshot.child("foodQuantity").getValue(Int::class.java) ?: 1)
+                            val updatedUnitQuantity = "${newUnitQuantityInGrams.toInt()}g"
+
+                            // Compute total price
+                            val pricePerUnit = if (foodQuantity > 0) foodPrice / foodQuantity else 0.0
+
+                            // Compute total price for the given quantity
+                            val totalPrice = pricePerUnit * quantity
+
+                            // Update foodQuantity, UnitQuantity, and totalPrice in Firebase
                             cartSnapshot.ref.child("foodQuantity").setValue(quantity)
+                            cartSnapshot.ref.child("UnitQuantity").setValue(updatedUnitQuantity)
+                            cartSnapshot.ref.child("foodPrice").setValue(totalPrice.toString())
+                                .addOnSuccessListener {
+                                    Log.d(TAG, "Successfully updated foodQuantity, UnitQuantity, and totalPrice: $quantity, $updatedUnitQuantity, $totalPrice")
+                                }
+                                .addOnFailureListener { e ->
+                                    Log.e(TAG, "Failed to update values: ${e.message}")
+                                }
                         }
                     }
 
                     override fun onCancelled(databaseError: DatabaseError) {
-                        Log.e(ContentValues.TAG, "Database error: ${databaseError.message}")
+                        Log.e(TAG, "Database error: ${databaseError.message}")
                     }
                 })
         }
+
+
 
         private fun deleteItem(position: Int) {
             // Check if it's the last item in the cart

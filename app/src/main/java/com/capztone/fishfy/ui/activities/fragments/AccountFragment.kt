@@ -18,6 +18,7 @@ import androidx.navigation.Navigation.findNavController
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
+import com.capztone.admin.utils.FirebaseAuthUtil
 import com.capztone.fishfy.R
 import com.capztone.fishfy.databinding.FragmentAccountBinding
 import com.capztone.fishfy.ui.activities.LoginActivity
@@ -54,7 +55,7 @@ class AccountFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        auth = FirebaseAuth.getInstance()
+auth = FirebaseAuthUtil.auth
         val user = auth.currentUser
 
         // Set up status bar and background
@@ -147,7 +148,7 @@ class AccountFragment : Fragment() {
         if (user != null) {
             val userId = user.uid
             val database = FirebaseDatabase.getInstance()
-            val userDetailsRef = database.getReference("Locations").child(userId).child("User Details")
+            val userDetailsRef = database.getReference("Addresses").child(userId).child("User Details")
 
             // Enable offline capabilities for this reference
             userDetailsRef.keepSynced(true)

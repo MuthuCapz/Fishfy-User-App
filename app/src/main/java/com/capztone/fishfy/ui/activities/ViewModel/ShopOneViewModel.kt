@@ -4,8 +4,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.capztone.fishfy.ui.activities.models.Category
 import com.capztone.fishfy.ui.activities.models.MenuItem
-import com.capztone.fishfy.ui.activities.models.DiscountItem
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import kotlinx.coroutines.launch
@@ -18,32 +18,16 @@ class ShopOneViewModel : ViewModel() {
     private val _menuItems = MutableLiveData<List<MenuItem>>()
     val menuItems: LiveData<List<MenuItem>>
         get() = _menuItems
+    private val _categoryName = MutableLiveData<String>()
+    val categoryName: LiveData<String> get() = _categoryName
 
-    private val _menu1Items = MutableLiveData<List<MenuItem>>()
-    val menu1Items: LiveData<List<MenuItem>>
-        get() = _menu1Items
 
-    private val _menu2Items = MutableLiveData<List<MenuItem>>()
-    val menu2Items: LiveData<List<MenuItem>>
-        get() = _menu2Items
+    fun selectCategory(categoryName: Category) {
+        _categoryName.value = categoryName.toString()
+    }
 
-    private val _menu3Items = MutableLiveData<List<MenuItem>>()
-    val menu3Items: LiveData<List<MenuItem>>
-        get() = _menu3Items
 
-    private val _menu4Items = MutableLiveData<List<MenuItem>>()
-    val menu4Items: LiveData<List<MenuItem>>
-        get() = _menu4Items
-
-    private val _menu5Items = MutableLiveData<List<MenuItem>>()
-    val menu5Items: LiveData<List<MenuItem>>
-        get() = _menu5Items
-
-    private val _discountItems = MutableLiveData<List<DiscountItem>>()
-    val discountItems: LiveData<List<DiscountItem>>
-        get() = _discountItems
-
-    fun retrieveData(shopName: String) {
+    fun retrieveData(shopName: String, textValue: String) {
         viewModelScope.launch {
             currentUser?.let { user ->
                 val userRef = database.getReference("user").child(user.uid).child("language")
@@ -52,26 +36,35 @@ class ShopOneViewModel : ViewModel() {
                 val userLanguage =
                     languageSnapshot.getValue(String::class.java)?.toLowerCase() ?: "english"
 
-                retrieveShopData(shopName, userLanguage)
+                retrieveShopData(shopName, userLanguage,textValue)
             }
         }
     }
 
-    private suspend fun retrieveShopData(shopName: String, userLanguage: String) {
+    private suspend fun retrieveShopData(shopName: String, userLanguage: String, textValue: String?) {
         try {
-            val shopRef = database.getReference(shopName)
-            val snapshot = shopRef.get().await()
-            if (snapshot.exists()) {
-                retrieveMenuItems(shopRef.child("menu"), _menuItems, userLanguage,shopName)
-                retrieveMenuItems(shopRef.child("menu1"), _menu1Items, userLanguage,shopName)
-                retrieveMenuItems(shopRef.child("menu2"), _menu2Items, userLanguage,shopName)
-                retrieveMenuItems(shopRef.child("menu4"), _menu3Items, userLanguage,shopName)
-                retrieveMenuItems(shopRef.child("menu3"), _menu4Items, userLanguage,shopName)
-                retrieveMenuItems(shopRef.child("menu5"), _menu5Items, userLanguage,shopName)
-                retrieveDiscountItems(shopRef.child("discount"),_discountItems,userLanguage,shopName)
+            val shopRef = database.getReference("Shops").child(shopName)
+            val firstChildPath: String
+
+            // Determine the initial path
+            if (textValue.isNullOrEmpty()) {
+                // Get the first child key as the default path
+                val snapshot = shopRef.get().await()
+                firstChildPath = snapshot.children.firstOrNull()?.key ?: return
+            } else {
+                // Use the provided textValue as the path
+                firstChildPath = textValue
+            }
+
+            // Retrieve menu items from the determined path
+            val menuRef = shopRef.child(firstChildPath)
+            val menuSnapshot = menuRef.get().await()
+            if (menuSnapshot.exists()) {
+                retrieveMenuItems(menuRef, _menuItems, userLanguage, shopName)
             }
         } catch (e: Exception) {
-            // Handle error
+            e.printStackTrace()
+            // Handle error (e.g., show a toast message or log the error)
         }
     }
 
@@ -115,33 +108,5 @@ class ShopOneViewModel : ViewModel() {
         }
     }
 
-    private suspend fun retrieveDiscountItems(shopRef: DatabaseReference, menuLiveData: MutableLiveData<List<DiscountItem>>,
-                                              userLanguage: String,shopName: String) {
-        try {
-            val snapshot = shopRef.get().await()
-            val menuItems = mutableListOf<DiscountItem>()
-            for (itemSnapshot in snapshot.children) {
-                val menuItem = itemSnapshot.getValue(DiscountItem::class.java)
-                menuItem?.let {
-                    it.path = shopName
 
-                    val foodNamesList = it.foodNames ?: arrayListOf()
-                    val englishName = foodNamesList.getOrNull(0) ?: ""
-                    val languageSpecificName = when (userLanguage) {
-                        "tamil" -> foodNamesList.getOrNull(1) ?: ""
-                        "malayalam" -> foodNamesList.getOrNull(2) ?: ""
-                        "telugu" -> foodNamesList.getOrNull(3) ?: ""
-                        else -> englishName // Default to English
-                    }
-                    val combinedName = "$englishName / $languageSpecificName"
-                    it.foodNames = arrayListOf(combinedName)
-
-                    menuItems.add(it)
-                }
-            }
-            menuLiveData.postValue(menuItems)
-        } catch (e: Exception) {
-            // Handle error
-        }
-    }
 }

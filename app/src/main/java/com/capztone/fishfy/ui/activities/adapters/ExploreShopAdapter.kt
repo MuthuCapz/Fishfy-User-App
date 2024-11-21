@@ -17,12 +17,13 @@ class ExploreShopAdapter(
         fun onItemClick(shopName: String)
     }
 
-    private val localityCache = mutableMapOf<String, String>()
-
     inner class ShopViewHolder(val binding: ExploreShopBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(shopName: String, locality: String) {
+        fun bind(shopName: String, locality: String, shopDisplayName: String, deliveryAmount: String, deliveryType: String) {
             binding.shopTextView.text = shopName
             binding.localityTextView.text = locality
+            binding.shopname.text = shopDisplayName
+            binding.upto.text = deliveryAmount
+            binding.freedelivery.text = deliveryType
 
             binding.root.setOnClickListener {
                 itemClickListener.onItemClick(shopName)
@@ -43,32 +44,79 @@ class ExploreShopAdapter(
     }
 
     override fun onBindViewHolder(holder: ShopViewHolder, position: Int) {
-        val shopName = shopList[position]
+        val shopName = shopList[holder.bindingAdapterPosition]
 
-        // Check if the locality is already cached
-        val cachedLocality = localityCache[shopName]
-        if (cachedLocality != null) {
-            // Use the cached locality
-            holder.bind(shopName, cachedLocality)
-        } else {
-            // Fetch locality from Firebase Realtime Database
-            val databaseReference = FirebaseDatabase.getInstance().reference
-            databaseReference.child("ShopLocations").child(shopName).child("locality")
-                .addListenerForSingleValueEvent(object : ValueEventListener {
-                    override fun onDataChange(dataSnapshot: DataSnapshot) {
-                        val locality = dataSnapshot.getValue(String::class.java) ?: ""
-                        localityCache[shopName] = locality  // Cache the locality
-                        holder.bind(shopName, locality)
-                    }
+        val databaseReference = FirebaseDatabase.getInstance().reference
 
-                    override fun onCancelled(databaseError: DatabaseError) {
-                        // Handle errors
+        // Fetch shop display name directly from Firebase
+        databaseReference.child("ShopNames").child(shopName).child("shopName")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    val shopDisplayName = dataSnapshot.getValue(String::class.java) ?: ""
+
+                    if (shopDisplayName.isEmpty()) {
+                        // Remove the shop from the list immediately if not found
+                        val currentPosition = holder.bindingAdapterPosition
+                        if (currentPosition != RecyclerView.NO_POSITION) {
+                            removeItem(currentPosition)
+                        }
+                    } else {
+                        // Fetch locality directly from Firebase
+                        databaseReference.child("ShopLocations").child(shopName).child("locality")
+                            .addValueEventListener(object : ValueEventListener {
+                                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                                    val locality = dataSnapshot.getValue(String::class.java) ?: ""
+
+                                    // Fetch delivery details directly from Firebase
+                                    fetchDeliveryDetails(shopName) { deliveryAmount, deliveryType ->
+                                        if (holder.bindingAdapterPosition != RecyclerView.NO_POSITION) {
+                                            holder.bind(
+                                                shopName,
+                                                locality,
+                                                shopDisplayName,
+                                                deliveryAmount,
+                                                deliveryType
+                                            )
+                                        }
+                                    }
+                                }
+
+                                override fun onCancelled(databaseError: DatabaseError) {}
+                            })
                     }
-                })
-        }
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {}
+            })
+    }
+
+    private fun removeItem(position: Int) {
+        // Remove the item from the list and notify the adapter immediately
+        val mutableShopList = shopList.toMutableList()
+        mutableShopList.removeAt(position)
+        shopList = mutableShopList
+        notifyItemRemoved(position)
+
+        // Optionally, notify the adapter that the list has been changed
+        notifyItemRangeChanged(position, shopList.size)
     }
 
     override fun getItemCount(): Int = shopList.size
+
+    private fun fetchDeliveryDetails(shopName: String, callback: (String, String) -> Unit) {
+        val databaseReference = FirebaseDatabase.getInstance().reference
+
+        databaseReference.child("Delivery Details").child(shopName)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    val deliveryAmount = dataSnapshot.child("Delivery Amount").getValue(String::class.java) ?: ""
+                    val deliveryType = dataSnapshot.child("Delivery Type").getValue(String::class.java) ?: ""
+                    callback(deliveryAmount, deliveryType)
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {}
+            })
+    }
 
     // Use DiffUtil to update only changed items
     fun setShopList(newShopList: List<String>) {
@@ -78,7 +126,6 @@ class ExploreShopAdapter(
         diffResult.dispatchUpdatesTo(this)
     }
 
-    // DiffUtil class for better performance
     class ShopDiffCallback(
         private val oldList: List<String>,
         private val newList: List<String>

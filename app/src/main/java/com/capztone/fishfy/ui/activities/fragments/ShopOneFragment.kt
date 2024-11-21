@@ -5,25 +5,32 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.capztone.fishfy.R
 import com.capztone.fishfy.databinding.FragmentShopOneBinding
 import com.capztone.fishfy.ui.activities.ViewModel.ShopOneViewModel
+import com.capztone.fishfy.ui.activities.adapters.CategoryAdapter
 import com.capztone.fishfy.ui.activities.adapters.MenuAdapter
+import com.capztone.fishfy.ui.activities.models.Category
 import com.capztone.fishfy.ui.activities.models.MenuItem
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 
 class ShopOneFragment : Fragment() {
 
     private lateinit var binding: FragmentShopOneBinding
     private val viewModel: ShopOneViewModel by viewModels()
+    private lateinit var database: FirebaseDatabase
+    private lateinit var categories: MutableList<Category>
+    private lateinit var categoryAdapter: CategoryAdapter
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -33,18 +40,22 @@ class ShopOneFragment : Fragment() {
         binding.recentBackButton.setOnClickListener {
             requireActivity().onBackPressed()
         }
-        activity?.window?.let { window ->
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-                window.statusBarColor = Color.WHITE
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                window.statusBarColor = Color.WHITE
-            }
-        }
-        // Show loading indicator
-        binding.progress.visibility = View.VISIBLE
 
+        // Show loading indicator
+        categories = mutableListOf()
+        categoryAdapter = CategoryAdapter(requireContext(), categories) { category ->
+         storeCategoryAndOpenFragment(category)
+            // Pass the category name to the ViewModel's selectCategory method
+        }
+
+
+        binding.categoryRecyclerView.apply {
+            layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+            adapter = categoryAdapter  // Set the adapter here
+        }
+
+        binding.progress.visibility = View.VISIBLE
+        database = FirebaseDatabase.getInstance()
         binding.progress.setProgressVector(resources.getDrawable(R.drawable.spinload))
         binding.progress.setTextViewVisibility(true)
         binding.progress.setTextStyle(true)
@@ -65,86 +76,158 @@ class ShopOneFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val currentUser = FirebaseAuth.getInstance().currentUser
-        currentUser?.let { user ->
-            val userRef = FirebaseDatabase.getInstance().getReference("Exploreshop").child(user.uid)
-            userRef.addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val shopName = snapshot.child("ShopName").getValue(String::class.java)
-                    shopName?.let {
-                        viewModel.retrieveData(it)
-                    }
-                }
+        val shopId = arguments?.getString("shopId")
 
+        // Display the shopId in the TextView
+        shopId?.let {
+            binding.shopname.text = it
+            val textValue = binding.textView13.text.toString()
 
-                override fun onCancelled(error: DatabaseError) {
-                    // Handle error
-                }
-            })
+            viewModel.retrieveData(shopId, textValue)
+
+            // Fetch shopName from Firebase based on shopId
+            fetchShopName(it)
+            fetchCategoriesForAllShops(it)
+
         }
         viewModel.menuItems.observe(viewLifecycleOwner) { menuItems ->
             // Update RecyclerView adapter with menuItems
             if (menuItems.isNotEmpty()) {
-                binding.textView19.visibility = View.VISIBLE
                 binding.textView13.visibility = View.VISIBLE
-                binding.textView21.visibility = View.VISIBLE
-                binding.shrimp.visibility = View.VISIBLE
-                binding.crab.visibility = View.VISIBLE
-                binding.lobster.visibility = View.VISIBLE
+
 
             }
         }
 
         setupMenuRecyclerView(binding.popularRecyclerView)
-        setupMenuRecyclerView(binding.popularRecyclerView1)
-        setupMenuRecyclerView(binding.popularRecyclerView3)
-        setupMenuRecyclerView(binding.crabRecycler)
-        setupMenuRecyclerView(binding.shrimpRecycler)
-        setupMenuRecyclerView(binding.lobsterRecycler)
 
 
 
         observeViewModel()
     }
 
+    private fun fetchCategoriesForAllShops(shopId: String) {
+        // Reference to the categories node for the specific shop
+        val categoriesRef = database.getReference("Categories").child(shopId)
+
+        categoriesRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                // Check if there are children in the snapshot
+                if (!snapshot.exists()) {
+                    Log.d("fetchCategories", "No categories found for Shop ID: $shopId")
+                    return
+                }
+
+                // Get the first child category
+                val firstChildSnapshot = snapshot.children.firstOrNull()
+                if (firstChildSnapshot != null) {
+                    // Fetch the first category name (the key)
+                    val firstCategoryName = firstChildSnapshot.key ?: ""
+
+                    // Display the first category name in TextView13
+                    binding.textView13.text = firstCategoryName
+
+                    // Optional: Log the first category name for debugging
+                    Log.d("fetchCategories", "First category name: $firstCategoryName")
+                } else {
+                    Log.d("fetchCategories", "No categories available")
+                }
+
+                // Iterate through all categories (if needed)
+                for (categorySnapshot in snapshot.children) {
+                    val categoryName = categorySnapshot.key ?: ""
+                    val imageUrl = categorySnapshot.child("image").getValue(String::class.java) ?: ""
+
+                    // Skip the category if the name is "discount"
+                    if (categoryName.equals("discount", ignoreCase = true)) continue
+
+                    // Add category if both name and image are valid
+                    if (categoryName.isNotEmpty() && imageUrl.isNotEmpty()) {
+                        val category = Category(categoryName, imageUrl)
+                        categories.add(category)  // Add category to the list
+                    }
+                }
+
+                // Notify the adapter that the data has changed
+                categoryAdapter.notifyDataSetChanged()
+
+                // Update the UI after fetching categories
+                binding.categoryRecyclerView.visibility = View.VISIBLE  // Make sure the RecyclerView is visible
+                binding.progress.visibility = View.GONE  // Hide the progress indicator
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("fetchCategories", "Failed to fetch categories for Shop ID $shopId: ${error.message}")
+            }
+        })
+    }
+
+
+    private fun storeCategoryAndOpenFragment(category: Category) {
+        binding.textView13.text = category.name
+        val shopId = arguments?.getString("shopId")
+
+        // Display the shopId in the TextView
+        shopId?.let {
+            binding.shopname.text = it
+            val textValue = binding.textView13.text.toString()
+
+            viewModel.retrieveData(shopId, textValue)
+        }
+
+    }
+
+
+    private fun fetchShopName(shopId: String) {
+        // Reference to the "ShopNames" path in Firebase
+        val databaseReference = FirebaseDatabase.getInstance().getReference("ShopNames").child(shopId)
+
+        // Fetch the shopName value
+        databaseReference.child("shopName").addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                // Check if the shopName exists in the snapshot
+                val shopName = dataSnapshot.getValue(String::class.java)
+                shopName?.let {
+                    // Set the shopName in the TextView
+                    binding.shoplabel.text = it
+                } ?: run {
+                    // Handle case where shopName is not found
+                    binding.shoplabel.text = ""
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle possible errors
+                binding.shoplabel.text = ""
+            }
+        })
+    }
+
     private fun setupMenuRecyclerView(recyclerView: RecyclerView) {
         recyclerView.layoutManager =  LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
     }
 
-    private fun setupDiscountRecyclerView(recyclerView: RecyclerView) {
-        recyclerView.layoutManager =
-            LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-    }
+
 
     private fun observeViewModel() {
         viewModel.menuItems.observe(viewLifecycleOwner) { items ->
             setMenuAdapter(items, binding.popularRecyclerView)
+
+            // Check if items are empty and hide/show dealoftheday layout
         }
 
-        viewModel.menu1Items.observe(viewLifecycleOwner) { items ->
-            setMenuAdapter(items, binding.popularRecyclerView1)
-        }
-
-        viewModel.menu2Items.observe(viewLifecycleOwner) { items ->
-            setMenuAdapter(items, binding.popularRecyclerView3)
-        }
-        viewModel.menu3Items.observe(viewLifecycleOwner) { items ->
-            setMenuAdapter(items, binding.crabRecycler)
-        }
-        viewModel.menu4Items.observe(viewLifecycleOwner) { items ->
-            setMenuAdapter(items, binding.shrimpRecycler)
-        }
-        viewModel.menu5Items.observe(viewLifecycleOwner) { items ->
-            setMenuAdapter(items, binding.lobsterRecycler)
-        }
     }
 
     private fun setMenuAdapter(menuItems: List<MenuItem>, recyclerView: RecyclerView) {
         val adapter = MenuAdapter(menuItems.toMutableList(), requireContext())
         recyclerView.adapter = adapter
-        // Set LinearLayoutManager with horizontal orientation
-        recyclerView.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+
+        // Set GridLayoutManager with vertical orientation and 3 items per row
+        val gridLayoutManager = GridLayoutManager(requireContext(), 3)  // 3 items per row
+        gridLayoutManager.orientation = GridLayoutManager.VERTICAL  // Set vertical orientation
+        recyclerView.layoutManager = gridLayoutManager
     }
+
 
 
 

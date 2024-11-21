@@ -15,10 +15,13 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.AppCompatButton
 import com.bumptech.glide.Glide
+import com.capztone.admin.utils.FirebaseAuthUtil
 import com.capztone.fishfy.R
 import com.capztone.fishfy.databinding.FragmentDetailsBinding
 import com.capztone.fishfy.ui.activities.Utils.ToastHelper
 import com.capztone.fishfy.ui.activities.models.CartItems
+import com.capztone.fishfy.ui.activities.models.DiscountItem
+import com.capztone.fishfy.ui.activities.models.MenuItem
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
@@ -26,27 +29,35 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class DetailsFragment : Fragment() {
     private val currentUserID = FirebaseAuth.getInstance().currentUser?.uid
     private lateinit var binding: FragmentDetailsBinding
     private var foodName: String? = null
     private var productQuantity: String? = null
+
     private var foodPrice: String? = null
     private val database: DatabaseReference by lazy {
         FirebaseDatabase.getInstance().reference
     }
 
-
+    private lateinit var menuItems: MutableList<CartItems>
     private var foodDescription: String? = null
     private var discount: String? = null
     private var foodImage: String? = null
     private var foodNames: String? = null
     private var foodPrices: String? = null
+    private var key: String? = null
+    private var CartItemAddTime: String? = null
+
     private var foodDescriptions: String? = null
     private var discounts: String? = null
     private var foodImages: String? = null
     private var quantity: Int = 0
+    private var shopname:String?=null
     private lateinit var auth: FirebaseAuth
     private var isFavorited: Boolean = false
 
@@ -69,16 +80,8 @@ class DetailsFragment : Fragment() {
             binding.detailsShortDescriptionTextView.justificationMode =
                 LineBreaker.JUSTIFICATION_MODE_INTER_WORD
         }
-        activity?.window?.let { window ->
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-                window.statusBarColor = Color.WHITE
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                window.statusBarColor = Color. WHITE
-            }
-        }
-        auth = FirebaseAuth.getInstance()
+
+auth = FirebaseAuthUtil.auth
         arguments?.let { bundle ->
             if (bundle.containsKey("MenuItemName")) {
                 foodName = bundle.getString("MenuItemName")
@@ -86,6 +89,8 @@ class DetailsFragment : Fragment() {
                 foodDescription = bundle.getString("MenuItemDescription")
                 foodImage = bundle.getString("MenuItemImage")
                 productQuantity = bundle.getString("MenuQuantity")
+                shopname = bundle.getString("Shop Id")
+                key=bundle.getString("key")
             } else if (bundle.containsKey("DiscountItemName")) {
                 foodNames = bundle.getString("DiscountItemName")
                 foodPrices = bundle.getString("DiscountItemPrice")
@@ -93,6 +98,10 @@ class DetailsFragment : Fragment() {
                 foodImages = bundle.getString("DiscountItemImage")
                 productQuantity = bundle.getString("DiscountQuantity")
                 discount = bundle.getString("discounts")
+                shopname = bundle.getString("Shop Id")
+                key=bundle.getString("key")
+
+
             }
         }
 
@@ -115,17 +124,10 @@ class DetailsFragment : Fragment() {
                     .load(Uri.parse(arguments?.getString("MenuItemImage")))
                     .into(detailImageView)
 
-                foodName?.let {
-                    val description = arguments?.getString("MenuItemDescription")
-                    if (description != null) {
-                        fetchShopLocations { shopLocations ->
-                            fetchItemPath(it, description, shopLocations) { path ->
-                                shopname.text = path ?: ""
-                            }
-                        }
-                    }
-                }
-            } else if (arguments?.containsKey("DiscountItemName") == true) {
+                shopname.text = arguments?.getString("Shop Id")
+                shopname?.text?.toString()?.let { shopId ->
+                    loadShopName(shopId)
+                }            } else if (arguments?.containsKey("DiscountItemName") == true) {
                 val foodName = arguments?.getString("DiscountItemName")
                 val foodNameParts = foodName?.split("/") ?: listOf(
                     "",
@@ -146,21 +148,34 @@ class DetailsFragment : Fragment() {
                     .into(detailImageView)
 
 
-                foodName?.let {
-                    val description = arguments?.getString("DiscountItemDescription")
-                    if (description != null) {
-                        fetchShopLocations { shopLocations ->
-                            fetchItemPath1(it, description, shopLocations) { path ->
-                                shopname.text = path ?: ""
-                            }
-                        }
-                    }
+                shopname.text = arguments?.getString("Shop Id")
+                shopname?.text?.toString()?.let { shopId ->
+                    loadShopName(shopId)
                 }
+
             } else {
                 // Handle the case where neither MenuItemName nor DiscountItemName is provided
             }
         }
-startMonitoringCart()
+    }
+
+    private fun loadShopName(shopId: String) {
+        val database = FirebaseDatabase.getInstance().getReference("ShopNames")
+
+        // Query the specific shop by Shop Id
+        database.child(shopId).child("shopName").get().addOnSuccessListener { snapshot ->
+            if (snapshot.exists()) {
+                val shopName = snapshot.value as? String
+                binding.shoplabel.text = shopName ?: ""
+            } else {
+                binding.shoplabel.text = ""
+            }
+        }.addOnFailureListener {
+            binding.shoplabel.text = ""
+        }
+
+
+    startMonitoringCart()
         initQuantityFromFirebase()
 
         binding.detailGoToBackImageButton.setOnClickListener {
@@ -430,95 +445,6 @@ startMonitoringCart()
 
     }
 
-    private fun fetchShopLocations(onComplete: (List<String>) -> Unit) {
-        val database = FirebaseDatabase.getInstance().reference
-        val shopLocationsRef = database.child("ShopLocations")
-
-        shopLocationsRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                val shopLocations = dataSnapshot.children.mapNotNull { it.key }
-                onComplete(shopLocations)
-            }
-
-            override fun onCancelled(databaseError: DatabaseError) {
-                // Handle error
-                onComplete(emptyList())
-            }
-        })
-    }
-
-    private fun fetchItemPath(
-        itemName: String,
-        itemDescription: String,
-        paths: List<String>,
-        onComplete: (String?) -> Unit
-    ) {
-        val database = FirebaseDatabase.getInstance()
-        for (shopPath in paths) {
-            val shopReference = database.reference.child(shopPath)
-            val childPaths = listOf("menu", "menu1", "menu2","menu3","menu4","menu5")
-
-            val userId = FirebaseAuth.getInstance().currentUser?.uid
-
-            userId?.let { uid ->
-                for (childPath in childPaths) {
-                    val childReference = shopReference.child(childPath)
-                    childReference.addListenerForSingleValueEvent(object : ValueEventListener {
-                        override fun onDataChange(snapshot: DataSnapshot) {
-                            snapshot.children.forEach { shopSnapshot ->
-                                if (
-                                    shopSnapshot.child("foodDescription").value == itemDescription
-                                ) {
-                                    onComplete("$shopPath")
-                                    return
-                                }
-                            }
-                        }
-
-                        override fun onCancelled(error: DatabaseError) {
-                            // Handle error
-                        }
-                    })
-                }
-            }
-        }
-        onComplete(null)
-    }
-
-    private fun fetchItemPath1(
-        itemName: String,
-        itemDescription: String,
-        paths: List<String>,
-        onComplete: (String?) -> Unit
-    ) {
-        val database = FirebaseDatabase.getInstance()
-        val userId = FirebaseAuth.getInstance().currentUser?.uid
-
-        userId?.let { uid ->
-            paths.forEach { path ->
-                val shopReference = database.reference.child(path)
-                val childReference = shopReference.child("discount")
-
-                childReference.addListenerForSingleValueEvent(object : ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        snapshot.children.forEach { shopSnapshot ->
-                            if (
-                                shopSnapshot.child("foodDescriptions").value == itemDescription
-                            ) {
-                                onComplete(path)
-                                return
-                            }
-                        }
-                    }
-
-                    override fun onCancelled(error: DatabaseError) {
-                        onComplete(null)
-                    }
-                })
-            }
-        }
-    }
-
     private fun updateQuantityText() {
         if (quantity > 0) {
             binding.quantityText.text = quantity.toString()
@@ -538,6 +464,7 @@ startMonitoringCart()
         val database = FirebaseDatabase.getInstance().reference
         val userId = auth.currentUser?.uid ?: ""
         val currentShopName = binding.shopname.text.toString()
+
         val cartItemsRef = database.child("user").child(userId).child("cartItems")
 
         cartItemsRef.addListenerForSingleValueEvent(object : ValueEventListener {
@@ -576,7 +503,7 @@ startMonitoringCart()
                     }
 
                     negativeButton.setOnClickListener {
-                         quantity = 0
+                        quantity = 0
                         updateQuantityText(0)
                         dialog.dismiss()
                     }
@@ -603,6 +530,9 @@ startMonitoringCart()
         val database = FirebaseDatabase.getInstance().reference
         val userId = auth.currentUser?.uid ?: ""
         val shopname = binding.shopname.text
+        val CartItemAddTime = SimpleDateFormat("dd-MM-yyyy hh:mm a", Locale.getDefault()).format(
+            Date()
+        )
 
         if (shopname != null) {
             if (foodName != null && foodPrice != null && foodDescription != null && foodImage != null) {
@@ -633,14 +563,22 @@ startMonitoringCart()
                                 foodPrice!!,
                                 foodDescription!!,
                                 foodImage!!,
-                                quantity
+                                quantity!!,
+                                CartItemAddTime,
+                                key
+
+
+
+
                             )
-                            database.child("user").child(userId).child("cartItems").push()
-                                .setValue(cartItem)
-                                .addOnSuccessListener {
-                                    updateHomeCartQuantity(foodName!!, quantity)
-                                }.addOnFailureListener {
-                                }
+                            key?.let {
+                                database.child("user").child(userId).child("cartItems").child(it)
+                                    .setValue(cartItem)
+                                    .addOnSuccessListener {
+                                        updateHomeCartQuantity(foodName!!, quantity)
+                                    }.addOnFailureListener {
+                                    }
+                            }
                         }
                     }
 
@@ -659,18 +597,9 @@ startMonitoringCart()
                         if (snapshot.exists()) {
                             // Discount item already in cart, update quantity
                             for (cartSnapshot in snapshot.children) {
-
                                 cartSnapshot.ref.child("foodQuantity").setValue(quantity)
                                     .addOnSuccessListener {
-                                        foodName?.let { it1 ->
-                                            updateHomeCartQuantity(
-                                                it1,
-                                                quantity
-                                            )
-                                        }
-
-                                    }.addOnFailureListener {
-
+                                        updateDiscountItemUnitQuantity(foodNames!!, quantity)
                                     }
                             }
                         } else {
@@ -681,21 +610,20 @@ startMonitoringCart()
                                 foodPrices!!,
                                 foodDescriptions!!,
                                 foodImages!!,
-                                quantity
+                                quantity,
+                                CartItemAddTime,
+                                key
                             )
-
-                            database.child("user").child(userId).child("cartItems").push()
-                                .setValue(cartItem)
-                                .addOnSuccessListener {
-                                    foodName?.let { it1 -> updateHomeCartQuantity(it1, quantity) }
-
-                                }.addOnFailureListener {
-
-                                }
+                            key?.let {
+                                database.child("user").child(userId).child("cartItems").child(it)
+                                    .setValue(cartItem)
+                                    .addOnSuccessListener {
+                                        updateDiscountItemUnitQuantity(foodNames!!, quantity)
+                                    }
+                            }
                         }
                     }
-
-                    override fun onCancelled(error: DatabaseError) {
+                        override fun onCancelled(error: DatabaseError) {
                         // Handle onCancelled
                     }
                 })
@@ -823,31 +751,164 @@ startMonitoringCart()
                 })
         }
     }
-
-
-    private fun updateHomeCartQuantity(foodName: String, quantity: Int) {
+    private fun updateDiscountItemUnitQuantity(foodName: String, quantity: Int) {
         val userId = auth.currentUser?.uid ?: return
-        val homeCartRef =
-            FirebaseDatabase.getInstance().reference.child("user").child(userId).child("cartItems")
+        val discountCartRef = FirebaseDatabase.getInstance().reference.child("user").child(userId).child("cartItems")
 
-        homeCartRef.orderByChild("foodName").equalTo(foodName)
+        if (quantity <= 0) {
+            Log.e(TAG, "Invalid quantity: $quantity. Skipping update.")
+            return
+        }
+
+        discountCartRef.orderByChild("foodName").equalTo(foodName)
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    if (!dataSnapshot.exists()) {
+                        Log.e(TAG, "No matching item found for foodName: $foodName")
+                        return
+                    }
+
+                    // Retrieve the food price from the TextView
+                    val foodPriceString = binding.textView21.text.toString().removePrefix("Price : ₹")
+                    val foodPricePerUnit = foodPriceString.toDoubleOrNull() ?: 0.0
+
+
+
                     for (cartSnapshot in dataSnapshot.children) {
+                        val productQuantityText = binding.textView22.text?.toString().orEmpty()
+
+                        if (productQuantityText.isEmpty()) {
+                            Log.e(TAG, "Product quantity is empty. Skipping update for foodName: $foodName")
+                            return
+                        }
+
+                        val productQuantityInGrams = parseProductQuantity(productQuantityText)
+                        if (productQuantityInGrams == 0.0) {
+                            Log.e(TAG, "Failed to parse product quantity. Skipping update.")
+                            return
+                        }
+
+                        // Calculate new UnitQuantity
+                        val unitQuantityInGrams = (quantity * productQuantityInGrams).toInt()
+                        val unitQuantityString = "${unitQuantityInGrams}g"
+
+                        // Calculate total price
+                        val totalPrice = foodPricePerUnit * quantity
+
+                        // Update Firebase fields
                         cartSnapshot.ref.child("foodQuantity").setValue(quantity)
                             .addOnSuccessListener {
-                                // Handle success (optional)
-                            }.addOnFailureListener { e ->
+                                Log.d(TAG, "Successfully updated foodQuantity to $quantity")
+                            }
+                            .addOnFailureListener { e ->
                                 Log.e(TAG, "Failed to update foodQuantity: ${e.message}")
-                                // Handle failure (optional)
+                            }
+
+                        cartSnapshot.ref.child("UnitQuantity").setValue(unitQuantityString)
+                            .addOnSuccessListener {
+                                Log.d(TAG, "Successfully updated UnitQuantity to $unitQuantityString")
+                            }
+                            .addOnFailureListener { e ->
+                                Log.e(TAG, "Failed to update UnitQuantity: ${e.message}")
+                            }
+
+
+
+                        // Add or update foodPrice in Firebase
+                        cartSnapshot.ref.child("foodPrice").setValue(totalPrice.toString())
+                            .addOnSuccessListener {
+                                Log.d(TAG, "Successfully updated foodPrice to $foodPricePerUnit")
+                            }
+                            .addOnFailureListener { e ->
+                                Log.e(TAG, "Failed to update foodPrice: ${e.message}")
                             }
                     }
                 }
 
                 override fun onCancelled(databaseError: DatabaseError) {
-                    Log.e(TAG, "Database error: ${databaseError.message}")
-                    // Handle onCancelled (optional)
+                    Log.e(TAG, "Database query cancelled: ${databaseError.message}")
                 }
             })
     }
+
+    /**
+     * Parses the product quantity string (e.g., "1kg" or "500g") into grams.
+     * Returns 0.0 if the parsing fails.
+     */
+    private fun parseProductQuantity(productQuantity: String): Double {
+        val numericValue = productQuantity.filter { it.isDigit() }.toDoubleOrNull() ?: 0.0
+        val unit = productQuantity.filter { it.isLetter() }.lowercase()
+
+        return when (unit) {
+            "kg" -> numericValue * 1000
+            "g" -> numericValue
+            else -> 0.0 // Default to 0.0 for unknown units
+        }
+    }
+    private fun updateHomeCartQuantity(foodName: String, quantity: Int) {
+        val userId = auth.currentUser?.uid ?: return
+        val homeCartRef = FirebaseDatabase.getInstance().reference.child("user").child(userId).child("cartItems")
+
+        homeCartRef.orderByChild("foodName").equalTo(foodName)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    for (cartSnapshot in dataSnapshot.children) {
+                        // Retrieve the productQuantity from textView22
+                        val productQuantity = binding.textView22.text?.toString().orEmpty()
+                        Log.d(TAG, "Retrieved productQuantity from textView22: $productQuantity")
+
+                        if (productQuantity.isEmpty()) {
+                            Log.e(TAG, "Product quantity is empty. Skipping update.")
+                            return
+                        }
+
+                        // Extract numeric value and unit from productQuantity
+                        val numericValue = productQuantity.filter { it.isDigit() }.toDoubleOrNull() ?: 0.0
+                        val unit = productQuantity.filter { it.isLetter() }.lowercase()
+                        Log.d(TAG, "Numeric value: $numericValue, Unit: $unit")
+
+                        // Convert product quantity to grams if necessary
+                        val productQuantityInGrams = when (unit) {
+                            "kg" -> numericValue * 1000
+                            "g" -> numericValue
+                            else -> numericValue // Default to grams if no unit is found
+                        }
+
+                        // Calculate the new UnitQuantity based on the updated quantity
+                        val unitQuantityInGrams = (quantity * productQuantityInGrams).toInt()
+                        val unitQuantityString = "${unitQuantityInGrams}g"
+                        Log.d(TAG, "Calculated UnitQuantity: $unitQuantityString")
+
+                        // Retrieve the food price from a TextView (e.g., foodPrice TextView)
+                        val foodPriceString = binding.textView21.text.toString().removePrefix("Price : ₹")
+                        val foodPricePerUnit = foodPriceString.toDoubleOrNull() ?: 0.0
+
+
+                        // Calculate total price
+                        val totalPrice = foodPricePerUnit * quantity
+                        Log.d(TAG, "Calculated totalPrice: $totalPrice")
+
+                        // Update foodQuantity, UnitQuantity, foodPrice, and totalPrice in Firebase
+                        cartSnapshot.ref.child("foodQuantity").setValue(quantity)
+                        cartSnapshot.ref.child("UnitQuantity").setValue(unitQuantityString)
+                        cartSnapshot.ref.child("foodPrice").setValue(totalPrice.toString())
+                            .addOnSuccessListener {
+                                Log.d(TAG, "Successfully updated foodPrice to $foodPrice")
+                            }
+                            .addOnFailureListener { e ->
+                                Log.e(TAG, "Failed to update foodPrice: ${e.message}")
+                            }
+
+
+                    }
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    Log.e(TAG, "Database error: ${databaseError.message}")
+                }
+            })
+    }
+
+
+
 }

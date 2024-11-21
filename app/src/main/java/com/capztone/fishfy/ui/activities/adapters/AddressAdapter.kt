@@ -31,7 +31,7 @@ class AddressAdapter(private val context: Context, private val onItemClick: (Str
     val addresses = mutableListOf<Address>()
     private val userId = FirebaseAuth.getInstance().currentUser?.uid
     private val database: DatabaseReference? =
-        userId?.let { FirebaseDatabase.getInstance().getReference("Locations").child(it) }
+        userId?.let { FirebaseDatabase.getInstance().getReference("Addresses").child(it) }
 
     private var selectedPosition: Int
     private val sharedPreferences: SharedPreferences =
@@ -111,7 +111,7 @@ class AddressAdapter(private val context: Context, private val onItemClick: (Str
 
     private fun checked() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
-        val databaseRef = FirebaseDatabase.getInstance().getReference("Locations").child(userId).child("type")
+        val databaseRef = FirebaseDatabase.getInstance().getReference("Addresses").child(userId).child("type")
 
         databaseRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -475,7 +475,7 @@ checked()
         private fun saveSelectedAddressToFirebase(selectedAddress: String, addressType: String) {
             userId?.let { user ->
                 val addressTypeRef =
-                    FirebaseDatabase.getInstance().getReference("Locations").child(user)
+                    FirebaseDatabase.getInstance().getReference("Addresses").child(user)
                         .child(addressType)
 
                 // Retrieve existing address type details
@@ -486,7 +486,7 @@ checked()
                             val locality =
                                 snapshot.child("locality").getValue(String::class.java) ?: ""
                             val shopName =
-                                snapshot.child("shopname").getValue(String::class.java) ?: ""
+                                snapshot.child("Shop Id").getValue(String::class.java) ?: ""
                             val latitude =
                                 snapshot.child("latitude").getValue(Double::class.java) ?: 0.0
                             val longitude =
@@ -495,7 +495,7 @@ checked()
 
                             // Create a map to store the shopname, locality, latitude, and longitude
                             val addressData = mapOf(
-                                "shopname" to shopName,
+                                "Shop Id" to shopName,
                                 "locality" to locality,
                                 "latitude" to latitude,
                                 "longitude" to longitude,
@@ -505,7 +505,7 @@ checked()
 
                             // Retrieve existing data under "Locations/userId"
                             val userLocationsRef =
-                                FirebaseDatabase.getInstance().getReference("Locations").child(user)
+                                FirebaseDatabase.getInstance().getReference("Addresses").child(user)
 
                             userLocationsRef.addListenerForSingleValueEvent(object :
                                 ValueEventListener {
@@ -569,7 +569,7 @@ checked()
         private fun saveSelectedAddressToFirebase1(selectedAddress: Int, addressType: String) {
             userId?.let { user ->
                 val addressTypeRef =
-                    FirebaseDatabase.getInstance().getReference("Locations").child(user)
+                    FirebaseDatabase.getInstance().getReference("Addresses").child(user)
                         .child(addressType)
 
                 // Retrieve existing address type details
@@ -580,7 +580,7 @@ checked()
                             val locality =
                                 snapshot.child("locality").getValue(String::class.java) ?: ""
                             val shopName =
-                                snapshot.child("shopname").getValue(String::class.java) ?: ""
+                                snapshot.child("Shop Id").getValue(String::class.java) ?: ""
                             val latitude =
                                 snapshot.child("latitude").getValue(Double::class.java) ?: 0.0
                             val longitude =
@@ -589,7 +589,7 @@ checked()
 
                             // Create a map to store the shopname, locality, latitude, and longitude
                             val addressData = mapOf(
-                                "shopname" to shopName,
+                                "Shop Id" to shopName,
                                 "locality" to locality,
                                 "latitude" to latitude,
                                 "longitude" to longitude,
@@ -599,7 +599,7 @@ checked()
 
                             // Retrieve existing data under "Locations/userId"
                             val userLocationsRef =
-                                FirebaseDatabase.getInstance().getReference("Locations").child(user)
+                                FirebaseDatabase.getInstance().getReference("Addresses").child(user)
 
                             userLocationsRef.addListenerForSingleValueEvent(object :
                                 ValueEventListener {

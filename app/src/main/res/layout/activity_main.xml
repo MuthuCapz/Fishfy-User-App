@@ -123,12 +123,12 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:defaultNavHost="true"
-        app:layout_constraintBottom_toTopOf="@+id/showItemCardView"
+
+        app:layout_constraintBottom_toTopOf="@+id/bottomNavigationView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/divider"
         app:navGraph="@navigation/navigation" />
-
 
 
 
@@ -138,29 +138,29 @@
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:layout_marginBottom="5dp"
-
-        app:cardCornerRadius="15dp"
         android:layout_marginStart="20dp"
         android:layout_marginEnd="20dp"
-        android:visibility="gone"
-
+        android:visibility="visible"
+        app:cardCornerRadius="15dp"
+        app:cardElevation="0dp"
+        app:cardBackgroundColor="@android:color/transparent"
         app:layout_constraintBottom_toTopOf="@+id/bottomNavigationView"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        >
+        app:layout_constraintEnd_toEndOf="parent" >
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/addcart"
             android:layout_width="match_parent"
-            android:background="@drawable/shape"
             android:padding="5dp"
-            android:visibility="gone"
+            android:visibility="visible"
+            android:background="#80FF512F"
+
             android:layout_height="match_parent">
 
 
             <TextView
                 android:id="@+id/shopnameTextView"
-                android:layout_width="wrap_content"
+                android:layout_width="100dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
                 android:fontFamily="@font/nunito"
@@ -174,7 +174,21 @@
 
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="107dp"
+                android:fontFamily="@font/nunito"
+                android:text="|"
 
+                android:textFontWeight="500"
+                android:layout_marginTop="10dp"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+
+
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
             <TextView
                 android:id="@+id/ItemTextView"
                 android:layout_width="wrap_content"

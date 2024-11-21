@@ -21,6 +21,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.capztone.admin.utils.FirebaseAuthUtil
 import com.capztone.fishfy.R
 import com.capztone.fishfy.databinding.FragmentCartBinding
 import com.capztone.fishfy.ui.activities.PayoutActivity
@@ -57,7 +58,7 @@ class CartFragment : Fragment(), CartProceedClickListener, CartAdapter.ProgressB
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel = ViewModelProvider(this).get(CartViewModel::class.java)
-        auth = FirebaseAuth.getInstance()
+auth = FirebaseAuthUtil.auth
         database = FirebaseDatabase.getInstance()
         setupCartListener()
         retrieveCartItems()
@@ -86,16 +87,6 @@ class CartFragment : Fragment(), CartProceedClickListener, CartAdapter.ProgressB
             retrieveCartItems()
         }, 1500)
 
-
-        activity?.window?.let { window ->
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-                window.statusBarColor = Color.WHITE
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                window.statusBarColor = Color. WHITE
-            }
-        }
 
 
         viewModel.retrieveCartItems { _, _, _, _, _, paths, _ ->
@@ -246,7 +237,7 @@ class CartFragment : Fragment(), CartProceedClickListener, CartAdapter.ProgressB
     }
 
     private fun fetchUserLocation(userId: String, callback: (Location) -> Unit) {
-        val locationRef = database.getReference("Locations").child(userId)
+        val locationRef = database.getReference("Addresses").child(userId)
         locationRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val latitude = dataSnapshot.child("latitude").getValue(Double::class.java)
@@ -276,7 +267,6 @@ class CartFragment : Fragment(), CartProceedClickListener, CartAdapter.ProgressB
                 var orderValue = 0
                 dataSnapshot.children.forEach { cartItemSnapshot ->
                     val foodPriceAny = cartItemSnapshot.child("foodPrice").getValue(Any::class.java)
-                    val foodQuantityAny = cartItemSnapshot.child("foodQuantity").getValue(Any::class.java)
 
                     val foodPrice = when (foodPriceAny) {
                         is String -> foodPriceAny.toDoubleOrNull()?.toInt() ?: 0
@@ -285,14 +275,9 @@ class CartFragment : Fragment(), CartProceedClickListener, CartAdapter.ProgressB
                         else -> 0
                     }
 
-                    val quantity = when (foodQuantityAny) {
-                        is String -> foodQuantityAny.toIntOrNull() ?: 1
-                        is Long -> foodQuantityAny.toInt()
-                        is Int -> foodQuantityAny
-                        else -> 1
-                    }
 
-                    orderValue += foodPrice * quantity
+
+                    orderValue += foodPrice
                 }
                 callback(orderValue)
             }
@@ -327,54 +312,98 @@ class CartFragment : Fragment(), CartProceedClickListener, CartAdapter.ProgressB
         })
     }
     private fun calculateDeliveryCharge(userLocation: Location, shopLocation: Location, orderValue: Int) {
-        val adminUserId = "spXRl1jY4yTlhDKZJzLicp8E9kc2"
-        val adminRef = FirebaseDatabase.getInstance().getReference("Admins").child(adminUserId)
+        // Get the current user ID
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
 
-        adminRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                // Example: Log all fetched values
-                Log.d(TAG, "Fetched admin data: $dataSnapshot")
+        // Make sure userId is not null before proceeding
+        if (userId != null) {
+            // Reference to the current user's cart items
+            val userCartRef = FirebaseDatabase.getInstance().getReference("user").child(userId).child("cartItems")
 
-                // Retrieve administrative settings from Firebase
-                val baseFare = dataSnapshot.child("Base Fare").getValue(String::class.java)?.toInt() ?: 20
-                val driverDistance = dataSnapshot.child("Driver Distance").getValue(String::class.java)?.toInt() ?: 10
-                val gst = dataSnapshot.child("Gst").getValue(String::class.java)?.toDouble() ?: 0.00
-                val peakHourCharge = dataSnapshot.child("Peak Hour Charge").getValue(String::class.java)?.toInt() ?: 50
-                val perKmCharge = dataSnapshot.child("Perkm Charge").getValue(String::class.java)?.toInt() ?: 5
-                val serviceCharge = dataSnapshot.child("Service Charge").getValue(String::class.java)?.toInt() ?: 5
-                val speedDeliveryCharge = dataSnapshot.child("Speed Delivery Charge").getValue(String::class.java)?.toInt() ?: 30
+            userCartRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(cartSnapshot: DataSnapshot) {
+                    // Check if the cart items exist for the user
+                    if (cartSnapshot.exists()) {
+                        // Loop through all cart items if there are multiple
+                        for (cartItemSnapshot in cartSnapshot.children) {
+                            // Retrieve the path value (e.g., "Shop 1")
+                            val shopPath = cartItemSnapshot.child("path").getValue(String::class.java)
 
-                // Calculate distance between user and shop in kilometers
-                val distanceInKm = userLocation.distanceTo(shopLocation) / 1000
+                            // If shopPath is not null, proceed to calculate delivery charges using this path
+                            if (shopPath != null) {
+                                // Use this shopPath to get the delivery details
+                                val adminRef = FirebaseDatabase.getInstance().getReference("Delivery Details").child(shopPath)
 
-                // Calculate distance charge
-                val distanceCharge = if (orderValue > 500) 0 else (distanceInKm * perKmCharge).roundToInt()
+                                adminRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                                        // Retrieve admin settings from Firebase
+                                        val baseFare = dataSnapshot.child("Base Fare").getValue(String::class.java)?.toInt() ?: 20
+                                        val driverDistance = dataSnapshot.child("Driver Distance").getValue(String::class.java)?.toInt() ?: 10
+                                        val gst = dataSnapshot.child("Gst").getValue(String::class.java)?.toDouble() ?: 0.00
+                                        val peakHourCharge = dataSnapshot.child("Peak Hour Charge").getValue(String::class.java)?.toInt() ?: 50
+                                        val perKmCharge = dataSnapshot.child("Perkm Charge").getValue(String::class.java)?.toInt() ?: 5
+                                        val serviceCharge = dataSnapshot.child("Service Charge").getValue(String::class.java)?.toInt() ?: 5
+                                        val speedDeliveryCharge = dataSnapshot.child("Speed Delivery Charge").getValue(String::class.java)?.toInt() ?: 30
 
-                // Calculate GST on order value
-                val gstOnOrderValue = gst
+                                        // Check if "Delivery Amount" exists; if not, set it as null
+                                        val deliveryAmountString = dataSnapshot.child("Delivery Amount").getValue(String::class.java)
+                                        val deliveryAmount = if (deliveryAmountString != null) {
+                                            deliveryAmountString.replace(Regex("[^0-9]"), "").toIntOrNull() ?: 0
+                                        } else {
+                                            null
+                                        }
 
-                // Calculate total before GST
-                val totalBeforeGst = baseFare + serviceCharge + peakHourCharge
+                                        // Calculate the distance between user and shop in kilometers
+                                        val distanceInKm = userLocation.distanceTo(shopLocation) / 1000
 
-                // Calculate grand total including order value and distance charge
-                val grandTotal = totalBeforeGst + orderValue + distanceCharge
+                                        // Calculate distance charge based on the presence of "Delivery Amount"
+                                        val distanceCharge = if (deliveryAmount != null && orderValue >= deliveryAmount) {
+                                            0
+                                        } else {
+                                            (distanceInKm * perKmCharge).roundToInt()
+                                        }
 
-                // Example: Log calculated values
-                Log.d(TAG, "Base Fare: $baseFare, Distance Charge: $distanceCharge, Service Charge: $serviceCharge")
-                Log.d(TAG, "Total Before GST: $totalBeforeGst, Grand Total: $grandTotal, Order Value: $orderValue")
+                                        // Calculate GST on order value
+                                        val gstOnOrderValue = gst
 
-                // Update total amount in Firebase for the current user
-                saveTotalAmount(grandTotal)
+                                        // Calculate total before GST
+                                        val totalBeforeGst = baseFare + serviceCharge + peakHourCharge
 
-                // Update UI on the main thread
-                updateUI(baseFare, distanceCharge, serviceCharge, totalBeforeGst, grandTotal, orderValue,gstOnOrderValue)
-            }
+                                        // Calculate grand total including order value and distance charge
+                                        val grandTotal = totalBeforeGst + orderValue + distanceCharge
 
-            override fun onCancelled(databaseError: DatabaseError) {
-                // Handle database read error
-                Log.e(TAG, "Failed to read value from Firebase: ${databaseError.message}")
-            }
-        })
+                                        // Log calculated values for debugging
+                                        Log.d(TAG, "Base Fare: $baseFare, Distance Charge: $distanceCharge, Service Charge: $serviceCharge")
+                                        Log.d(TAG, "Total Before GST: $totalBeforeGst, Grand Total: $grandTotal, Order Value: $orderValue")
+
+                                        // Update total amount in Firebase for the current user
+                                        saveTotalAmount(grandTotal)
+
+                                        // Update UI on the main thread
+                                        updateUI(baseFare, distanceCharge, serviceCharge, totalBeforeGst, grandTotal, orderValue, gstOnOrderValue)
+                                    }
+
+                                    override fun onCancelled(databaseError: DatabaseError) {
+                                        // Handle database read error
+                                        Log.e(TAG, "Failed to read value from Firebase: ${databaseError.message}")
+                                    }
+                                })
+                            } else {
+                                Log.e(TAG, "Shop path not found in cart item")
+                            }
+                        }
+                    } else {
+                        Log.e(TAG, "Cart items not found for user: $userId")
+                    }
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    Log.e(TAG, "Failed to read user's cart items: ${databaseError.message}")
+                }
+            })
+        } else {
+            Log.e(TAG, "User is not logged in.")
+        }
     }
 
     private fun updateUI(
@@ -408,8 +437,8 @@ class CartFragment : Fragment(), CartProceedClickListener, CartAdapter.ProgressB
         val currentUser = auth.currentUser
         currentUser?.let { user ->
             val userId = user.uid
-            val userRef = database.getReference("Total Amount").child(userId)
-            val totalRef = userRef.child("finalTotal")
+            val userRef = database.getReference("user").child(userId)
+            val totalRef = userRef.child("OrderTotalAmount")
             totalRef.setValue(grandTotal)
         }
 

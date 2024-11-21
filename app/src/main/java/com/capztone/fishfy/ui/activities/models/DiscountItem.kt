@@ -9,5 +9,7 @@ data class DiscountItem(
     val discounts: String? = null,
     val productQuantity:String?=null,
     var path: String? = null,
+    var CartItemAddTime: String?=null,
+    var key:String?=null
 )
 

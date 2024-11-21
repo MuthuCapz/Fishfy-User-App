@@ -6,40 +6,36 @@ import androidx.lifecycle.ViewModel
 import com.capztone.fishfy.ui.activities.models.MenuItem
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
-
 class FreshFishViewModel : ViewModel() {
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val database: FirebaseDatabase = FirebaseDatabase.getInstance()
 
     val menuItemsLiveData: MutableLiveData<List<MenuItem>> = MutableLiveData()
 
-    fun retrieveMenuItems() {
+    fun retrieveMenuItems(categoryName: String?) {
         val userId = auth.currentUser?.uid ?: return
 
-        // Fetch user data including category and language
+        // Fetch user data including language
         database.getReference("user").child(userId)
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(userSnapshot: DataSnapshot) {
-                    val category = userSnapshot.child("category").getValue(String::class.java) ?: ""
                     val userLanguage = userSnapshot.child("language").getValue(String::class.java)?.toLowerCase()
                         ?: "english"
 
                     // Fetch shopnames string from Locations
-                    val locationsRef = database.getReference("Locations").child(userId)
+                    val locationsRef = database.getReference("Addresses").child(userId)
                     locationsRef.addListenerForSingleValueEvent(object : ValueEventListener {
                         override fun onDataChange(locationsSnapshot: DataSnapshot) {
-                            val shopNamesString = locationsSnapshot.child("shopname").getValue(String::class.java)
+                            val shopNamesString = locationsSnapshot.child("Shop Id").getValue(String::class.java)
                             shopNamesString?.let { shopNames ->
                                 val shopNamesList = shopNames.split(",").map { it.trim() }
                                 val menuItems = mutableListOf<MenuItem>()
 
                                 // Iterate through each shop name to retrieve menu items based on category
                                 shopNamesList.forEach { shopName ->
-                                    val menuPath = getCategoryMenuPath(category)
-
-                                    menuPath?.let { path ->
-                                        // Fetch menu items from the determined menu path for each shop
-                                        val menuRef = database.getReference(shopName).child(path)
+                                    categoryName?.let { category ->
+                                        // Fetch items based on the shop and category name
+                                        val menuRef = database.getReference("Shops").child(shopName).child(category)
 
                                         menuRef.addListenerForSingleValueEvent(object : ValueEventListener {
                                             override fun onDataChange(menuSnapshot: DataSnapshot) {
@@ -47,9 +43,12 @@ class FreshFishViewModel : ViewModel() {
                                                     for (itemSnapshot in menuSnapshot.children) {
                                                         val menuItem = itemSnapshot.getValue(MenuItem::class.java)
                                                         menuItem?.let {
+                                                            // Retrieve additional fields and set to menuItem
                                                             it.path = shopName
-                                                            // Retrieve the foodNames in English and user-selected language
+                                                            it.key = itemSnapshot.key ?: ""
 
+
+                                                            // Combine English and language-specific food names if needed
                                                             val foodNamesList = it.foodName ?: arrayListOf()
                                                             val englishName = foodNamesList.getOrNull(0) ?: ""
                                                             val languageSpecificName = when (userLanguage) {
@@ -74,6 +73,7 @@ class FreshFishViewModel : ViewModel() {
                                                         }
                                                     }
                                                 }
+
                                                 // Post updated menu items to LiveData after processing all menu items
                                                 menuItemsLiveData.postValue(menuItems)
                                             }
@@ -100,19 +100,5 @@ class FreshFishViewModel : ViewModel() {
                     Log.e("FreshFishViewModel", "Failed to retrieve user data: ${error.message}")
                 }
             })
-    }
-
-    // Helper function to get menu path based on category
-    private fun getCategoryMenuPath(category: String): String? {
-        // Map category to menu path according to your requirements
-        return when (category.toLowerCase()) {
-            "crabs" -> "menu4"
-            "dry fish" -> "menu1"
-            "pickle" -> "menu2"
-            "shrimps" -> "menu3"
-            "lobster" -> "menu5"
-            "fresh fish" -> "menu"
-            else -> null // Handle unknown category if needed
-        }
     }
 }

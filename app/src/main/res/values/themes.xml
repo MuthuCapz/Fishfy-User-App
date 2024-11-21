@@ -32,6 +32,12 @@
         <item name="android:backgroundDimEnabled">true</item>
         <!-- Add other customizations if needed -->
     </style>
+    <style name="CustomDialogThem" parent="Theme.AppCompat.Dialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:windowMinWidthMajor">90%</item>
+        <!-- Add other customizations if needed -->
+    </style>
     <!-- Add this to your styles.xml file -->
     <style name="CustomDialogg" parent="Theme.AppCompat.Light.Dialog">
         <item name="android:windowBackground">@android:color/transparent</item>

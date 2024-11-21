@@ -15,6 +15,7 @@ import android.widget.Toast
 import androidx.appcompat.widget.AppCompatButton
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
+import com.capztone.admin.utils.FirebaseAuthUtil
 import com.capztone.fishfy.databinding.FragmentCurrentLocationBottomSheetBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
@@ -27,13 +28,14 @@ import kotlin.math.*
 import com.capztone.fishfy.R
 import com.capztone.fishfy.ui.activities.LocationNotAvailable
 import com.capztone.fishfy.ui.activities.MainActivity
-import com.capztone.fishfy.ui.activities.RealTimeFireStoreHelper
-import com.capztone.fishfy.ui.activities.readRawJson
 import com.google.firebase.database.DatabaseException
 import com.google.gson.JsonObject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class CurrentLocationBottomSheet : DialogFragment() {
 
@@ -63,19 +65,10 @@ class CurrentLocationBottomSheet : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        auth = FirebaseAuth.getInstance()
+auth = FirebaseAuthUtil.auth
         database = FirebaseDatabase.getInstance().reference
-        migrateDatabase()
+
         geocoder = Geocoder(requireContext())
-        activity?.window?.let { window ->
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-                window.statusBarColor = Color.WHITE
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                window.statusBarColor = Color. WHITE
-            }
-        }
 
         // Inside onViewCreated method
         binding.etName.setOnFocusChangeListener { _, hasFocus ->
@@ -130,16 +123,7 @@ class CurrentLocationBottomSheet : DialogFragment() {
         _binding = null
     }
 
-    private fun migrateDatabase() {
-        val coroutineCallMigrateDB = CoroutineScope(Dispatchers.IO)
-        coroutineCallMigrateDB.launch {
-            val dbExport = readRawJson<JsonObject>(
-                R.raw.fishfy, // Replace with your JSON file name
-                this@CurrentLocationBottomSheet
-            )
-            RealTimeFireStoreHelper.convertRealTimeToFireStore(dbExport)
-        }
-    }
+
     private fun fetchShopLocationsFromFirebase() {
         val shopLocationsRef = database.child("ShopLocations")
         shopLocationsRef.addListenerForSingleValueEvent(object : ValueEventListener {
@@ -180,7 +164,7 @@ class CurrentLocationBottomSheet : DialogFragment() {
                 // Retrieve the distance threshold from Firebase
                 val userId = FirebaseAuth.getInstance().currentUser?.uid
                 if (userId != null) {
-                    val databaseReference = FirebaseDatabase.getInstance().getReference("Admins/spXRl1jY4yTlhDKZJzLicp8E9kc2/User Distance")
+                    val databaseReference = FirebaseDatabase.getInstance().getReference("Delivery Details/User Distance")
                     databaseReference.addListenerForSingleValueEvent(object : ValueEventListener {
                         override fun onDataChange(dataSnapshot: DataSnapshot) {
                             val distanceThresholdString = dataSnapshot.getValue(String::class.java)
@@ -242,7 +226,7 @@ class CurrentLocationBottomSheet : DialogFragment() {
     }
 
     private fun deleteShopNameFromFirebase(userId: String) {
-        val userLocationRef = database.child("Locations").child(userId).child("shopname")
+        val userLocationRef = database.child("Addresses").child(userId).child("Shop Id")
         userLocationRef.removeValue()
             .addOnSuccessListener {
             }
@@ -254,8 +238,8 @@ class CurrentLocationBottomSheet : DialogFragment() {
 
     private fun storeNearbyShopsInFirebase(shops: String) {
         val userId = auth.currentUser?.uid ?: return
-        val userLocationRef = database.child("Locations").child(userId)
-        userLocationRef.child("shopname").setValue(shops)
+        val userLocationRef = database.child("Addresses").child(userId)
+        userLocationRef.child("Shop Id").setValue(shops)
             .addOnSuccessListener {
 
             }
@@ -370,12 +354,12 @@ class CurrentLocationBottomSheet : DialogFragment() {
     private fun saveAddressToFirebase() {
         val userId = auth.currentUser?.uid ?: return
         val addressType = selectedAddressType ?: return // Ensure addressType is not null
-        val uidid = "spXRl1jY4yTlhDKZJzLicp8E9kc2"
+
         // Join the list with commas to form the full address string
 
 
         // Retrieve the "User Distance" value from Firebase
-        val adminDistanceRef = database.child("Admins").child(uidid).child("User Distance")
+        val adminDistanceRef = database.child("Delivery Details").child("User Distance")
         adminDistanceRef.get().addOnSuccessListener { dataSnapshot ->
             val userDistance = try {
                 dataSnapshot.getValue(Double::class.java) ?: 10.0 // Default to 10.0 if not found or conversion fails
@@ -447,10 +431,10 @@ class CurrentLocationBottomSheet : DialogFragment() {
                         }
 
                         if (nearbyShops.isNotEmpty()) {
-                            locationData["shopname"] = shopsWithinThreshold
+                            locationData["Shop Id"] = shopsWithinThreshold
                         } else {
                             deleteShopNameFromFirebase(userId)
-                            database.child("Locations").child(userId).child("shopname")
+                            database.child("Addresses").child(userId).child("Shop Id")
                                 .removeValue()
                                 .addOnCompleteListener { shopNameRemoveTask ->
                                     if (shopNameRemoveTask.isSuccessful) {
@@ -463,7 +447,7 @@ class CurrentLocationBottomSheet : DialogFragment() {
 
 
 
-                        database.child("Locations").child(userId).child("locality")
+                        database.child("Addresses").child(userId).child("locality")
                             .setValue(locality)
                             .addOnCompleteListener { localitySaveTask ->
                                 if (!localitySaveTask.isSuccessful) {
@@ -474,7 +458,7 @@ class CurrentLocationBottomSheet : DialogFragment() {
                                     ).show()
                                 }
                             }
-                        database.child("Locations").child(userId).child("type")
+                        database.child("Addresses").child(userId).child("type")
                             .setValue(addressType)
                             .addOnCompleteListener { localitySaveTask ->
                                 if (!localitySaveTask.isSuccessful) {
@@ -486,7 +470,7 @@ class CurrentLocationBottomSheet : DialogFragment() {
                                 }
                             }
 
-                        val locationRef = database.child("Locations").child(userId)
+                        val locationRef = database.child("Addresses").child(userId)
                         locationRef.child("latitude").setValue(latitude)
                             .addOnCompleteListener { latitudeSaveTask ->
                                 if (!latitudeSaveTask.isSuccessful) {
@@ -508,8 +492,19 @@ class CurrentLocationBottomSheet : DialogFragment() {
                                     ).show()
                                 }
                             }
+                        val currentDate = SimpleDateFormat("dd-MM-yyyy hh:mm a", Locale.getDefault()).format(Date())
+
+                        locationRef.child("LocationAddedTime").setValue(currentDate)
+                            .addOnCompleteListener { timeSaveTask ->
+                                if (timeSaveTask.isSuccessful) {
+
+                                } else {
+
+                                }
+                            }
+
                         selectedAddressType?.let {
-                            val addressRef = database.child("Locations").child(userId).child(it)
+                            val addressRef = database.child("Addresses").child(userId).child(it)
 
                             addressRef.setValue(locationData)
                                 .addOnCompleteListener { addressSaveTask ->
@@ -550,7 +545,7 @@ class CurrentLocationBottomSheet : DialogFragment() {
                                 }
 
                             // Save the user details under "Locations" -> userId -> "User Details"
-                            val userDetailsRef = database.child("Locations").child(userId).child("User Details")
+                            val userDetailsRef = database.child("Addresses").child(userId).child("User Details")
                             userDetailsRef.child("user name").setValue(name)
                                 .addOnCompleteListener { nameSaveTask ->
                                     if (!nameSaveTask.isSuccessful) {

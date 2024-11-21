@@ -29,6 +29,7 @@ import java.util.Locale
 import java.util.TimeZone
 import android.Manifest
 import android.content.pm.PackageManager
+import com.capztone.admin.utils.FirebaseAuthUtil
 
 class DeleteAccountActivity : AppCompatActivity() {
 
@@ -43,8 +44,7 @@ class DeleteAccountActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityDeleteAccountBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        setupUI()
-        auth = FirebaseAuth.getInstance()
+auth = FirebaseAuthUtil.auth
         databaseRef = FirebaseDatabase.getInstance().reference
         fetchUserInfo()
         binding.deleteButton.setOnClickListener {
@@ -70,17 +70,7 @@ class DeleteAccountActivity : AppCompatActivity() {
         unregisterReceiver(smsReceiver)
     }
 
-    private fun setupUI() {
-        window?.let { window ->
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-                window.statusBarColor = Color.TRANSPARENT
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                window.statusBarColor = Color.TRANSPARENT
-            }
-        }
-    }
+
 
     private fun setupSmsReceiver() {
         smsReceiver = SmsReceiver()
@@ -95,7 +85,8 @@ class DeleteAccountActivity : AppCompatActivity() {
             userRef.get().addOnSuccessListener { dataSnapshot ->
                 val email = dataSnapshot.child("email").getValue(String::class.java)
                 val phoneNumber = dataSnapshot.child("phoneNumber").getValue(String::class.java)
-
+                val userId = dataSnapshot.child("userid").getValue(String::class.java)
+                binding.userId.text=userId
                 // Update visibility based on the retrieved data
                 if (email != null) {
                     binding.usermail.setText(email)
@@ -218,13 +209,11 @@ class DeleteAccountActivity : AppCompatActivity() {
     }
 
     private fun deleteUserAccount(userId: String, isEmail: Boolean) {
-        val currentTimeMillis = System.currentTimeMillis()
-        val formattedTime = getCurrentTimeInISTFormatted()
+        val deletedDate = getCurrentDateTime()
 
         val deleteRequestRef = FirebaseDatabase.getInstance().getReference("DeletionRequests").child(userId)
         val deleteRequest = mapOf(
-            "formattedTime" to formattedTime,
-            "requestTimeMillis" to currentTimeMillis
+            "deletedDate" to deletedDate  // Store only the deletedDate in the desired format
         )
 
         deleteRequestRef.setValue(deleteRequest).addOnCompleteListener { task ->
@@ -246,7 +235,6 @@ class DeleteAccountActivity : AppCompatActivity() {
             }
         }
     }
-
     private fun sendSMSAndNavigate() {
         val receiveNumber = binding.textview111.text.toString().trim() // Get the phone number from TextView
         if (receiveNumber.isNotEmpty()) {
@@ -290,13 +278,12 @@ class DeleteAccountActivity : AppCompatActivity() {
 
     private fun deleteUserPaths(userId: String) {
         val pathsToDelete = listOf(
-            "Locations",
+            "Addresses",
             "PayoutAddress",
             "OrderDetails",
-            "TotalAmount",
             "Favourite",
-            "Exploreshop"
-        )
+
+            )
 
         val deleteTasks = pathsToDelete.map { path ->
             FirebaseDatabase.getInstance().getReference(path).child(userId).removeValue()
@@ -311,18 +298,18 @@ class DeleteAccountActivity : AppCompatActivity() {
         }
     }
 
+
     private fun saveDeleteReason(userId: String) {
         val deleteRef = FirebaseDatabase.getInstance().getReference("DeletedAccounts").child(userId)
         val reason = binding.userreason.text.toString().trim()
-        val timestamp = System.currentTimeMillis()
-        val formattedTime = getCurrentTimeInISTFormatted()
+        val formattedTime = getCurrentDateTime()
         val deleteInfo = mapOf(
             "name" to binding.username.text.toString().trim(),
             "email" to binding.usermail.text.toString().trim(),
             "phoneNumber" to binding.usermobilenumber.text.toString().trim(),
             "reason" to reason,
-            "timestamp" to timestamp,
-            "formattedTime" to formattedTime
+            "deletedTime" to formattedTime,
+            "userUid" to binding.userId.text.toString().trim(),
         )
 
         deleteRef.setValue(deleteInfo).addOnCompleteListener { task ->
@@ -332,10 +319,10 @@ class DeleteAccountActivity : AppCompatActivity() {
         }
     }
 
-    private fun getCurrentTimeInISTFormatted(): String {
-        val sdf = SimpleDateFormat("hh:mm a", Locale.getDefault())
-        sdf.timeZone = TimeZone.getTimeZone("Asia/Kolkata")
-        return sdf.format(Date())
+    // Function to get current date and time in "dd-MM-yyyy hh:mm a" format
+    private fun getCurrentDateTime(): String {
+        val dateFormat = SimpleDateFormat("dd-MM-yyyy hh:mm a", Locale.getDefault())
+        return dateFormat.format(Date())
     }
 
     private fun navigateToAppropriateActivity() {

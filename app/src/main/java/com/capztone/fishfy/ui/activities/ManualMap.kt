@@ -9,6 +9,7 @@ import android.widget.SearchView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.capztone.admin.utils.FirebaseAuthUtil
 import com.capztone.fishfy.R
 import com.capztone.fishfy.databinding.ActivityMapsBinding
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -45,8 +46,7 @@ class ManualMap : AppCompatActivity(), OnMapReadyCallback {
         mapFragment.getMapAsync(this)
 
         // Initialize Firebase Auth
-        auth = FirebaseAuth.getInstance()
-
+auth = FirebaseAuthUtil.auth
         // Initialize Firebase Database
         database = FirebaseDatabase.getInstance().reference
 

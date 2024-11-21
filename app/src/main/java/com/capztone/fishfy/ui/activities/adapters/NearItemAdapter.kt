@@ -31,6 +31,9 @@ import com.capztone.fishfy.ui.activities.models.CartItems
 import com.capztone.fishfy.ui.activities.models.MenuItem
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class NearItemAdapter(
     private var menuItems: List<MenuItem>,
@@ -52,6 +55,7 @@ class NearItemAdapter(
 
         diffResult.dispatchUpdatesTo(this)
         seenFoodNames.clear()
+
 
         menuItems.forEach { menuItem ->
             if (!seenFoodNames.contains(menuItem.foodName?.getOrNull(0) ?: "")) {
@@ -93,6 +97,7 @@ class NearItemAdapter(
         init {
             quantityLiveData.value = 0
 
+
             binding.quantityy.setOnClickListener {
                 val currentQuantity = quantityLiveData.value ?: 0
                 if (currentQuantity == 0) {
@@ -114,8 +119,22 @@ class NearItemAdapter(
             binding.minusImageButton.setOnClickListener {
                 val currentQuantity = quantityLiveData.value ?: 0
                 if (currentQuantity > 0) {
+                    val foodPriceString = binding.menuPrice1.text.toString().removePrefix("₹")
+                    val foodPricePerUnit = foodPriceString.toDoubleOrNull() ?: 0.0
                     val foodName = binding.menuFoodName1.text.toString() + binding.menuFoodName2.text.toString()
                     val userId = FirebaseAuth.getInstance().currentUser?.uid
+                    val productQuantity = menuItems[adapterPosition].productQuantity
+
+                    // Extract numeric value and unit from productQuantity
+                    val numericValue = productQuantity?.filter { it.isDigit() }?.toDoubleOrNull() ?: 0.0
+                    val unit = productQuantity?.filter { it.isLetter() }?.lowercase()
+
+                    // Convert to grams if necessary
+                    val productQuantityInGrams = when (unit) {
+                        "kg" -> numericValue * 1000
+                        "g" -> numericValue
+                        else -> numericValue // Default to grams
+                    }
 
                     if (userId != null) {
                         val cartItemsRef = FirebaseDatabase.getInstance().reference.child("user").child(userId).child("cartItems")
@@ -127,14 +146,25 @@ class NearItemAdapter(
                                     val newQuantity = foodQuantity - 1
 
                                     if (newQuantity >= 0) {
-                                        cartSnapshot.ref.child("foodQuantity").setValue(newQuantity).addOnSuccessListener {
-                                            quantityLiveData.value = newQuantity
-                                            if (newQuantity == 0) {
-                                                removeItemFromCart()
+                                        val newUnitQuantity = (newQuantity * productQuantityInGrams).toInt()
+                                        val unitString = "g"
+                                        val unitQuantityString = "${newUnitQuantity}${unitString}"
+
+                                        // Calculate new total price
+                                        val newTotalPrice = newQuantity * foodPricePerUnit
+
+                                        // Update foodQuantity, UnitQuantity, and foodPrice
+                                        cartSnapshot.ref.child("foodQuantity").setValue(newQuantity)
+                                        cartSnapshot.ref.child("UnitQuantity").setValue(unitQuantityString)
+                                        cartSnapshot.ref.child("foodPrice").setValue(newTotalPrice.toString())
+                                            .addOnSuccessListener {
+                                                quantityLiveData.value = newQuantity
+                                                if (newQuantity == 0) {
+                                                    removeItemFromCart()
+                                                }
+                                            }.addOnFailureListener {
+                                                ToastHelper.showCustomToast(context, "Failed to update item details")
                                             }
-                                        }.addOnFailureListener {
-                                            ToastHelper.showCustomToast(context, "Failed to update item quantity")
-                                        }
                                     }
                                 }
                             }
@@ -147,45 +177,11 @@ class NearItemAdapter(
                 }
             }
 
+
+
             quantityLiveData.observe(context as LifecycleOwner, Observer { quantity ->
                 updateQuantityText(quantity)
             })
-        }
-
-        private fun updateCartItemQuantity(newQuantity: Int) {
-            val database = FirebaseDatabase.getInstance().reference
-            val userId = FirebaseAuth.getInstance().currentUser?.uid
-            val foodName = binding.menuFoodName1.text.toString() + binding.menuFoodName2.text.toString()
-
-            if (userId != null && foodName.isNotEmpty()) {
-                val cartItemsRef = database.child("user").child(userId).child("cartItems")
-
-                cartItemsRef.orderByChild("foodName").equalTo(foodName)
-                    .addListenerForSingleValueEvent(object : ValueEventListener {
-                        override fun onDataChange(dataSnapshot: DataSnapshot) {
-                            if (dataSnapshot.exists()) {
-                                for (cartSnapshot in dataSnapshot.children) {
-                                    cartSnapshot.ref.child("foodQuantity").setValue(newQuantity)
-                                        .addOnSuccessListener {
-                                            ToastHelper.showCustomToast(
-                                                context,
-                                                "Item quantity updated in cart successfully"
-                                            )
-                                        }.addOnFailureListener {
-                                            ToastHelper.showCustomToast(
-                                                context,
-                                                "Failed to update item quantity"
-                                            )
-                                        }
-                                }
-                            }
-                        }
-
-                        override fun onCancelled(databaseError: DatabaseError) {
-                            // Handle error
-                        }
-                    })
-            }
         }
 
         private fun removeItemFromCart() {
@@ -335,25 +331,46 @@ class NearItemAdapter(
             }
         }
 
-
-
         private fun addItemToCartWithoutCheck() {
             val database = FirebaseDatabase.getInstance().reference
             val userId = FirebaseAuth.getInstance().currentUser?.uid
             val shopName = binding.shopname.text.toString()
+            val menuItem = menuItems.getOrNull(adapterPosition) ?: return
             val foodName = binding.menuFoodName1.text.toString() + binding.menuFoodName2.text.toString()
-            val foodPrice = binding.menuPrice1.text.toString().removePrefix("₹")
+            val foodPriceString = binding.menuPrice1.text.toString().removePrefix("₹")
+            val foodPricePerUnit = foodPriceString.toDoubleOrNull() ?: 0.0
             val foodImage = binding.nearImage.tag.toString()
             val quantity = quantityLiveData.value ?: 1
+            val key = menuItem.key
+            val productQuantity = menuItem.productQuantity
 
-            if (userId != null && foodName.isNotEmpty() && foodPrice.isNotEmpty() && foodImage.isNotEmpty()) {
+            // Extract numeric value from productQuantity (e.g., "500g", "1kg")
+            val numericValue = productQuantity?.filter { it.isDigit() }?.toDoubleOrNull() ?: 0.0
+            val unit = productQuantity?.filter { it.isLetter() }?.lowercase()
+
+            // Convert to grams if necessary and prepare the unit string
+            val (productQuantityInGrams, unitString) = when (unit) {
+                "kg" -> numericValue * 1000 to "g"
+                "g" -> numericValue to "g"
+                else -> numericValue to "g" // Default to grams if the unit is not recognized
+            }
+
+            // Calculate UnitQuantity (foodQuantity * productQuantityInGrams)
+            val unitQuantity = (quantity * productQuantityInGrams).toInt()
+            val unitQuantityString = "${unitQuantity}${unitString}" // e.g., "500g"
+
+            // Calculate the total price
+            val totalPrice = quantity * foodPricePerUnit
+
+            if (userId != null && foodName.isNotEmpty() && foodPriceString.isNotEmpty() && foodImage.isNotEmpty()) {
                 val cartItemsRef = database.child("user").child(userId).child("cartItems")
+                val CartItemAddTime = SimpleDateFormat("dd-MM-yyyy hh:mm a", Locale.getDefault()).format(Date())
 
                 cartItemsRef.orderByChild("foodName").equalTo(foodName)
                     .addListenerForSingleValueEvent(object : ValueEventListener {
                         override fun onDataChange(dataSnapshot: DataSnapshot) {
                             if (dataSnapshot.exists()) {
-                                // Item already in cart, update quantity
+                                // Item already in cart, update quantity and total price
                                 for (cartSnapshot in dataSnapshot.children) {
                                     val quantityValue = cartSnapshot.child("foodQuantity").getValue(Any::class.java)
                                     val currentQuantity = when (quantityValue) {
@@ -362,16 +379,22 @@ class NearItemAdapter(
                                         else -> 0
                                     }
                                     val newQuantity = currentQuantity + 1
+                                    val newUnitQuantity = (newQuantity * productQuantityInGrams).toInt()
+                                    val newUnitQuantityString = "${newUnitQuantity}${unitString}"
+                                    val newTotalPrice = newQuantity * foodPricePerUnit
+
                                     cartSnapshot.ref.child("foodQuantity").setValue(newQuantity)
+                                    cartSnapshot.ref.child("UnitQuantity").setValue(newUnitQuantityString)
+                                    cartSnapshot.ref.child("foodPrice").setValue(newTotalPrice.toString())
                                         .addOnSuccessListener {
                                             ToastHelper.showCustomToast(
                                                 context,
-                                                "Item quantity updated in cart successfully"
+                                                "Item quantity and price updated in cart successfully"
                                             )
                                         }.addOnFailureListener {
                                             ToastHelper.showCustomToast(
                                                 context,
-                                                "Failed to update item quantity"
+                                                "Failed to update item quantity and price"
                                             )
                                         }
                                 }
@@ -380,168 +403,47 @@ class NearItemAdapter(
                                 val cartItem = CartItems(
                                     shopName,
                                     foodName,
-                                    foodPrice,
-                                    foodDescription,
+                                    totalPrice.toString(),
+                                    menuItem.foodDescription,
                                     foodImage,
-                                    quantity
+                                    quantity,
+                                    CartItemAddTime,
+                                    menuItem.key,
                                 )
-                                cartItemsRef.push().setValue(cartItem)
-                                    .addOnSuccessListener {
-                                        ToastHelper.showCustomToast(
-                                            context,
-                                            "Item added to cart successfully"
-                                        )
-
-                                    }
-                                    .addOnFailureListener {
-                                        ToastHelper.showCustomToast(
-                                            context,
-                                            "Failed to add item to cart"
-                                        )
-                                    }
-                            }
-                        }
-
-                        override fun onCancelled(databaseError: DatabaseError) {
-                            // Handle error
-                        }
-                    })
-            }
-        }
-        private fun clearCartAndNotify() {
-            cartItems.clear()
-            notifyDataSetChanged()
-        }
-        private fun addItemToCart1() {
-            val currentShopName = binding.shopname.text.toString()
-            val cartItemsRef = currentUserID?.let {
-                FirebaseDatabase.getInstance().reference.child("user").child(it).child("cartItems")
-            }
-
-            if (cartItemsRef != null) {
-                cartItemsRef.addListenerForSingleValueEvent(object : ValueEventListener {
-                    override fun onDataChange(dataSnapshot: DataSnapshot) {
-                        var differentShopFound = false
-
-                        for (itemSnapshot in dataSnapshot.children) {
-                            val shopName = itemSnapshot.child("path").value as String
-                            if (shopName != currentShopName) {
-                                differentShopFound = true
-                                break
-                            }
-                        }
-
-                        if (differentShopFound) {
-                            val context = binding.root.context
-                            val layoutInflater = LayoutInflater.from(context)
-                            val customLayout = layoutInflater.inflate(R.layout.shop_dialog, null)
-
-                            val dialog = AlertDialog.Builder(context, R.style.CustomDialogg)
-                                .setView(customLayout)
-                                .setCancelable(false)
-                                .create()
-
-                            val positiveButton = customLayout.findViewById<AppCompatButton>(R.id.dialog_positive_button)
-                            val negativeButton = customLayout.findViewById<AppCompatButton>(R.id.dialog_negative_button)
-
-                            positiveButton.setOnClickListener {
-                                cartItemsRef.removeValue().addOnSuccessListener {
-                                    addItemToCartWithoutCheck1()
-                                    dialog.dismiss()
-                                }
-                            }
-
-                            negativeButton.setOnClickListener {
-                                quantityLiveData.value = 0
-                                updateQuantityText(0)
-                                dialog.dismiss()
-                            }
-                            dialog.setOnKeyListener { _, keyCode, event ->
-                                if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
-                                    ToastHelper.showCustomToast(context, "Please select Yes or No")
-                                    true
-                                } else {
-                                    false
-                                }
-                            }
-                            dialog.show()
-                        } else {
-                            addItemToCartWithoutCheck()
-                        }
-                    }
-
-                    override fun onCancelled(databaseError: DatabaseError) {
-                        // Handle error
-                    }
-                })
-            }
-        }
-        private fun addItemToCartWithoutCheck1() {
-            val database = FirebaseDatabase.getInstance().reference
-            val userId = FirebaseAuth.getInstance().currentUser?.uid
-            val shopName = binding.shopname.text.toString()
-            val foodName =
-                binding.menuFoodName1.text.toString() + binding.menuFoodName2.text.toString()
-            val foodPrice = binding.menuPrice1.text.toString().removePrefix("₹")
-            val foodImage = binding.nearImage.tag.toString()
-            val quantity = quantityLiveData.value ?: 1
-
-            if (userId != null && foodName.isNotEmpty() && foodPrice.isNotEmpty() && foodImage.isNotEmpty()) {
-                val cartItemsRef = database.child("user").child(userId).child("cartItems")
-
-                cartItemsRef.orderByChild("foodName").equalTo(foodName)
-                    .addListenerForSingleValueEvent(object : ValueEventListener {
-                        override fun onDataChange(dataSnapshot: DataSnapshot) {
-                            if (dataSnapshot.exists()) {
-                                // Item already in cart, update quantity
-                                for (cartSnapshot in dataSnapshot.children) {
-                                    val currentQuantity =
-                                        cartSnapshot.child("foodQuantity").getValue(Int::class.java)
-                                            ?: 1
-                                    val newQuantity = currentQuantity - 1
-                                    cartSnapshot.ref.child("foodQuantity").setValue(newQuantity)
+                                if (key != null) {
+                                    cartItemsRef.child(key).setValue(cartItem)
                                         .addOnSuccessListener {
+                                            // Store UnitQuantity as well
+                                            cartItemsRef.child(key).child("UnitQuantity").setValue(unitQuantityString)
+                                                .addOnSuccessListener {
+                                                    ToastHelper.showCustomToast(
+                                                        context,
+                                                        "Item added to cart successfully"
+                                                    )
+                                                }
+                                                .addOnFailureListener {
+                                                    ToastHelper.showCustomToast(
+                                                        context,
+                                                        "Failed to add UnitQuantity to cart"
+                                                    )
+                                                }
+                                        }
+                                        .addOnFailureListener {
                                             ToastHelper.showCustomToast(
                                                 context,
-                                                "Item quantity updated in cart successfully"
-                                            )
-                                            clearCartAndNotify()
-                                        }.addOnFailureListener {
-                                            ToastHelper.showCustomToast(
-                                                context,
-                                                "Failed to update item quantity"
+                                                "Failed to add item to cart"
                                             )
                                         }
                                 }
-                            } else {
-                                // Item not in cart, add new item
-
-                                val cartItem = CartItems(
-                                    shopName,
-                                    foodName,
-                                    foodPrice,
-                                    foodDescription,
-                                    foodImage,
-                                    quantity
-                                )
-                                cartItemsRef.push().setValue(cartItem)
-                                    .addOnSuccessListener {
-                                        ToastHelper.showCustomToast(
-                                            context,
-                                            "Item added to cart successfully"
-                                        )
-                                    }
-                                    .addOnFailureListener {
-                                        ToastHelper.showCustomToast(
-                                            context,
-                                            "Failed to add item to cart"
-                                        )
-                                    }
                             }
                         }
 
                         override fun onCancelled(databaseError: DatabaseError) {
                             // Handle error
+                            ToastHelper.showCustomToast(
+                                context,
+                                "Database error: ${databaseError.message}"
+                            )
                         }
                     })
             }
@@ -640,6 +542,9 @@ class NearItemAdapter(
             putString("MenuItemDescription", menuItem.foodDescription)
             putString("MenuItemImage", menuItem.foodImage)
             putString("MenuQuantity", menuItem.productQuantity)
+            putString("Shop Id",menuItem.path)
+            putString("key", menuItem.key)
+
         }
 
         // Navigate to the details fragment using NavController

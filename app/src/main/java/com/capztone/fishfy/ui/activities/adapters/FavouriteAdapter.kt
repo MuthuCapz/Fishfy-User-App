@@ -77,6 +77,8 @@ class FavouriteAdapter(
                 putString("MenuItemDescription", menuItem.foodDescription)
                 putString("MenuItemImage", menuItem.foodImage)
                 putString("MenuQuantity", menuItem.productQuantity)
+                putString("Shop Id",menuItem.path)
+                putString("key", menuItem.key)
             }
 
             // Navigate to the details fragment using NavController

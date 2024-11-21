@@ -12,9 +12,13 @@
     <color name="endColor">#15BE77</color>
     <color name="bgColor">#D4DBE0</color>
     <color name="liteblue">#D1E5F4</color>
+    <color name="lash">#E9E9EF</color>
+
     <color name="liteblue1">#E5F3FD</color>
     <color name="iconColor">#FEAD1D</color>
     <color name="yellow">#EDF48A</color>
+    <color name="gray">#6A6969</color>
+
     <!-- res/values/colors.xml -->
 
 
@@ -24,6 +28,8 @@
     <color name="lblue">#EAEAED</color>
     <color name="blue">#4274DF</color>
     <color name="navy">#ff512f</color>
+    <color name="light_navy">#BAF1A5</color>
+
     <color name="lred">#FAE3E7</color>
     <color name="navy1">#0B53F1</color>
     <color name="Dnavy">#010927</color>

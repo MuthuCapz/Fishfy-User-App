@@ -5,89 +5,81 @@ import android.os.Parcelable
 
 class OrderDetails() : Parcelable {
     var userUid: String? = null
-
     var foodNames: MutableList<String>? = null
-    var foodPrices: MutableList<String>? = null
+    var foodPrices: MutableList<Double>? = null
     var foodImage: MutableList<String>? = null
     var foodQuantities: MutableList<Int>? = null
     var address: String? = null
-
-    var orderAccepted: Boolean = true
-
+    var skuUnitQuantities: MutableList<String>? = null // Only unit quantities stored
+    var PaymentReceived: Boolean = true
     var itemPushKey: String? = null
-    var currentTime: String? = null
-
     var adjustedTotalAmount: String? = null
     var orderDate: String? = null
     var ShopNames: MutableList<String>? = null
     var selectedSlot: String? = null
-    var fooddescription: MutableList<String>? = null// Make sure it's mutable if needed
+    var fooddescription: MutableList<String>? = null
+    var skuList: MutableList<String>? = null
 
     constructor(parcel: Parcel) : this() {
         userUid = parcel.readString()
-         address = parcel.readString()
-         orderAccepted = parcel.readByte() != 0.toByte()
-
+        address = parcel.readString()
+        PaymentReceived = parcel.readByte() != 0.toByte()
         itemPushKey = parcel.readString()
-        currentTime = parcel.readString()
-
         adjustedTotalAmount = parcel.readString()
         orderDate = parcel.readString()
         ShopNames = parcel.createStringArrayList()
         selectedSlot = parcel.readString()
-    // Read selectedSlot from parcel
+        fooddescription = parcel.createStringArrayList()?.toMutableList()
+        skuList = parcel.createStringArrayList()?.toMutableList()
+        skuUnitQuantities = parcel.createStringArrayList() // Read as integer list
     }
 
     constructor(
         userId: String?,
         foodItemName: MutableList<String>?,
-        foodItemPrice: MutableList<String>?,
+        foodItemPrice: ArrayList<Double>,
         foodItemImage: MutableList<String>?,
         foodItemQuantities: MutableList<Int>?,
         address: String?,
-        time: String?,
-
         adjustedTotalAmount: Int,
         itemPushKey: String?,
         orderDate: String?,
-        orderAccepted: Boolean,
-
+        PaymentReceived: Boolean,
         ShopNames: MutableList<String>?,
         selectedSlot: String?,
-        foodItemDescription: MutableList<String>?
-// Add selectedSlot to constructor
+        foodItemDescription: MutableList<String>?,
+        skuList: List<String>,
+        skuUnitQuantities: List<String> // Only unit quantities stored
     ) : this() {
         this.userUid = userId
-         this.foodNames = foodItemName
+        this.foodNames = foodItemName
         this.foodPrices = foodItemPrice
         this.foodImage = foodItemImage
         this.foodQuantities = foodItemQuantities
         this.address = address
-         this.currentTime = time
-
         this.adjustedTotalAmount = adjustedTotalAmount.toString()
         this.itemPushKey = itemPushKey
         this.orderDate = orderDate
-        this.orderAccepted = orderAccepted
-
+        this.PaymentReceived = PaymentReceived
         this.ShopNames = ShopNames
         this.selectedSlot = selectedSlot
-        this.fooddescription =  foodItemDescription
-// Initialize selectedSlot in the constructor
+        this.fooddescription = foodItemDescription
+        this.skuList = skuList.toMutableList()
+        this.skuUnitQuantities = skuUnitQuantities.toMutableList()
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(userUid)
-         parcel.writeString(address)
-         parcel.writeByte(if (orderAccepted) 1 else 0)
-
+        parcel.writeString(address)
+        parcel.writeByte(if (PaymentReceived) 1 else 0)
         parcel.writeString(itemPushKey)
-        parcel.writeString(currentTime)
-
         parcel.writeString(adjustedTotalAmount)
         parcel.writeString(orderDate)
         parcel.writeStringList(ShopNames)
-        parcel.writeString(selectedSlot) // Write selectedSlot to parcel
+        parcel.writeString(selectedSlot)
+        parcel.writeStringList(fooddescription)
+        parcel.writeStringList(skuList)
+        parcel.writeList(skuUnitQuantities) // Write unit quantities list
     }
 
     override fun describeContents(): Int {
