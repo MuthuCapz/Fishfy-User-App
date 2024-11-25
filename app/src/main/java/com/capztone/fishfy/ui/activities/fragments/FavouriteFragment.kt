@@ -6,6 +6,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -96,7 +97,15 @@ class FavouriteFragment : Fragment() {
                         for (dataSnapshot in snapshot.children) {
                             val menuItem = dataSnapshot.getValue(MenuItem::class.java)
                             if (menuItem != null && menuItem.favorite) {
-                                menuItem.firebaseKey = dataSnapshot.key // Ensure firebaseKey is set
+                                // Fetch the stock information from the database
+                                val stockStatus =
+                                    dataSnapshot.child("stock").getValue(String::class.java)
+
+                                // If stock data is available, assign it to the MenuItem
+                                menuItem.stock = stockStatus
+
+                                // Ensure firebaseKey is set
+                                menuItem.firebaseKey = dataSnapshot.key
                                 menuItems.add(menuItem)
                             }
                         }
@@ -105,10 +114,15 @@ class FavouriteFragment : Fragment() {
                     }
 
                     override fun onCancelled(error: DatabaseError) {
-                        // Handle database error
+                        // Handle the error appropriately
+                        Log.e(
+                            "FetchFavoriteItems",
+                            "Error fetching favorite items: ${error.message}"
+                        )
                     }
                 })
             }
+
         }
     }
 

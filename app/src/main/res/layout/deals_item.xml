@@ -10,6 +10,7 @@
     android:layout_marginBottom="8dp"
     android:layout_marginTop="8dp">
 
+
     <LinearLayout
         android:layout_width="130dp"
         android:layout_height="250dp"
@@ -45,7 +46,20 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:srcCompat="@tools:sample/avatars" />
-
+            <TextView
+                android:id="@+id/outOfStockLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Out of Stock"
+                android:fontFamily="@font/nunito"
+                android:textSize="15sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:textColor="@android:color/holo_red_dark"
+                android:visibility="gone"
+                android:layout_gravity="center" />
             <TextView
                 android:id="@+id/shopname"
                 android:layout_width="match_parent"
@@ -89,9 +103,12 @@
             android:textStyle="bold"
             app:layout_constraintTop_toBottomOf="@id/nearImage"
             tools:text="Food Name" />
+
 <LinearLayout
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:layout_marginStart="10dp"
+    android:layout_marginEnd="10dp"
     android:orientation="horizontal">
 
         <TextView
@@ -99,7 +116,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="left"
-            android:layout_marginStart="5dp"
             android:layout_marginTop="3dp"
             android:layout_marginBottom="10dp"
             android:fontFamily="@font/nunito"
@@ -118,12 +134,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="right"
-            android:layout_marginEnd="3dp"
             android:fontFamily="@font/nunito"
             android:gravity="center"
             android:lineHeight="20px"
             android:layout_marginStart="50dp"
-            android:text="₹300"
+            android:text="₹400"
             android:textColor="@color/black"
             android:textFontWeight="500"
             android:textSize="12sp"

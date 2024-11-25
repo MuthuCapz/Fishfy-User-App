@@ -10,7 +10,9 @@ data class MenuItem(
     var productQuantity:String?=null,
     var firebaseKey: String? = null,
     var path: String? = null,
-    var key: String? = null
+    var key: String? = null,
+    var stock: String? = null // Add this property
+
 
 )
 

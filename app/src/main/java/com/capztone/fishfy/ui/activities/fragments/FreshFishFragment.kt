@@ -84,6 +84,10 @@ class FreshFishFragment : Fragment() {
             menuItems?.let {
                 showAllMenu(it)
             }
+            if (menuItems.isNullOrEmpty()) {
+                binding.noproduct.visibility = View.VISIBLE
+
+            }
         }
     }
 

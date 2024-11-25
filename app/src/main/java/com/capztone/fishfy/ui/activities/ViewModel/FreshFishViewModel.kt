@@ -67,7 +67,8 @@ class FreshFishViewModel : ViewModel() {
 
                                                             // Add the combined name to the foodName list
                                                             it.foodName = arrayListOf(combinedName)
-
+                                                            val stockStatus = itemSnapshot.child("stock").getValue(String::class.java)
+                                                            it.stock = stockStatus
                                                             // Add the menuItem to the list
                                                             menuItems.add(it)
                                                         }

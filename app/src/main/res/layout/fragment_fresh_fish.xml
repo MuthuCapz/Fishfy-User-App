@@ -31,7 +31,20 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
+    <TextView
+        android:id="@+id/noproduct"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="No products in this category"
+        android:textColor="@color/black"
+        android:textSize="16sp"
+        android:fontFamily="@font/nunito"
+        android:textFontWeight="500"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
     <ScrollView
         android:id="@+id/scrollViewCart"
         android:layout_width="match_parent"

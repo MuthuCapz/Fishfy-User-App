@@ -54,6 +54,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import android.os.Handler
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.navigation.NavController
 import com.capztone.admin.utils.FirebaseAuthUtil
@@ -237,9 +238,13 @@ auth = FirebaseAuthUtil.auth
             startActivity(intent)
         }
         binding.tvLocality.setOnClickListener {
-            showPopupMenu(it)
+            val intent = Intent(requireContext(), LocationActivity::class.java)
+            startActivity(intent)
         }
-
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+            // Close the app smoothly
+            requireActivity().finishAffinity() // Closes all activities in the task
+        }
         // Assuming discountItems is your list of DiscountItem
         val adapter = HomeDiscountAdapter(requireContext())
         binding.discountrecycler.adapter = adapter
@@ -740,34 +745,64 @@ auth = FirebaseAuthUtil.auth
                                 // Ensure the sizes of all lists are consistent before accessing
                                 if (foodNamesList.isNotEmpty() && foodPricesList.isNotEmpty() && foodImagesList.isNotEmpty() && skuList.isNotEmpty() && skuQuantity.isNotEmpty()) {
                                     // Ensure all lists are of the same length
-                                    val listSize = minOf(foodNamesList.size, foodPricesList.size, foodImagesList.size,skuList.size,skuQuantity.size)
+                                    val listSize = minOf(foodNamesList.size, foodPricesList.size, foodImagesList.size, skuList.size, skuQuantity.size)
 
                                     // Only proceed if all lists have at least one element
                                     if (listSize > 0) {
-                                        // Create PreviousItem with the retrieved details
-                                        val order = PreviousItem(
-                                            foodName = foodNamesList[0],
-                                            foodPrice = foodPricesList[0],
-                                            foodImage = foodImagesList[0],
-                                            key= skuList[0],
-                                            skuUnitQuantities = skuQuantity[0],
+                                        // Check all shops and categories for the SKUs
+                                        val shopsRef = FirebaseDatabase.getInstance().reference.child("Shops")
 
-                                            foodDescription = buyHistoryFoodDescriptions[0],
-                                            shopNames = buyHistoryShopName // Use the matched shop name
-                                        )
+                                        // Iterate over all shops
+                                        shopsRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                                            override fun onDataChange(shopsSnapshot: DataSnapshot) {
+                                                // Iterate through each shop
+                                                for (shopSnapshot in shopsSnapshot.children) {
+                                                    val shopName = shopSnapshot.key // Shop name (e.g., Shop1001)
 
-                                        // Wrap PreviousItem in OrderItem.Previous before adding to orders
-                                        orders.add(OrderItem.Previous(order))
+                                                    // Iterate through all categories under this shop
+                                                    for (categorySnapshot in shopSnapshot.children) {
+                                                        val categoryName = categorySnapshot.key // Category name (e.g., Fresh Fish)
+
+                                                        // Check each SKU in this category
+                                                        for (skuSnapshot in categorySnapshot.children) {
+                                                            val sku = skuSnapshot.key // SKU ID (e.g., Skuid)
+                                                            val stockStatus = skuSnapshot.child("stock").getValue(String::class.java)
+
+                                                            // Proceed only if the stock status is "In Stock" and SKU matches
+                                                            if (skuList.contains(sku) && stockStatus == "In Stock") {
+                                                                // Create PreviousItem with the retrieved details
+                                                                val order = PreviousItem(
+                                                                    foodName = foodNamesList[0],
+                                                                    foodPrice = foodPricesList[0],
+                                                                    foodImage = foodImagesList[0],
+                                                                    key = skuList[0],
+                                                                    skuUnitQuantities = skuQuantity[0],
+                                                                    foodDescription = buyHistoryFoodDescriptions[0],
+                                                                    shopNames = shopName // Use the matched shop name
+                                                                )
+
+                                                                // Wrap PreviousItem in OrderItem.Previous before adding to orders
+                                                                orders.add(OrderItem.Previous(order))
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                                // Update the adapter and UI visibility once the data is fetched
+                                                adapter1.updateData(orders)
+                                                updateBuyAgainVisibility(orders)
+                                            }
+
+                                            override fun onCancelled(error: DatabaseError) {
+                                                Log.e("ShopsCheck", "Error checking shops and categories: ${error.message}")
+                                            }
+                                        })
                                     }
                                 }
                             }
                         }
                     }
                 }
-
-                // Update the adapter and UI visibility
-                adapter1.updateData(orders)
-                updateBuyAgainVisibility(orders)
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -775,6 +810,7 @@ auth = FirebaseAuthUtil.auth
             }
         })
     }
+
 
     private fun updateBuyAgainVisibility(orders: MutableList<OrderItem>) {
         if (orders.isEmpty()) {
@@ -977,7 +1013,7 @@ auth = FirebaseAuthUtil.auth
                             override fun onDataChange(snapshot: DataSnapshot) {
                                 if (snapshot.exists()) {
                                     // Exclude the specific paths
-                                    val excludedPaths = setOf("Discount-items", "discount", "Products", "Shop name","Inventory")
+                                    val excludedPaths = setOf("Discount-items", "discount", "Products", "Shop name", "Inventory")
 
                                     for (menuSnapshot in snapshot.children) {
                                         if (menuSnapshot.key in excludedPaths) continue // Skip excluded paths
@@ -987,6 +1023,8 @@ auth = FirebaseAuthUtil.auth
                                             val menuItem = itemSnapshot.getValue(MenuItem::class.java)
                                             menuItem?.let {
                                                 it.path = shopName
+
+                                                // Handle food names based on user language
                                                 val foodNamesList = it.foodName ?: arrayListOf()
                                                 val englishName = foodNamesList.getOrNull(0) ?: ""
                                                 val languageSpecificName = when (userLanguage) {
@@ -998,6 +1036,11 @@ auth = FirebaseAuthUtil.auth
 
                                                 val combinedName = "$englishName / $languageSpecificName"
                                                 it.foodName = arrayListOf(combinedName)
+
+                                                // Handle stock logic
+                                                val stockStatus = itemSnapshot.child("stock").getValue(String::class.java)
+                                                it.stock = stockStatus // Assign stock to the menuItem
+
                                                 menuItems.add(it)
                                             }
                                         }
@@ -1027,6 +1070,7 @@ auth = FirebaseAuthUtil.auth
     private fun fetchMenuItem(shopName: String, onMenuItemsFetched: (List<MenuItem>) -> Unit) {
         val userId = auth.currentUser?.uid ?: return
         val menuItems = mutableListOf<MenuItem>()
+
         database.getReference("user").child(userId).child("language")
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(languageSnapshot: DataSnapshot) {
@@ -1057,7 +1101,19 @@ auth = FirebaseAuthUtil.auth
                                             }
 
                                             it.foodName = arrayListOf(combinedName)
-                                            menuItems.add(it)
+
+                                            // Retrieve stock status
+                                            val stockStatus = itemSnapshot.child("stock").getValue(String::class.java)
+                                            it.stock = stockStatus ?: "Unknown"
+
+                                            // Handle based on stock
+                                            if (stockStatus == "In Stock") {
+                                                menuItems.add(it)
+                                            } else {
+                                                // Optionally, you can add it and handle "Out of Stock" in the adapter
+                                                it.stock = "Out Of Stock"
+                                                menuItems.add(it)
+                                            }
                                         }
                                     }
 

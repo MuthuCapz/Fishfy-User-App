@@ -10,6 +10,8 @@ data class DiscountItem(
     val productQuantity:String?=null,
     var path: String? = null,
     var CartItemAddTime: String?=null,
-    var key:String?=null
+    var key:String?=null,
+    var stocks: String? = null // Add this property
+
 )
 

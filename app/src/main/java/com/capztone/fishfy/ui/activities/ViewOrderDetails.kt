@@ -176,6 +176,7 @@ binding.detailGoToBackImageButton.setOnClickListener {
             binding.orderstatus.setOnClickListener {
                 val intent = Intent(this@ViewOrderDetails, OrderStatusActivity::class.java)
                 intent.putExtra("itemPushKey", order.itemPushKey)
+                intent.putExtra("orderDate", order.orderDate)
                 startActivity(intent)
             }
             binding.radio.setOnClickListener {

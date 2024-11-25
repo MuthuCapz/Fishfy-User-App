@@ -124,12 +124,9 @@ class MainActivity : AppCompatActivity() {
             when (destination.id) {
                 R.id.shopOneFragment,
                 R.id.contactusActivity,
-                R.id.productSearchFragment,
                 R.id.freshFishFragment,
 
-                R.id.detailsFragment,
-
-                R.id.addressFragment -> {
+                R.id.detailsFragment-> {
                     bottomNav.visibility = View.GONE
                     binding.addcart.visibility = if (shouldShowCardView) View.VISIBLE else View.GONE
                     binding.showItemCardView.visibility = if (shouldShowCardView) View.VISIBLE else View.GONE
@@ -141,7 +138,11 @@ class MainActivity : AppCompatActivity() {
                     binding.showItemCardView.visibility = View.GONE
                     binding.addcart.visibility=View.GONE
                 }
-                R.id.accountFragment -> {
+                R.id.accountFragment ,
+                R.id.productSearchFragment,
+                R.id.contactusActivity,
+                R.id.addressFragment,
+                R.id.profilelanguageActivity, -> {
                     bottomNav.visibility = View.GONE
                     binding.showItemCardView.visibility = View.GONE
                     binding.addcart.visibility=View.GONE

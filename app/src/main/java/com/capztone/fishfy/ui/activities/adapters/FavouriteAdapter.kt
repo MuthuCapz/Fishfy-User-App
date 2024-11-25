@@ -60,13 +60,26 @@ class FavouriteAdapter(
                     updateFavoriteState(menuItem)
                 }
 
-                binding.root.setOnClickListener {
-                    val position = adapterPosition
-                    if (position != RecyclerView.NO_POSITION) {
-                        openDetailsActivity(it, position)
+                if (menuItem.stock == "Out Of Stock") {
+                    binding.root.alpha = 0.4f // Make item semi-transparent
+                    binding.outOfStockLabel.visibility = View.VISIBLE
+                    binding.outOfStockLabel.text = "Out Of Stock"
+                    binding.root.isClickable = false
+                    binding.root.isFocusable = false
+
+                } else {
+                    binding.root.alpha = 1.0f // Normal opacity
+                    binding.outOfStockLabel.visibility = View.GONE
+                    binding.root.isClickable = true
+                    binding.root.isFocusable = true
+                    binding.root.setOnClickListener {
+                        val position = adapterPosition
+                        if (position != RecyclerView.NO_POSITION) {
+                            openDetailsActivity(it, position)
+                        }
                     }
                 }
-            }
+                }
         }
 
         private fun openDetailsActivity(view: View, position: Int) {

@@ -58,12 +58,26 @@ class HomeDiscountAdapter(
             shopRef.child("discount").addChildEventListener(object : ChildEventListener {
                 override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
                     try {
+                        // Fetch DiscountItem
                         val discountItem = snapshot.getValue(DiscountItem::class.java)
+
+                        // Get the stock information from the snapshot
+                        val stockStatus = snapshot.child("stocks").getValue(String::class.java)
+
                         discountItem?.let {
+                            // Set stock status to DiscountItem
+                            it.stocks = stockStatus
+
+                            // Add the item to the list
                             discountItems.add(it)
+
+                            // Assign path to the DiscountItem
                             it.path = shopName
+
+                            // Notify the adapter that data has changed
                             notifyDataSetChanged()
-                            Log.d("HomeDiscountAdapter", "Added item: $it")
+
+                            Log.d("HomeDiscountAdapter", "Added item: $it with stock: $stockStatus")
                         }
                     } catch (e: Exception) {
                         Log.e("HomeDiscountAdapter", "Error parsing discount item: ${e.message}")
@@ -88,6 +102,7 @@ class HomeDiscountAdapter(
             })
         }
     }
+
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HomeDiscountViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -302,12 +317,30 @@ class HomeDiscountAdapter(
                             }
                         })
 
-                        binding.root.setOnClickListener {
-                            val position = adapterPosition
-                            if (position != RecyclerView.NO_POSITION) {
-                                openDetailsActivity(discountItem, it)
+                        if (discountItem.stocks == "Out Of Stock") {
+                            binding.root.alpha = 0.4f // Make item semi-transparent
+                            binding.outOfStockLabel.visibility = View.VISIBLE
+                            binding.outOfStockLabel.text = "Out Of Stock"
+                            binding.root.isClickable = false
+                            binding.root.isFocusable = false
+                            binding.minusImageButton.isClickable=false
+                            binding.plusImageButton.isClickable=false
+                            binding.quantityy.isClickable=false
+                        } else {
+                            binding.root.alpha = 1.0f // Normal opacity
+                            binding.outOfStockLabel.visibility = View.GONE
+                            binding.root.isClickable = true
+                            binding.root.isFocusable = true
+                            binding.root.setOnClickListener {
+                                val position = adapterPosition
+                                if (position != RecyclerView.NO_POSITION) {
+                                    openDetailsActivity(discountItem,it)
+                                }
                             }
+
                         }
+
+
                     }
 
                     override fun onCancelled(error: DatabaseError) {

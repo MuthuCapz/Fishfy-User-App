@@ -22,9 +22,11 @@
 
     <TextView
         android:id="@+id/fish_label"
-        android:layout_width="wrap_content"
+        android:layout_width="90dp"
         android:layout_height="wrap_content"
         android:text="Fish"
+        android:ellipsize="end"
+        android:maxLines="1"
         android:fontFamily="@font/nunito"
         android:textColor="@color/black"
         android:textSize="12sp"

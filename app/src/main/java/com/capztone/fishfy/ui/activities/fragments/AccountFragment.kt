@@ -305,7 +305,7 @@ auth = FirebaseAuthUtil.auth
                     if (task.isSuccessful) {
                         // Update mobile number if it's changed
                         val database = FirebaseDatabase.getInstance()
-                        val userDetailsRef = database.getReference("Locations").child(user.uid).child("User Details")
+                        val userDetailsRef = database.getReference("Addresses").child(user.uid).child("User Details")
 
                         userDetailsRef.child("user name").setValue(newName)
                         userDetailsRef.child("mobile number").setValue("+91$newMobile") // Save with +91 prefix

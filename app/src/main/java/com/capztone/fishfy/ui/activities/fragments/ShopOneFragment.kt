@@ -97,6 +97,11 @@ class ShopOneFragment : Fragment() {
 
 
             }
+            if (menuItems.isEmpty()) {
+                binding.popularRecyclerView.visibility = View.GONE
+
+
+            }
         }
 
         setupMenuRecyclerView(binding.popularRecyclerView)

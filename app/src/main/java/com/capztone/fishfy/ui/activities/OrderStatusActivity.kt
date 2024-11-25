@@ -22,14 +22,19 @@ class OrderStatusActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityOrderStatusBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        val itemPushKey = intent.getStringExtra("itemPushKey")
+        val orderDate = intent.getStringExtra("orderDate")
+        binding.orderId.text="Order Id: $itemPushKey"
+        binding.orderDate.text="Order Date: $orderDate"
 
-
-        itemPushKey = intent.getStringExtra("itemPushKey") ?: ""
+binding.backArrow.setOnClickListener {
+    finish()
+}
         viewModel = ViewModelProvider(this).get(OrderStatusViewModel::class.java)
-        viewModel.init(itemPushKey, binding)
-
-        binding.detailGoToBackImageButton.setOnClickListener {
-            finish()
+        if (itemPushKey != null) {
+            viewModel.init(itemPushKey, binding)
         }
+
+
     }
 }

@@ -5,6 +5,7 @@ package com.capztone.fishfy.ui.activities.ViewModel
 import android.os.Build
 import android.view.View
 import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.airbnb.lottie.LottieAnimationView
@@ -26,9 +27,9 @@ class OrderStatusViewModel : ViewModel() {
         database = FirebaseDatabase.getInstance().reference
         orderDeliveredAnimationView = binding.deliverylottie
 
+
         observeOrderStatusChanges()
         observeEstimatedTimeChanges()
-        observeTimestampChanges()
         observeUsernameChanges()
     }
 
@@ -39,6 +40,16 @@ class OrderStatusViewModel : ViewModel() {
                     @RequiresApi(Build.VERSION_CODES.O)
                     override fun onDataChange(dataSnapshot: DataSnapshot) {
                         val status = dataSnapshot.child("message").getValue(String::class.java)
+
+                        val picked =
+                            dataSnapshot.child("pickedDate").getValue(String::class.java)
+                        binding.pickDate.text =  picked
+                        val deliver =
+                            dataSnapshot.child("deliveredDate").getValue(String::class.java)
+                        binding.deliDate.text =  deliver
+                        val confirm =
+                            dataSnapshot.child("confirmDate").getValue(String::class.java)
+                        binding.confirmDate.text =  confirm
                         updateUI(status)
                     }
 
@@ -49,6 +60,29 @@ class OrderStatusViewModel : ViewModel() {
         }
     }
 
+    private fun updateUI(status: String?) {
+        when (status) {
+            "Order picked" -> {
+                // Show line from Confirmed to Picked
+                binding.lineConfirmToPicked.visibility = View.VISIBLE
+            }
+            "Order delivered" -> {
+                // Show line from Picked to Delivered
+                binding.linePickedToDelivered.visibility = View.VISIBLE
+                binding.lineConfirmToPicked.visibility = View.VISIBLE
+                orderDeliveredAnimationView.visibility = View.VISIBLE
+                orderDeliveredAnimationView.playAnimation()
+
+            }
+            else -> {
+                // Hide lines for other statuses
+                binding.linePickedToDelivered.visibility = View.GONE
+                orderDeliveredAnimationView.visibility = View.GONE
+
+            }
+        }
+    }
+
     private fun observeEstimatedTimeChanges() {
         viewModelScope.launch(Dispatchers.IO) {
             database.child("OrderDetails").child(itemPushKey).child("Estimated Time")
@@ -56,7 +90,10 @@ class OrderStatusViewModel : ViewModel() {
                     override fun onDataChange(dataSnapshot: DataSnapshot) {
                         val estimatedTime =
                             dataSnapshot.child("estimated_time").getValue(String::class.java)
-                        binding.estimatedtime.text = estimatedTime ?: "Waiting for Update"
+                        binding.estimatedtime.text = "Estimated Time: ${estimatedTime ?: "Waiting for Update"}"
+
+
+
                     }
 
                     override fun onCancelled(databaseError: DatabaseError) {
@@ -73,6 +110,7 @@ class OrderStatusViewModel : ViewModel() {
                         val username = dataSnapshot.getValue(String::class.java)
                         val displayText = "The order was taken by ${username ?: "..."}"
                         binding.username.text = displayText
+
                     }
 
                     override fun onCancelled(databaseError: DatabaseError) {
@@ -82,52 +120,5 @@ class OrderStatusViewModel : ViewModel() {
         }
     }
 
-
-    private fun observeTimestampChanges() {
-        viewModelScope.launch(Dispatchers.IO) {
-            database.child("OrderDetails").child(itemPushKey).child("Status").child("timestamp")
-                .addValueEventListener(object : ValueEventListener {
-                    override fun onDataChange(dataSnapshot: DataSnapshot) {
-                        val timestamp = dataSnapshot.getValue(String::class.java)
-                        val formattedTimestamp = timestamp ?: ""
-                        binding.delitime.text = "Delivered Time: $formattedTimestamp"
-                        if (timestamp != null) {
-                            binding.delitime.visibility = View.VISIBLE
-                            orderDeliveredAnimationView.visibility = View.VISIBLE
-                            orderDeliveredAnimationView.playAnimation()
-                        } else {
-                            binding.delitime.visibility = View.INVISIBLE
-                            orderDeliveredAnimationView.visibility = View.INVISIBLE
-                        }
-                    }
-
-                    override fun onCancelled(databaseError: DatabaseError) {
-                        // Handle error
-                    }
-                })
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun updateUI(status: String?) {
-        when (status) {
-            "Order confirmed" -> {
-                binding.confirmtick.setImageResource(android.R.drawable.checkbox_on_background)
-            }
-
-            "Order picked" -> {
-                binding.picktick.setImageResource(android.R.drawable.checkbox_on_background)
-            }
-
-            "Order delivered" -> {
-                binding.delivertick.setImageResource(android.R.drawable.checkbox_on_background)
-            }
-
-            else -> {
-                binding.confirmtick.setImageResource(0)
-                binding.picktick.setImageResource(0)
-                binding.delivertick.setImageResource(0)
-            }
-        }
-    }
+ 
 }

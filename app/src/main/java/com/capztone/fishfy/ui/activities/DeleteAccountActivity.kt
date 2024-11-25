@@ -55,7 +55,7 @@ auth = FirebaseAuthUtil.auth
         }
 
         binding.textview111.setOnClickListener {
-            val url = "https://www.capztone.com/privacy-policy.html"
+            val url = "https://www.astracape.com/privacy-policy.html"
             val intent = Intent(Intent.ACTION_VIEW).apply {
                 data = Uri.parse(url)
             }
