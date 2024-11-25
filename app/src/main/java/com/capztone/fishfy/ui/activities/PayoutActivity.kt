@@ -614,7 +614,7 @@ auth = FirebaseAuthUtil.auth
             val cartItemReference = databaseReference.child("user").child(uid).child("cartItems")
             cartItemReference.removeValue().addOnSuccessListener {
                 // Handle success
-                Toast.makeText(this, "Cart item removed successfully", Toast.LENGTH_SHORT).show()
+
             }.addOnFailureListener { error ->
                 // Handle failure
                 Toast.makeText(this, "Failed to remove cartitems 😒", Toast.LENGTH_SHORT).show()
@@ -629,7 +629,7 @@ auth = FirebaseAuthUtil.auth
             val cartItemReference = databaseReference.child("Home").child(uid).child("cartItems")
             cartItemReference.removeValue().addOnSuccessListener {
                 // Handle success
-                Toast.makeText(this, "Cart item removed successfully", Toast.LENGTH_SHORT).show()
+
             }.addOnFailureListener { error ->
                 // Handle failure
                 Toast.makeText(this, "Failed to remove cartitems 😒", Toast.LENGTH_SHORT).show()
